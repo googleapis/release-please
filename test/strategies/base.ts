@@ -13,12 +13,14 @@
 // limitations under the License.
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
+import '../../src/manifest';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {BaseStrategy} from '../../src/strategies/base';
 import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
 import {PullRequestBody} from '../../src/util/pull-request-body';
+import {Version} from '../../src/version';
 import snapshot = require('snap-shot-it');
 import {
   dateSafe,
@@ -451,6 +453,97 @@ describe('Strategy', () => {
       });
       expect(release, 'Release').to.not.be.undefined;
       expect(release!.tag.toString()).to.eql('1.2.3');
+    });
+    it('skips v in release name', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: false,
+        includeVInReleaseName: false,
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release v1.2.3',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release, 'Release').to.not.be.undefined;
+      expect(release!.name).to.eql('1.2.3');
+    });
+    it('skips v in release name with component', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: true,
+        includeVInReleaseName: false,
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release v1.2.3',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release, 'Release').to.not.be.undefined;
+      expect(release!.name).to.eql('google-cloud-automl: 1.2.3');
+    });
+    it('includes v in release name by default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: false,
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release v1.2.3',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release, 'Release').to.not.be.undefined;
+      expect(release!.name).to.eql('v1.2.3');
+    });
+    it('skips release if branch component does not match strategy branch component', async () => {
+      class TestStrategyWithBranchComponent extends TestStrategy {
+        async getBranchComponent() {
+          return 'pubsub-v2';
+        }
+      }
+      const strategy = new TestStrategyWithBranchComponent({
+        targetBranch: 'main',
+        github,
+        component: 'pubsub',
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release pubsub v2.0.0',
+        headBranchName: 'release-please--branches--main--components--pubsub',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([
+          {
+            component: 'pubsub',
+            version: Version.parse('2.0.0'),
+            notes: 'some notes',
+          },
+        ]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release).to.be.undefined;
     });
   });
 });

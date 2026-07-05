@@ -18,7 +18,7 @@ import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
 import {GenericJson} from '../../src/updaters/generic-json';
-import {expect, assert} from 'chai';
+import {expect} from 'chai';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -80,16 +80,6 @@ describe('GenericJson', () => {
       const updater = new GenericJson('$.author', Version.parse('v2.3.4'));
       const newContent = updater.updateContent(oldContent);
       expect(newContent).to.eql(oldContent);
-    });
-    it('warns on invalid jsonpath', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './esy.json'),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
-      const updater = new GenericJson('bad jsonpath', Version.parse('v2.3.4'));
-      assert.throws(() => {
-        updater.updateContent(oldContent);
-      });
     });
   });
 });

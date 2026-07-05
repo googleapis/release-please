@@ -18,6 +18,7 @@ import {
   buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
+  assertNoHasUpdate,
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
@@ -179,6 +180,25 @@ describe('Sfdx', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'sfdx-project.json', SfdxProjectJson);
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Sfdx({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl-pkg',
+        skipChangelog: true,
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'sfdx-project.json', SfdxProjectJson);
     });
   });

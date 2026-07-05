@@ -14,24 +14,44 @@
 
 // Generic
 import {Changelog} from '../updaters/changelog';
-import {BaseStrategy, BuildUpdatesOptions} from './base';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
+import {VersionGo} from '../updaters/go/version-go';
 
 export class Go extends BaseStrategy {
+  readonly versionFile: string;
+
+  constructor(options: BaseStrategyOptions) {
+    super(options);
+    this.versionFile = options.versionFile ?? '';
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
     const updates: Update[] = [];
     const version = options.newVersion;
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    !this.skipChangelog &&
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
+
+    // If a version file is specified, update it
+    if (this.versionFile) {
+      updates.push({
+        path: this.addPath(this.versionFile),
+        createIfMissing: false,
+        updater: new VersionGo({
+          version,
+        }),
+      });
+    }
 
     return updates;
   }

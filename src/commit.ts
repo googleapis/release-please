@@ -25,12 +25,19 @@ import * as parser from '@conventional-commits/parser';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsFilter = require('conventional-commits-filter');
 
+export interface CommitAuthor {
+  name: string;
+  email?: string;
+  username?: string;
+}
+
 export interface Commit {
   sha: string;
   message: string;
   files?: string[];
   pullRequest?: PullRequest;
   authors?: string[];
+  author?: CommitAuthor;
 }
 
 export interface ConventionalCommit extends Commit {
@@ -170,6 +177,19 @@ function toConventionalChangelogFormat(
       }
     }
   );
+
+  // Add additional breaking change detection from commit body
+  if (body) {
+    const bodyString = String(body);
+    const breakingChangeMatch = bodyString.match(/BREAKING-CHANGE:\s*(.*)/);
+    if (breakingChangeMatch && breakingChangeMatch[1]) {
+      if (breaking.text) {
+        breaking.text += '\n';
+      }
+      breaking.text += breakingChangeMatch[1].trim();
+    }
+  }
+
   if (breaking.text !== '') headerCommit.notes.push(breaking);
 
   // Populates references array from footers:
@@ -314,6 +334,22 @@ function postProcessCommits(commit: parser.ConventionalChangelogCommit) {
     }
     note.text = text.trim();
   });
+
+  const breakingChangeMatch = commit.body?.match(/BREAKING-CHANGE:\s*(.*)/);
+  if (breakingChangeMatch && breakingChangeMatch[1]) {
+    const existingNote = commit.notes.find(
+      note => note.title === 'BREAKING CHANGE'
+    );
+    if (existingNote) {
+      existingNote.text += `\n${breakingChangeMatch[1].trim()}`;
+    } else {
+      commit.notes.push({
+        title: 'BREAKING CHANGE',
+        text: breakingChangeMatch[1].trim(),
+      });
+    }
+  }
+
   return commit;
 }
 
@@ -339,21 +375,32 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
   ).map(postProcessCommits);
 }
 
-// If someone wishes to aggregate multiple, complex commit messages into a
-// single commit, they can include one or more `BEGIN_NESTED_COMMIT`/`END_NESTED_COMMIT`
-// blocks into the body of the commit
+/**
+ * Splits a commit message into multiple messages based on conventional commit format and nested commit blocks.
+ * This function is capable of:
+ * 1. Separating conventional commits (feat, fix, docs, etc.) within the main message.
+ * 2. Extracting nested commits enclosed in BEGIN_NESTED_COMMIT/END_NESTED_COMMIT blocks.
+ * 3. Preserving the original message structure outside of nested commit blocks.
+ * 4. Handling multiple nested commits and conventional commits in a single message.
+ *
+ * @param message The input commit message string
+ * @returns An array of individual commit messages
+ */
 function splitMessages(message: string): string[] {
   const parts = message.split('BEGIN_NESTED_COMMIT');
   const messages = [parts.shift()!];
   for (const part of parts) {
     const [newMessage, ...rest] = part.split('END_NESTED_COMMIT');
     messages.push(newMessage);
-    // anthing outside of the BEGIN/END annotations are added to the original
-    // commit
-    messages[0] = messages[0] + rest.join();
+    messages[0] = messages[0] + rest.join('END_NESTED_COMMIT');
   }
 
-  return messages;
+  const conventionalCommits = messages[0]
+    .split(
+      /\r?\n\r?\n(?=(?:feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(.*?\))?: )/
+    )
+    .filter(Boolean);
+  return [...conventionalCommits, ...messages.slice(1)];
 }
 
 /**

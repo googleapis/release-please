@@ -68,7 +68,7 @@ describe('PrereleaseVersioningStrategy', () => {
       for (const old in expectedBumps) {
         const expected = expectedBumps[old];
         it(`can bump ${old} to ${expected}`, async () => {
-          const strategy = new PrereleaseVersioningStrategy();
+          const strategy = new PrereleaseVersioningStrategy({prerelease: true});
           const oldVersion = Version.parse(old);
           const newVersion = await strategy.bump(oldVersion, commits);
           expect(newVersion.toString()).to.equal(expected);
@@ -76,6 +76,7 @@ describe('PrereleaseVersioningStrategy', () => {
       }
       it('can bump a minor pre major for breaking change', async () => {
         const strategy = new PrereleaseVersioningStrategy({
+          prerelease: true,
           bumpMinorPreMajor: true,
         });
         const oldVersion = Version.parse('0.1.2');
@@ -109,6 +110,7 @@ describe('PrereleaseVersioningStrategy', () => {
         const expected = expectedBumps[old];
         it(`can bump ${old} to ${expected}`, async () => {
           const strategy = new PrereleaseVersioningStrategy({
+            prerelease: true,
             prereleaseType: 'beta',
           });
           const oldVersion = Version.parse(old);
@@ -118,6 +120,7 @@ describe('PrereleaseVersioningStrategy', () => {
       }
       it('can bump a minor pre major for breaking change', async () => {
         const strategy = new PrereleaseVersioningStrategy({
+          prerelease: true,
           bumpMinorPreMajor: true,
           prereleaseType: 'beta',
         });
@@ -125,6 +128,29 @@ describe('PrereleaseVersioningStrategy', () => {
         const newVersion = await strategy.bump(oldVersion, commits);
         expect(newVersion.toString()).to.equal('0.2.0-beta');
       });
+    });
+    describe('without prerelease property', () => {
+      const expectedBumps: Record<string, string> = {
+        '1.2.3': '2.0.0',
+        // beta01 indicates that there had to be a breaking change with prerelease=true.
+        // e.g. coong from 0.1.0 -> feat! (prerelease=True) -> 1.0.0-beta01 -> prerelease=False -> 1.0.0
+        '1.0.0-beta01': '1.0.0',
+        '1.1.0-beta01': '2.0.0',
+        '1.3.0-alpha': '2.0.0',
+        '1.3.0-alpha.1': '2.0.0',
+      };
+      for (const old in expectedBumps) {
+        const expected = expectedBumps[old];
+        it(`can bump ${old} to ${expected}`, async () => {
+          const strategy = new PrereleaseVersioningStrategy({
+            prerelease: false,
+            prereleaseType: 'beta',
+          });
+          const oldVersion = Version.parse(old);
+          const newVersion = await strategy.bump(oldVersion, commits);
+          expect(newVersion.toString()).to.equal(expected);
+        });
+      }
     });
   });
 
@@ -177,7 +203,7 @@ describe('PrereleaseVersioningStrategy', () => {
       for (const old in expectedBumps) {
         const expected = expectedBumps[old];
         it(`can bump ${old} to ${expected}`, async () => {
-          const strategy = new PrereleaseVersioningStrategy();
+          const strategy = new PrereleaseVersioningStrategy({prerelease: true});
           const oldVersion = Version.parse(old);
           const newVersion = await strategy.bump(oldVersion, commits);
           expect(newVersion.toString()).to.equal(expected);
@@ -185,6 +211,7 @@ describe('PrereleaseVersioningStrategy', () => {
       }
       it('can bump a patch pre-major', async () => {
         const strategy = new PrereleaseVersioningStrategy({
+          prerelease: true,
           bumpPatchForMinorPreMajor: true,
         });
         const oldVersion = Version.parse('0.1.2');
@@ -218,6 +245,7 @@ describe('PrereleaseVersioningStrategy', () => {
         const expected = expectedBumps[old];
         it(`can bump ${old} to ${expected}`, async () => {
           const strategy = new PrereleaseVersioningStrategy({
+            prerelease: true,
             prereleaseType: 'beta',
           });
           const oldVersion = Version.parse(old);
@@ -227,6 +255,7 @@ describe('PrereleaseVersioningStrategy', () => {
       }
       it('can bump a patch pre-major', async () => {
         const strategy = new PrereleaseVersioningStrategy({
+          prerelease: true,
           bumpPatchForMinorPreMajor: true,
           prereleaseType: 'beta',
         });
@@ -234,6 +263,27 @@ describe('PrereleaseVersioningStrategy', () => {
         const newVersion = await strategy.bump(oldVersion, commits);
         expect(newVersion.toString()).to.equal('0.1.3-beta');
       });
+    });
+    describe('without prerelease property', () => {
+      const expectedBumps: Record<string, string> = {
+        '1.2.3': '1.3.0',
+        '1.0.0-beta01': '1.0.0',
+        '1.1.0-beta01': '1.1.0',
+        '1.3.0-alpha': '1.3.0',
+        '1.3.0-alpha.1': '1.3.0',
+      };
+      for (const old in expectedBumps) {
+        const expected = expectedBumps[old];
+        it(`can bump ${old} to ${expected}`, async () => {
+          const strategy = new PrereleaseVersioningStrategy({
+            prerelease: false,
+            prereleaseType: 'beta',
+          });
+          const oldVersion = Version.parse(old);
+          const newVersion = await strategy.bump(oldVersion, commits);
+          expect(newVersion.toString()).to.equal(expected);
+        });
+      }
     });
   });
 
@@ -277,7 +327,7 @@ describe('PrereleaseVersioningStrategy', () => {
       for (const old in expectedBumps) {
         const expected = expectedBumps[old];
         it(`can bump ${old} to ${expected}`, async () => {
-          const strategy = new PrereleaseVersioningStrategy();
+          const strategy = new PrereleaseVersioningStrategy({prerelease: true});
           const oldVersion = Version.parse(old);
           const newVersion = await strategy.bump(oldVersion, commits);
           expect(newVersion.toString()).to.equal(expected);
@@ -307,6 +357,28 @@ describe('PrereleaseVersioningStrategy', () => {
         const expected = expectedBumps[old];
         it(`can bump ${old} to ${expected}`, async () => {
           const strategy = new PrereleaseVersioningStrategy({
+            prerelease: true,
+            prereleaseType: 'beta',
+          });
+          const oldVersion = Version.parse(old);
+          const newVersion = await strategy.bump(oldVersion, commits);
+          expect(newVersion.toString()).to.equal(expected);
+        });
+      }
+    });
+    describe('without prerelease property', () => {
+      const expectedBumps: Record<string, string> = {
+        '1.2.3': '1.2.4',
+        '1.0.0-beta01': '1.0.0',
+        '1.1.0-beta01': '1.1.0',
+        '1.2.4-alpha': '1.2.4',
+        '1.2.4-alpha.1': '1.2.4',
+      };
+      for (const old in expectedBumps) {
+        const expected = expectedBumps[old];
+        it(`can bump ${old} to ${expected}`, async () => {
+          const strategy = new PrereleaseVersioningStrategy({
+            prerelease: false,
             prereleaseType: 'beta',
           });
           const oldVersion = Version.parse(old);
@@ -354,7 +426,7 @@ describe('PrereleaseVersioningStrategy', () => {
           breaking: false,
         },
       ];
-      const strategy = new PrereleaseVersioningStrategy();
+      const strategy = new PrereleaseVersioningStrategy({prerelease: true});
       const oldVersion = Version.parse('1.2.3');
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('3.1.2');
@@ -406,7 +478,7 @@ describe('PrereleaseVersioningStrategy', () => {
           breaking: true,
         },
       ];
-      const strategy = new PrereleaseVersioningStrategy();
+      const strategy = new PrereleaseVersioningStrategy({prerelease: true});
       const oldVersion = Version.parse('1.2.3');
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('3.1.2');

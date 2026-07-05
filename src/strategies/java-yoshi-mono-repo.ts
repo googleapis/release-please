@@ -30,6 +30,7 @@ import {
 import {ConventionalCommit} from '../commit';
 import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
+import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 import {filterCommits} from '../util/filter-commits';
 
 export class JavaYoshiMonoRepo extends Java {
@@ -130,6 +131,16 @@ export class JavaYoshiMonoRepo extends Java {
       this.targetBranch,
       this.path
     );
+    const versionFilesSearch = this.github.findFilesByFilenameAndRef(
+      'Version.java',
+      this.targetBranch,
+      this.path
+    );
+    const librarianFilesSearch = this.github.findFilesByFilenameAndRef(
+      'librarian.yaml',
+      this.targetBranch,
+      this.path
+    );
 
     const pomFiles = await pomFilesSearch;
     pomFiles.forEach(path => {
@@ -183,6 +194,31 @@ export class JavaYoshiMonoRepo extends Java {
       });
     });
 
+    const versionFiles = await versionFilesSearch;
+    versionFiles.forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new JavaUpdate({
+          version,
+          versionsMap,
+          isSnapshot: options.isSnapshot,
+        }),
+      });
+    });
+
+    const librarianFiles = await librarianFilesSearch;
+    librarianFiles.forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new LibrarianYamlUpdater({
+          version,
+          versionsMap,
+        }),
+      });
+    });
+
     this.extraFiles.forEach(extraFile => {
       if (typeof extraFile === 'object') {
         return;
@@ -199,14 +235,15 @@ export class JavaYoshiMonoRepo extends Java {
     });
 
     if (!options.isSnapshot) {
-      updates.push({
-        path: this.addPath(this.changelogPath),
-        createIfMissing: true,
-        updater: new Changelog({
-          version,
-          changelogEntry: options.changelogEntry,
-        }),
-      });
+      !this.skipChangelog &&
+        updates.push({
+          path: this.addPath(this.changelogPath),
+          createIfMissing: true,
+          updater: new Changelog({
+            version,
+            changelogEntry: options.changelogEntry,
+          }),
+        });
 
       // Bail early if the repository has no root changelog.json.
       // This file is used to opt into machine readable commits.

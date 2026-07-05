@@ -167,6 +167,7 @@ export class PHPYoshi extends BaseStrategy {
       : BranchName.ofTargetBranch(this.targetBranch);
     const updates = await this.buildUpdates({
       changelogEntry: releaseNotesBody,
+      skipChangelog: this.skipChangelog,
       newVersion,
       versionsMap,
       latestVersion: latestRelease?.tag.version,
@@ -256,14 +257,15 @@ export class PHPYoshi extends BaseStrategy {
     const version = options.newVersion;
     const versionsMap = options.versionsMap;
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    !this.skipChangelog &&
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
 
     // update VERSION file
     updates.push({

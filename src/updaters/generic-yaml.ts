@@ -14,7 +14,7 @@
 
 import {Updater} from '../update';
 import {Version} from '../version';
-import * as jp from 'jsonpath';
+import {JSONPath} from 'jsonpath-plus';
 import * as yaml from 'js-yaml';
 import {logger as defaultLogger, Logger} from '../util/logger';
 
@@ -55,12 +55,21 @@ export class GenericYaml implements Updater {
     // Update each document
     let modified = false;
     docs.forEach(data => {
-      const nodes = jp.apply(data, this.jsonpath, _val => {
-        return this.version.toString();
+      JSONPath({
+        resultType: 'all',
+        path: this.jsonpath,
+        json: data as any,
+        callback: (payload, _payloadType, _fullPayload) => {
+          if (typeof payload.value !== 'string') {
+            logger.warn(`No string in ${this.jsonpath}. Skipping.`);
+            return payload;
+          }
+
+          modified = true;
+          payload.parent[payload.parentProperty] = this.version.toString();
+          return payload;
+        },
       });
-      if (nodes && nodes.length) {
-        modified = true;
-      }
     });
 
     // If nothing was modified, return original content

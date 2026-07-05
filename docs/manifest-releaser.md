@@ -1,7 +1,7 @@
 # Manifest Driven release-please
 
 release-please can be setup to use source-controlled files containing releaser
-specific configuration (the `release-please-config.json`) as well package
+specific configuration (the `release-please-config.json`) as well as package
 version tracking (the `.release-please-manifest.json`).
 
 The motivation of the manifest-based releaser is support for monorepos:
@@ -100,7 +100,7 @@ merged into the default/configured branch.
 
 ```
 release-please will now use "1.1.1" as the last-released/current version for
-"path/to/pkg" and suggest the next version according to coventional commits it
+"path/to/pkg" and suggest the next version according to conventional commits it
 has found since the last merged release PR (or "bootstrap-sha" if this is the
 first run).
 
@@ -193,6 +193,10 @@ defaults (those are documented in comments)
   // Refer to the default conventional-changelog-writer template:
   // https://github.com/conventional-changelog/conventional-changelog/blob/83773c5e1a8874ea9809ca9db1dff60b7df1daae/packages/conventional-changelog-conventionalcommits/templates/commit.hbs
   "commit-partial-path": "path/to/my-file.hbs",
+  // include commit authors in changelog entries
+  // when true, appends (@username) or author name to each entry
+  // absence defaults to false
+  "include-commit-authors": true,
 
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
@@ -202,13 +206,33 @@ defaults (those are documented in comments)
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Prerelease" releases that have pre-major or prerelease versions.
   // absence defaults to false and all versions are fully Published.
-  "prerelease": true
+  // Works together with the "prerelease" versioning strategy, which creates a 
+  // prerelease-version (like 1.0.0-alpha.1) only if this setting is set to true.
+  // This allows to create prerelease-versions while working on pre-release branches - 
+  // once the development is done and the branch gets merged to main/release-branch
+  // a full-release can be done.
+  "prerelease": true,
+
+  // Force the creation of a Git tag for the release. This is particularly
+  // useful when `draft` is enabled. By default, GitHub does not create a Git
+  // tag for draft releases until they are published. This "lazy tag creation"
+  // behavior causes release-please to fail to find the previous release when
+  // running subsequent `release-pr` commands, potentially generating incorrect
+  // changelogs that include the entire commit history. Setting `force-tag-creation` to
+  // true ensures the tag is created immediately, allowing release-please to
+  // correctly identify the previous release.
+  // Absence defaults to false.
+  "force-tag-creation": true
 
   // Skip creating GitHub Releases
   // Absence defaults to false and Releases will be created. Release-Please still
   // requires releases to be tagged, so this option should only be used if you
   // have existing infrastructure to tag these releases.
   "skip-github-release": true,
+
+  // Skip updating the changelog.
+  // Absence defaults to false and the changelog will still be updated.
+  "skip-changelog"
 
   // when using the `node-workspace` plugin, package discovery forces all
   // local dependencies to be linked, even if the SemVer ranges don't match.
@@ -222,6 +246,13 @@ defaults (those are documented in comments)
   // single manifest release pull request
   // absence defaults to false and one pull request will be raised
   "separate-pull-requests": false,
+
+  // if true, always update existing pull requests when changes are added,
+  // instead of only when the release notes change.
+  // This option may increase the number of API calls used, but can be useful
+  // if pull requests must not be out-of-date with the base branch.
+  // absence defaults to false
+  "always-update": true,
 
   // sets the manifest pull request title for when releasing multiple packages
   // grouped together in the one pull request.
@@ -245,6 +276,12 @@ defaults (those are documented in comments)
   // a large number of individual packages, you may want to consider raising this
   // value, but it will increase the number of API calls used.
   "commit-search-depth": 500,
+
+  // Number of commits to fetch per API request when searching commit history.
+  // This controls the batch size for GraphQL pagination. Lower values result in
+  // more API calls but may help avoid timeouts. Higher values reduce API calls
+  // but each request takes longer. Defaults to 10.
+  "commit-batch-size": 10,
 
   // when creating multiple pull requests or releases, issue GitHub API requests
   // sequentially rather than concurrently, waiting for the previous request to

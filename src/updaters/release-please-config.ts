@@ -64,6 +64,7 @@ function releaserConfigToJsonConfig(
     'changelog-sections': config.changelogSections,
     'release-as': config.releaseAs,
     'skip-github-release': config.skipGithubRelease,
+    'skip-changelog': config.skipChangelog,
     draft: config.draft,
     prerelease: config.prerelease,
     'draft-pull-request': config.draftPullRequest,
@@ -71,17 +72,20 @@ function releaserConfigToJsonConfig(
     'release-label': config.releaseLabels?.join(','),
     'include-component-in-tag': config.includeComponentInTag,
     'include-v-in-tag': config.includeVInTag,
+    'include-v-in-release-name': config.includeVInReleaseName,
     'changelog-type': config.changelogType,
     'changelog-host': config.changelogHost,
     'commit-partial-path': config.commitPartialPath,
     'pull-request-title-pattern': config.pullRequestTitlePattern,
     'pull-request-header': config.pullRequestHeader,
     'pull-request-footer': config.pullRequestFooter,
+    'component-no-space': config.componentNoSpace,
     'separate-pull-requests': config.separatePullRequests,
     'tag-separator': config.tagSeparator,
     'extra-files': config.extraFiles,
     'version-file': config.versionFile,
     'snapshot-label': config.snapshotLabels?.join(','), // Java-only
+    'date-format': config.dateFormat,
   };
   return jsonConfig;
 }

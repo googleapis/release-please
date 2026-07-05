@@ -21,8 +21,10 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
+import * as codeSuggester from '../src/util/code-suggester';
 
-import {GH_API_URL, GitHub, GitHubRelease} from '../src/github';
+import {GitHub, GitHubRelease} from '../src/github';
+import {GitHubApi, GH_API_URL} from '../src/github-api';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
@@ -35,12 +37,12 @@ import {
 import {fail} from 'assert';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
-import * as codeSuggester from 'code-suggester';
-import {RawContent} from '../src/updaters/raw-content';
+import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {Commit} from '../src/commit';
 import {mockReleaseData, MockPullRequestOverflowHandler} from './helpers';
+const fetch = require('node-fetch');
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -65,6 +67,7 @@ describe('GitHub', () => {
       owner: 'fake',
       repo: 'fake',
       defaultBranch: 'main',
+      fetch,
     });
 
     // This shared nock will take care of some common requests.
@@ -80,6 +83,7 @@ describe('GitHub', () => {
         owner: 'some-owner',
         repo: 'some-repo',
         defaultBranch: 'some-branch',
+        fetch,
       });
       expect(github.repository.defaultBranch).to.eql('some-branch');
     });
@@ -91,18 +95,19 @@ describe('GitHub', () => {
       const github = await GitHub.create({
         owner: 'some-owner',
         repo: 'some-repo',
+        fetch,
       });
 
       expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
     });
 
     it('default agent is undefined when no proxy option passed ', () => {
-      expect(GitHub.createDefaultAgent('test_url')).eq(undefined);
+      expect(GitHubApi.createDefaultAgent('test_url')).eq(undefined);
     });
 
     it('should return a https agent', () => {
       expect(
-        GitHub.createDefaultAgent(GH_API_URL, {
+        GitHubApi.createDefaultAgent(GH_API_URL, {
           host: 'http://proxy.com',
           port: 3000,
         })
@@ -111,7 +116,7 @@ describe('GitHub', () => {
 
     it('should throw error when baseUrl is an invalid url', () => {
       expect(() => {
-        GitHub.createDefaultAgent('invalid_url', {
+        GitHubApi.createDefaultAgent('invalid_url', {
           host: 'http://proxy.com',
           port: 3000,
         });
@@ -120,7 +125,7 @@ describe('GitHub', () => {
 
     it('should return a http agent', () => {
       expect(
-        GitHub.createDefaultAgent('http://www.github.com', {
+        GitHubApi.createDefaultAgent('http://www.github.com', {
           host: 'http://proxy.com',
           port: 3000,
         })
@@ -826,6 +831,85 @@ describe('GitHub', () => {
       expect(release.draft).to.be.true;
     });
 
+    it('should create a draft release with forced tag', async () => {
+      req
+        .post('/repos/fake/fake/git/refs', body => {
+          expect(body.ref).to.eql('refs/tags/v1.2.3');
+          expect(body.sha).to.eql('abc123');
+          return true;
+        })
+        .reply(201, {
+          ref: 'refs/tags/v1.2.3',
+          object: {
+            sha: 'abc123',
+          },
+        });
+      req
+        .post('/repos/fake/fake/releases', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(200, {
+          tag_name: 'v1.2.3',
+          draft: true,
+          html_url: 'https://github.com/fake/fake/releases/v1.2.3',
+          upload_url:
+            'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
+          target_commitish: 'abc123',
+        });
+      const release = await github.createRelease(
+        {
+          tag: new TagName(Version.parse('1.2.3')),
+          sha: 'abc123',
+          notes: 'Some release notes',
+        },
+        {draft: true, forceTag: true}
+      );
+      req.done();
+      expect(release).to.not.be.undefined;
+      expect(release.tagName).to.eql('v1.2.3');
+      expect(release.sha).to.eql('abc123');
+      expect(release.draft).to.be.true;
+    });
+
+    it('should create a draft release with forced tag (already exists)', async () => {
+      req
+        .post('/repos/fake/fake/git/refs', body => {
+          expect(body.ref).to.eql('refs/tags/v1.2.3');
+          expect(body.sha).to.eql('abc123');
+          return true;
+        })
+        .reply(422, {
+          message: 'Reference already exists',
+        });
+      req
+        .post('/repos/fake/fake/releases', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(200, {
+          tag_name: 'v1.2.3',
+          draft: true,
+          html_url: 'https://github.com/fake/fake/releases/v1.2.3',
+          upload_url:
+            'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
+          target_commitish: 'abc123',
+        });
+      const release = await github.createRelease(
+        {
+          tag: new TagName(Version.parse('1.2.3')),
+          sha: 'abc123',
+          notes: 'Some release notes',
+        },
+        {draft: true, forceTag: true}
+      );
+      req.done();
+      expect(release).to.not.be.undefined;
+      expect(release.tagName).to.eql('v1.2.3');
+      expect(release.sha).to.eql('abc123');
+      expect(release.draft).to.be.true;
+    });
+
     it('should create a prerelease release', async () => {
       req
         .post('/repos/fake/fake/releases', body => {
@@ -928,133 +1012,88 @@ describe('GitHub', () => {
     });
   });
 
-  describe('createReleasePullRequest', () => {
-    it('should update file', async () => {
+  describe('createPullRequest', () => {
+    it('should not call getPullRequest when no code changes detected', async () => {
       const createPullRequestStub = sandbox
         .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
+        .resolves(0);
+      const getPullRequestStub = sandbox.stub(github, 'getPullRequest');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pullRequest = await (github as any).createPullRequest(
+        {
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          title: 'Release v1.0.0',
+          body: 'Release body',
+          labels: ['release-please'],
+        },
+        'main',
+        'commit message',
+        []
+      );
+
+      expect(pullRequest.number).to.eql(0);
+      sinon.assert.calledOnce(createPullRequestStub);
+      sinon.assert.notCalled(getPullRequestStub);
+    });
+  });
+
+  describe('buildChangeSet', () => {
+    it('should merge updates for the same file', async () => {
+      const manifestPath = '.release-please-manifest.json';
+      const initialContent = JSON.stringify(
+        {
+          path1: '1.0.0',
+          path2: '2.0.0',
+        },
+        null,
+        2
+      );
       sandbox
         .stub(github, 'getFileContentsOnBranch')
-        .withArgs('existing-file', 'main')
+        .withArgs(manifestPath, 'main')
         .resolves({
           sha: 'abc123',
-          content: 'somecontent',
-          parsedContent: 'somecontent',
+          content: Buffer.from(initialContent).toString('base64'),
+          parsedContent: initialContent,
           mode: '100644',
         });
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
-      const pullRequest = await github.createReleasePullRequest(
+
+      const updates = [
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
-          body: new PullRequestBody([]),
-          labels: [],
-          headRefName: 'release-please--branches--main',
-          draft: false,
-          updates: [
-            {
-              path: 'existing-file',
-              createIfMissing: false,
-              updater: new RawContent('some content'),
-            },
-          ],
+          path: manifestPath,
+          createIfMissing: false,
+          updater: new ReleasePleaseManifest({
+            version: Version.parse('1.1.0'),
+            versionsMap: new Map([['path1', Version.parse('1.1.0')]]),
+          }),
         },
-        'main'
-      );
-      expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
+        {
+          path: manifestPath,
+          createIfMissing: false,
+          updater: new ReleasePleaseManifest({
+            version: Version.parse('1.1.0'),
+            versionsMap: new Map(),
+          }),
+        },
+      ];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const changes = await (github as any).buildChangeSet(updates, 'main');
+
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(1);
-      expect(changes!.get('existing-file')).to.not.be.undefined;
-    });
-    it('should handle missing files', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
-      sandbox
-        .stub(github, 'getFileContentsOnBranch')
-        .withArgs('missing-file', 'main')
-        .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
-      const pullRequest = await github.createReleasePullRequest(
+      const updatedContent = changes!.get(manifestPath)!.content;
+      const expectedContent = JSON.stringify(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
-          body: new PullRequestBody([]),
-          labels: [],
-          headRefName: 'release-please--branches--main',
-          draft: false,
-          updates: [
-            {
-              path: 'missing-file',
-              createIfMissing: false,
-              updater: new RawContent('some content'),
-            },
-          ],
+          path1: '1.1.0',
+          path2: '2.0.0',
         },
-        'main'
+        null,
+        2
       );
-      expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
-      expect(changes).to.not.be.undefined;
-      expect(changes!.size).to.eql(0);
-    });
-    it('should create missing file', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
-      sandbox
-        .stub(github, 'getFileContentsOnBranch')
-        .withArgs('missing-file', 'main')
-        .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
-      const pullRequest = await github.createReleasePullRequest(
-        {
-          title: PullRequestTitle.ofTargetBranch('main'),
-          body: new PullRequestBody([]),
-          labels: [],
-          headRefName: 'release-please--branches--main',
-          draft: false,
-          updates: [
-            {
-              path: 'missing-file',
-              createIfMissing: true,
-              updater: new RawContent('some content'),
-            },
-          ],
-        },
-        'main'
-      );
-      expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
-      expect(changes).to.not.be.undefined;
-      expect(changes!.size).to.eql(1);
-      expect(changes!.get('missing-file')).to.not.be.undefined;
+      expect(updatedContent).to.eql(expectedContent);
     });
   });
 
@@ -1173,6 +1212,56 @@ describe('GitHub', () => {
         pullRequestOverflowHandler,
       });
       sinon.assert.calledOnce(handleOverflowStub);
+      req.done();
+    });
+  });
+
+  describe('graphqlRequest backoff', () => {
+    let clock: sinon.SinonFakeTimers;
+    let realSetInterval: typeof setInterval;
+    let realClearInterval: typeof clearInterval;
+    beforeEach(() => {
+      realSetInterval = global.setInterval;
+      realClearInterval = global.clearInterval;
+      clock = sandbox.useFakeTimers();
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('should halve the pagination size on 502 error retries, and force to 1 on the last attempt', async () => {
+      let attempt = 0;
+      req = nock('https://api.github.com')
+        .post('/graphql')
+        .times(6)
+        .reply((_uri, requestBody: any) => {
+          attempt++;
+          const body =
+            typeof requestBody === 'string'
+              ? JSON.parse(requestBody)
+              : requestBody;
+          if (attempt === 1) expect(body.variables.num).to.eql(100);
+          if (attempt === 2) expect(body.variables.num).to.eql(50);
+          if (attempt === 3) expect(body.variables.num).to.eql(25);
+          if (attempt === 4) expect(body.variables.num).to.eql(12);
+          if (attempt === 5) expect(body.variables.num).to.eql(6);
+          if (attempt === 6) expect(body.variables.num).to.eql(1);
+          return [502, 'Bad Gateway'];
+        });
+
+      const promise = github.commitsSince('main', () => false, {
+        batchSize: 100,
+      });
+
+      const tickInterval = realSetInterval(() => {
+        clock.tick(10000);
+      }, 10);
+
+      await assert.rejects(promise, (error: Error) => {
+        return error instanceof GitHubAPIError && error.status === 502;
+      });
+      realClearInterval(tickInterval);
       req.done();
     });
   });

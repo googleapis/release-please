@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease, GitHubTag} from './github';
+import {Scm, ScmRelease, ScmTag} from './scm';
 import {Version, VersionsMap} from './version';
 import {Commit, parseConventionalCommits} from './commit';
 import {PullRequest} from './pull-request';
@@ -104,23 +104,28 @@ export interface ReleaserConfig {
 
   // Strategy options
   releaseAs?: string;
-  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release
+  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release\
+  skipChangelog?: boolean;
   draft?: boolean;
+  forceTag?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
   component?: string;
   packageName?: string;
   includeComponentInTag?: boolean;
   includeVInTag?: boolean;
+  includeVInReleaseName?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
+  componentNoSpace?: boolean;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
+  dateFormat?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -128,6 +133,7 @@ export interface ReleaserConfig {
   changelogType?: ChangelogNotesType;
   changelogHost?: string;
   commitPartialPath?: string;
+  includeCommitAuthors?: boolean;
 
   // Ruby-only
   versionFile?: string;
@@ -149,6 +155,7 @@ export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
   path: string;
   draft?: boolean;
+  forceTag?: boolean;
   prerelease?: boolean;
 }
 
@@ -161,7 +168,9 @@ interface ReleaserConfigJson {
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
+  'skip-changelog'?: boolean;
   draft?: boolean;
+  'force-tag-creation'?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
@@ -169,12 +178,15 @@ interface ReleaserConfigJson {
   'extra-label'?: string;
   'include-component-in-tag'?: boolean;
   'include-v-in-tag'?: boolean;
+  'include-v-in-release-name'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'changelog-host'?: string;
   'commit-partial-path'?: string;
+  'include-commit-authors'?: boolean;
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
   'pull-request-footer'?: string;
+  'component-no-space'?: boolean;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -183,6 +195,7 @@ interface ReleaserConfigJson {
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
+  'date-format'?: string;
 }
 
 export interface ManifestOptions {
@@ -202,10 +215,13 @@ export interface ManifestOptions {
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
+  alwaysUpdate?: boolean;
   groupPullRequestTitlePattern?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
+  commitBatchSize?: number;
   logger?: Logger;
+  dateFormat?: string;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -259,7 +275,9 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
+  'commit-batch-size'?: number;
   'sequential-calls'?: boolean;
+  'always-update'?: boolean;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -276,25 +294,28 @@ export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
 const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
 const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
+const DEFAULT_COMMIT_BATCH_SIZE = 10;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
-export interface CreatedRelease extends GitHubRelease {
+export interface CreatedRelease extends ScmRelease {
   id: number;
   path: string;
   version: string;
   major: number;
   minor: number;
   patch: number;
+  prNumber: number;
 }
 
 export class Manifest {
   private repository: Repository;
-  private github: GitHub;
+  private github: Scm;
   readonly repositoryConfig: RepositoryConfig;
   readonly releasedVersions: ReleasedVersions;
   private targetBranch: string;
   private separatePullRequests: boolean;
+  private alwaysUpdate: boolean;
   readonly fork: boolean;
   private signoffUser?: string;
   private labels: string[];
@@ -304,7 +325,7 @@ export class Manifest {
   private snapshotLabels: string[];
   readonly plugins: ManifestPlugin[];
   private _strategiesByPath?: Record<string, Strategy>;
-  private _pathsByComponent?: Record<string, string>;
+  private _pathsByComponent?: Record<string, string[]>;
   private manifestPath: string;
   private bootstrapSha?: string;
   private lastReleaseSha?: string;
@@ -314,6 +335,7 @@ export class Manifest {
   private groupPullRequestTitlePattern?: string;
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
+  readonly commitBatchSize: number;
   readonly logger: Logger;
   private pullRequestOverflowHandler: PullRequestOverflowHandler;
 
@@ -334,6 +356,8 @@ export class Manifest {
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
+   * @param {boolean} manifestOptions.alwaysUpdate If true, always updates pull requests instead of
+   *   only when the release notes change
    * @param {PluginType[]} manifestOptions.plugins Any plugins to use for this repository
    * @param {boolean} manifestOptions.fork If true, create pull requests from a fork. Defaults
    *   to `false`
@@ -345,7 +369,7 @@ export class Manifest {
    *   pull request. Defaults to `[autorelease: tagged]`
    */
   constructor(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     releasedVersions: ReleasedVersions,
@@ -361,6 +385,7 @@ export class Manifest {
     this.separatePullRequests =
       manifestOptions?.separatePullRequests ??
       Object.keys(repositoryConfig).length === 1;
+    this.alwaysUpdate = manifestOptions?.alwaysUpdate || false;
     this.fork = manifestOptions?.fork || false;
     this.signoffUser = manifestOptions?.signoff;
     this.releaseLabels =
@@ -380,6 +405,8 @@ export class Manifest {
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =
       manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
+    this.commitBatchSize =
+      manifestOptions?.commitBatchSize || DEFAULT_COMMIT_BATCH_SIZE;
     this.logger = manifestOptions?.logger ?? defaultLogger;
     this.plugins = (manifestOptions?.plugins || []).map(pluginType =>
       buildPlugin({
@@ -388,6 +415,7 @@ export class Manifest {
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
+        separatePullRequests: this.separatePullRequests,
       })
     );
     this.pullRequestOverflowHandler = new FilePullRequestOverflowHandler(
@@ -407,7 +435,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromManifest(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,
     manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
@@ -463,7 +491,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromConfig(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     config: ReleaserConfig,
     manifestOptions?: ManifestOptions,
@@ -533,30 +561,34 @@ export class Manifest {
         continue;
       }
       const component = tagName.component || DEFAULT_COMPONENT_NAME;
-      const path = pathsByComponent[component];
-      if (!path) {
+      const paths = pathsByComponent[component] || [];
+      if (paths.length === 0) {
         this.logger.warn(
           `Found release tag with component '${component}', but not configured in manifest`
         );
         continue;
       }
-      const expectedVersion = this.releasedVersions[path];
-      if (!expectedVersion) {
-        this.logger.warn(
-          `Unable to find expected version for path '${path}' in manifest`
-        );
-        continue;
-      }
-      if (expectedVersion.toString() === tagName.version.toString()) {
-        this.logger.debug(`Found release for path ${path}, ${release.tagName}`);
-        releaseShasByPath[path] = release.sha;
-        releasesByPath[path] = {
-          name: release.name,
-          tag: tagName,
-          sha: release.sha,
-          notes: release.notes || '',
-        };
-        releasesFound += 1;
+      for (const path of paths) {
+        const expectedVersion = this.releasedVersions[path];
+        if (!expectedVersion) {
+          this.logger.warn(
+            `Unable to find expected version for path '${path}' in manifest`
+          );
+          continue;
+        }
+        if (expectedVersion.toString() === tagName.version.toString()) {
+          this.logger.debug(
+            `Found release for path ${path}, ${release.tagName}`
+          );
+          releaseShasByPath[path] = release.sha;
+          releasesByPath[path] = {
+            name: release.name,
+            tag: tagName,
+            sha: release.sha,
+            notes: release.notes || '',
+          };
+          releasesFound += 1;
+        }
       }
 
       if (releasesFound >= expectedReleases) {
@@ -608,6 +640,7 @@ export class Manifest {
     const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
       maxResults: this.commitSearchDepth,
       backfillFiles: true,
+      batchSize: this.commitBatchSize,
     });
     const releaseShas = new Set(Object.values(releaseShasByPath));
     this.logger.debug(releaseShas);
@@ -791,6 +824,12 @@ export class Manifest {
         ) {
           mergeOptions.pullRequestFooter = config.pullRequestFooter;
         }
+        if (
+          'componentNoSpace' in config &&
+          !('componentNoSpace' in mergeOptions)
+        ) {
+          mergeOptions.componentNoSpace = config.componentNoSpace;
+        }
       }
       this.plugins.push(
         new Merge(
@@ -874,8 +913,8 @@ export class Manifest {
     return releasesByPath;
   }
 
-  private async getAllTags(): Promise<Record<string, GitHubTag>> {
-    const allTags: Record<string, GitHubTag> = {};
+  private async getAllTags(): Promise<Record<string, ScmTag>> {
+    const allTags: Record<string, ScmTag> = {};
     for await (const tag of this.github.tagIterator()) {
       allTags[tag.name] = tag;
     }
@@ -1010,7 +1049,9 @@ export class Manifest {
         openPullRequest.headBranchName === pullRequest.headRefName
     );
     if (existing) {
-      return await this.maybeUpdateExistingPullRequest(existing, pullRequest);
+      return this.alwaysUpdate
+        ? await this.updateExistingPullRequest(existing, pullRequest)
+        : await this.maybeUpdateExistingPullRequest(existing, pullRequest);
     }
 
     // look for closed, snoozed pull request
@@ -1019,7 +1060,9 @@ export class Manifest {
         openPullRequest.headBranchName === pullRequest.headRefName
     );
     if (snoozed) {
-      return await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
+      return this.alwaysUpdate
+        ? await this.updateExistingPullRequest(snoozed, pullRequest)
+        : await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
     }
 
     const body = await this.pullRequestOverflowHandler.handleOverflow(
@@ -1062,20 +1105,10 @@ export class Manifest {
       );
       return undefined;
     }
-    const updatedPullRequest = await this.github.updatePullRequest(
-      existing.number,
-      pullRequest,
-      this.targetBranch,
-      {
-        fork: this.fork,
-        signoffUser: this.signoffUser,
-        pullRequestOverflowHandler: this.pullRequestOverflowHandler,
-      }
-    );
-    return updatedPullRequest;
+    return await this.updateExistingPullRequest(existing, pullRequest);
   }
 
-  /// only update an snoozed pull request if it has release note changes
+  /// only update a snoozed pull request if it has release note changes
   private async maybeUpdateSnoozedPullRequest(
     snoozed: PullRequest,
     pullRequest: ReleasePullRequest
@@ -1087,8 +1120,22 @@ export class Manifest {
       );
       return undefined;
     }
-    const updatedPullRequest = await this.github.updatePullRequest(
-      snoozed.number,
+    const updatedPullRequest = await this.updateExistingPullRequest(
+      snoozed,
+      pullRequest
+    );
+    // TODO: consider leaving the snooze label
+    await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
+    return updatedPullRequest;
+  }
+
+  /// force an update to an existing pull request
+  private async updateExistingPullRequest(
+    existing: PullRequest,
+    pullRequest: ReleasePullRequest
+  ): Promise<PullRequest> {
+    return await this.github.updatePullRequest(
+      existing.number,
       pullRequest,
       this.targetBranch,
       {
@@ -1097,9 +1144,6 @@ export class Manifest {
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
       }
     );
-    // TODO: consider leaving the snooze label
-    await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
-    return updatedPullRequest;
   }
 
   private async *findMergedReleasePullRequests() {
@@ -1161,6 +1205,7 @@ export class Manifest {
             path,
             pullRequest,
             draft: config.draft ?? this.draft,
+            forceTag: config.forceTag,
             prerelease:
               config.prerelease &&
               (!!release.tag.version.preRelease ||
@@ -1231,7 +1276,7 @@ export class Manifest {
       // stop releasing once we hit an error
       if (error) continue;
       try {
-        githubReleases.push(await this.createRelease(release));
+        githubReleases.push(await this.createRelease(release, pullRequest));
       } catch (err) {
         if (err instanceof DuplicateReleaseError) {
           this.logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
@@ -1282,11 +1327,13 @@ export class Manifest {
   }
 
   private async createRelease(
-    release: CandidateRelease
+    release: CandidateRelease,
+    pullRequest: PullRequest
   ): Promise<CreatedRelease> {
     const githubRelease = await this.github.createRelease(release, {
       draft: release.draft,
       prerelease: release.prerelease,
+      forceTag: release.forceTag,
     });
 
     return {
@@ -1296,6 +1343,7 @@ export class Manifest {
       major: release.tag.version.major,
       minor: release.tag.version.minor,
       patch: release.tag.version.patch,
+      prNumber: pullRequest.number,
     };
   }
 
@@ -1318,19 +1366,17 @@ export class Manifest {
     return this._strategiesByPath;
   }
 
-  private async getPathsByComponent(): Promise<Record<string, string>> {
+  private async getPathsByComponent(): Promise<Record<string, string[]>> {
     if (!this._pathsByComponent) {
       this._pathsByComponent = {};
       const strategiesByPath = await this.getStrategiesByPath();
       for (const path in this.repositoryConfig) {
         const strategy = strategiesByPath[path];
         const component = (await strategy.getComponent()) || '';
-        if (this._pathsByComponent[component]) {
-          this.logger.warn(
-            `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`
-          );
+        if (!this._pathsByComponent[component]) {
+          this._pathsByComponent[component] = [];
         }
-        this._pathsByComponent[component] = path;
+        this._pathsByComponent[component].push(path);
       }
     }
     return this._pathsByComponent;
@@ -1357,9 +1403,12 @@ function extractReleaserConfig(
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
     commitPartialPath: config['commit-partial-path'],
+    includeCommitAuthors: config['include-commit-authors'],
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
+    skipChangelog: config['skip-changelog'],
     draft: config.draft,
+    forceTag: config['force-tag-creation'],
     prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
     component: config['component'],
@@ -1368,10 +1417,12 @@ function extractReleaserConfig(
     extraFiles: config['extra-files'],
     includeComponentInTag: config['include-component-in-tag'],
     includeVInTag: config['include-v-in-tag'],
+    includeVInReleaseName: config['include-v-in-release-name'],
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     pullRequestHeader: config['pull-request-header'],
     pullRequestFooter: config['pull-request-footer'],
+    componentNoSpace: config['component-no-space'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1380,6 +1431,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    dateFormat: config['date-format'],
   };
 }
 
@@ -1394,7 +1446,7 @@ function extractReleaserConfig(
  * @param {string} releaseAs Optional. Override release-as and use the given version
  */
 async function parseConfig(
-  github: GitHub,
+  github: Scm,
   configFile: string,
   branch: string,
   onlyPath?: string,
@@ -1422,6 +1474,7 @@ async function parseConfig(
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
     separatePullRequests: config['separate-pull-requests'],
+    alwaysUpdate: config['always-update'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
     signoff: config['signoff'],
@@ -1431,6 +1484,7 @@ async function parseConfig(
     extraLabels: configExtraLabel?.split(','),
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
+    commitBatchSize: config['commit-batch-size'],
     sequentialCalls: config['sequential-calls'],
   };
   return {config: repositoryConfig, options: manifestOptions};
@@ -1446,7 +1500,7 @@ async function parseConfig(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchManifestConfig(
-  github: GitHub,
+  github: Scm,
   configFile: string,
   branch: string
 ): Promise<ManifestConfig> {
@@ -1479,7 +1533,7 @@ async function fetchManifestConfig(
  * @returns {Record<string, string>}
  */
 async function parseReleasedVersions(
-  github: GitHub,
+  github: Scm,
   manifestFile: string,
   branch: string
 ): Promise<ReleasedVersions> {
@@ -1504,7 +1558,7 @@ async function parseReleasedVersions(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchReleasedVersions(
-  github: GitHub,
+  github: Scm,
   manifestFile: string,
   branch: string
 ): Promise<Record<string, string>> {
@@ -1545,10 +1599,9 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * @param {string} targetBranch Name of the scanned branch.
  * @param releaseFilter Validator function for release version. Used to filter-out SNAPSHOT releases for Java strategy.
  * @param {string} prefix Limit the release to a specific component.
- * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
-  github: GitHub,
+  github: Scm,
   targetBranch: string,
   releaseFilter: (version: Version) => boolean,
   config: ReleaserConfig,
@@ -1611,6 +1664,7 @@ async function latestReleaseVersion(
     const pullRequestTitle = PullRequestTitle.parse(
       mergedPullRequest.title,
       config.pullRequestTitlePattern,
+      config.componentNoSpace,
       logger
     );
     if (!pullRequestTitle) {
@@ -1709,10 +1763,14 @@ function mergeReleaserConfig(
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
     commitPartialPath:
       pathConfig.commitPartialPath ?? defaultConfig.commitPartialPath,
+    includeCommitAuthors:
+      pathConfig.includeCommitAuthors ?? defaultConfig.includeCommitAuthors,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
+    skipChangelog: pathConfig.skipChangelog ?? defaultConfig.skipChangelog,
     draft: pathConfig.draft ?? defaultConfig.draft,
+    forceTag: pathConfig.forceTag ?? defaultConfig.forceTag,
     draftPullRequest:
       pathConfig.draftPullRequest ?? defaultConfig.draftPullRequest,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
@@ -1723,6 +1781,8 @@ function mergeReleaserConfig(
     includeComponentInTag:
       pathConfig.includeComponentInTag ?? defaultConfig.includeComponentInTag,
     includeVInTag: pathConfig.includeVInTag ?? defaultConfig.includeVInTag,
+    includeVInReleaseName:
+      pathConfig.includeVInReleaseName ?? defaultConfig.includeVInReleaseName,
     tagSeparator: pathConfig.tagSeparator ?? defaultConfig.tagSeparator,
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
@@ -1731,12 +1791,15 @@ function mergeReleaserConfig(
       pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
     pullRequestFooter:
       pathConfig.pullRequestFooter ?? defaultConfig.pullRequestFooter,
+    componentNoSpace:
+      pathConfig.componentNoSpace ?? defaultConfig.componentNoSpace,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    dateFormat: pathConfig.dateFormat ?? defaultConfig.dateFormat,
   };
 }
 

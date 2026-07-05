@@ -14,7 +14,7 @@
 
 import {ManifestPlugin} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 import {Logger} from '../util/logger';
 import {Strategy} from '../strategy';
 import {Commit, parseConventionalCommits} from '../commit';
@@ -41,7 +41,7 @@ export class LinkedVersions extends ManifestPlugin {
   readonly merge: boolean;
 
   constructor(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     groupName: string,
@@ -178,7 +178,8 @@ export class LinkedVersions extends ManifestPlugin {
         this.targetBranch,
         this.repositoryConfig,
         {
-          pullRequestTitlePattern: `chore\${scope}: release ${this.groupName} libraries`,
+          pullRequestTitlePattern:
+            'chore${scope}: release ' + this.groupName + ' libraries',
           forceMerge: true,
           headBranchName: BranchName.ofGroupTargetBranch(
             this.groupName,

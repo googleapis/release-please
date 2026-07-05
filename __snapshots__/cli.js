@@ -25,6 +25,12 @@ Options:
   --repo-url                    GitHub URL to generate release for    [required]
   --dry-run                     Prepare but do not take action
                                                       [boolean] [default: false]
+  --local                       Whether to use local clone
+                                                      [boolean] [default: false]
+  --local-path                  Path to local clone directory. If not set, uses
+                                a temporary directory.                  [string]
+  --local-clone-depth           Depth of local clone. Defaults to the entire
+                                repo.                                   [number]
   --include-v-in-tags           include "v" in tag versions
                                                        [boolean] [default: true]
   --monorepo-tags               include library name in tags and release
@@ -32,6 +38,9 @@ Options:
   --pull-request-title-pattern  Title pattern to make release PR        [string]
   --pull-request-header         Header for release PR                   [string]
   --pull-request-footer         Footer for release PR                   [string]
+  --component-no-space          release-please automatically adds \` \` (space) in
+                                front of parsed \${component}. Should this be
+                                disabled?             [boolean] [default: false]
   --path                        release from path other than root directory
                                                                         [string]
   --component                   name of component release is being minted for
@@ -40,10 +49,11 @@ Options:
                                                                         [string]
   --release-type                what type of repo is a release being created
                                 for?
-  [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi",
-          "helm", "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
-       "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
-      "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
+              [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go",
+        "go-librarian", "go-yoshi", "helm", "java", "java-backport", "java-bom",
+     "java-lts", "java-yoshi", "java-yoshi-mono-repo", "krm-blueprint", "maven",
+                "node", "node-librarian", "ocaml", "php", "php-yoshi", "python",
+    "python-librarian", "r", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
                                                    "simple", "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
@@ -54,6 +64,8 @@ Options:
                                 tag_name and target_commitish are associated
                                 with the release for future tag creation upon
                                 "un-drafting" the release.
+                                                      [boolean] [default: false]
+  --force-tag-creation          Force the creation of a Git tag for the release.
                                                       [boolean] [default: false]
   --prerelease                  mark release that have prerelease versions as as
                                 a prerelease on Github[boolean] [default: false]
@@ -92,6 +104,11 @@ Options:
                         on                                              [string]
   --repo-url            GitHub URL to generate release for            [required]
   --dry-run             Prepare but do not take action[boolean] [default: false]
+  --local               Whether to use local clone    [boolean] [default: false]
+  --local-path          Path to local clone directory. If not set, uses a
+                        temporary directory.                            [string]
+  --local-clone-depth   Depth of local clone. Defaults to the entire repo.
+                                                                        [number]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
   --skip-labeling       skip application of labels to pull requests
@@ -114,41 +131,48 @@ release-please manifest-release
 create releases/tags from last release-PR using a manifest file
 
 Options:
-  --help            Show help                                          [boolean]
-  --version         Show version number                                [boolean]
-  --debug           print verbose errors (use only for local debugging).
+  --help                Show help                                      [boolean]
+  --version             Show version number                            [boolean]
+  --debug               print verbose errors (use only for local debugging).
                                                       [boolean] [default: false]
-  --trace           print extra verbose errors (use only for local debugging).
-                                                      [boolean] [default: false]
-  --plugin          load plugin named release-please-<plugin-name>
+  --trace               print extra verbose errors (use only for local
+                        debugging).                   [boolean] [default: false]
+  --plugin              load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
-  --token           GitHub token with repo write permissions
-  --api-url         URL to use when making API requests
+  --token               GitHub token with repo write permissions
+  --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
-  --graphql-url     URL to use when making GraphQL requests
+  --graphql-url         URL to use when making GraphQL requests
                                     [string] [default: "https://api.github.com"]
-  --default-branch  The branch to open release PRs against and tag releases on
-                              [deprecated: use --target-branch instead] [string]
-  --target-branch   The branch to open release PRs against and tag releases on
-                                                                        [string]
-  --repo-url        GitHub URL to generate release for                [required]
-  --dry-run         Prepare but do not take action    [boolean] [default: false]
-  --draft           mark release as a draft. no tag is created but tag_name and
-                    target_commitish are associated with the release for future
-                    tag creation upon "un-drafting" the release.
+  --default-branch      The branch to open release PRs against and tag releases
+                        on    [deprecated: use --target-branch instead] [string]
+  --target-branch       The branch to open release PRs against and tag releases
+                        on                                              [string]
+  --repo-url            GitHub URL to generate release for            [required]
+  --dry-run             Prepare but do not take action[boolean] [default: false]
+  --local               Whether to use local clone    [boolean] [default: false]
+  --local-path          Path to local clone directory. If not set, uses a
+                        temporary directory.                            [string]
+  --local-clone-depth   Depth of local clone. Defaults to the entire repo.
+                                                                        [number]
+  --draft               mark release as a draft. no tag is created but tag_name
+                        and target_commitish are associated with the release for
+                        future tag creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
-  --prerelease      mark release that have prerelease versions as as a
-                    prerelease on Github              [boolean] [default: false]
-  --label           comma-separated list of labels to remove to from release PR
-                                               [default: "autorelease: pending"]
-  --release-label   set a pull request label other than "autorelease: tagged"
-                                       [string] [default: "autorelease: tagged"]
-  --snapshot-label  set a java snapshot pull request label other than
-                    "autorelease: snapshot"
+  --force-tag-creation  Force the creation of a Git tag for the release.
+                                                      [boolean] [default: false]
+  --prerelease          mark release that have prerelease versions as as a
+                        prerelease on Github          [boolean] [default: false]
+  --label               comma-separated list of labels to remove to from release
+                        PR                     [default: "autorelease: pending"]
+  --release-label       set a pull request label other than "autorelease:
+                        tagged"        [string] [default: "autorelease: tagged"]
+  --snapshot-label      set a java snapshot pull request label other than
+                        "autorelease: snapshot"
                                      [string] [default: "autorelease: snapshot"]
-  --config-file     where can the config file be found in the project?
+  --config-file         where can the config file be found in the project?
                                          [default: "release-please-config.json"]
-  --manifest-file   where can the manifest file be found in the project?
+  --manifest-file       where can the manifest file be found in the project?
                                       [default: ".release-please-manifest.json"]
 `
 
@@ -180,6 +204,12 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --dry-run                         Prepare but do not take action
                                                       [boolean] [default: false]
+  --local                           Whether to use local clone
+                                                      [boolean] [default: false]
+  --local-path                      Path to local clone directory. If not set,
+                                    uses a temporary directory.         [string]
+  --local-clone-depth               Depth of local clone. Defaults to the entire
+                                    repo.                               [number]
   --release-as                      override the semantically determined release
                                     version                             [string]
   --bump-minor-pre-major            should we bump the semver minor prior to the
@@ -215,6 +245,8 @@ Options:
   --latest-tag-sha                  Override the detected latest tag SHA[string]
   --latest-tag-name                 Override the detected latest tag name
                                                                         [string]
+  --date-format                     format in strftime format for updating dates
+                                                                        [string]
   --label                           comma-separated list of labels to add to
                                     from release PR
                                                [default: "autorelease: pending"]
@@ -235,6 +267,10 @@ Options:
   --pull-request-title-pattern      Title pattern to make release PR    [string]
   --pull-request-header             Header for release PR               [string]
   --pull-request-footer             Footer for release PR               [string]
+  --component-no-space              release-please automatically adds \` \`
+                                    (space) in front of parsed \${component}.
+                                    Should this be disabled?
+                                                      [boolean] [default: false]
   --path                            release from path other than root directory
                                                                         [string]
   --component                       name of component release is being minted
@@ -243,10 +279,11 @@ Options:
                                                                         [string]
   --release-type                    what type of repo is a release being created
                                     for?
-  [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi",
-          "helm", "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
-       "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
-      "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
+              [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go",
+        "go-librarian", "go-yoshi", "helm", "java", "java-backport", "java-bom",
+     "java-lts", "java-yoshi", "java-yoshi-mono-repo", "krm-blueprint", "maven",
+                "node", "node-librarian", "ocaml", "php", "php-yoshi", "python",
+    "python-librarian", "r", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
                                                    "simple", "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?

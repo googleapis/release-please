@@ -14,11 +14,11 @@
 
 import {ChangelogNotes, BuildNotesOptions} from '../changelog-notes';
 import {ConventionalCommit} from '../commit';
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 
 export class GitHubChangelogNotes implements ChangelogNotes {
-  private github: GitHub;
-  constructor(github: GitHub) {
+  private github: Scm;
+  constructor(github: Scm) {
     this.github = github;
   }
   async buildNotes(

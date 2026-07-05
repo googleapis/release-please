@@ -18,6 +18,7 @@ import * as sinon from 'sinon';
 import {
   assertHasUpdate,
   assertHasUpdates,
+  assertNoHasUpdate,
   buildMockConventionalCommit,
 } from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
@@ -70,6 +71,39 @@ describe('Maven', () => {
 
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdates(updates, 'pom.xml', PomXml, JavaReleased, Generic);
+      assertHasUpdates(
+        updates,
+        'submodule/pom.xml',
+        PomXml,
+        JavaReleased,
+        Generic
+      );
+      assertHasUpdates(updates, 'foo/bar.java', JavaReleased, Generic);
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Maven({
+        targetBranch: 'main',
+        github,
+        extraFiles: ['foo/bar.java'],
+        skipChangelog: true,
+      });
+
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves(['pom.xml', 'submodule/pom.xml']);
+
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        undefined
+      );
+
+      expect(release?.version?.toString()).to.eql('1.0.0');
+
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdates(updates, 'pom.xml', PomXml, JavaReleased, Generic);
       assertHasUpdates(
         updates,

@@ -38,4 +38,11 @@ describe('coerceOption', () => {
     const coerced = coerceOption(resolve(fixturesPath, 'key.txt'));
     expect(coerced).to.equal('abc123');
   });
+  it('should not throw when a non-string value is passed', () => {
+    expect(() => coerceOption(undefined as unknown as string)).not.to.Throw();
+    expect(() => coerceOption(null as unknown as string)).not.to.Throw();
+    expect(() => coerceOption(123 as unknown as string)).not.to.Throw();
+    expect(() => coerceOption({} as unknown as string)).not.to.Throw();
+    expect(() => coerceOption([] as unknown as string)).not.to.Throw();
+  });
 });

@@ -15,7 +15,7 @@
 import {ConfigurationError, GitHubAPIError} from './errors';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
-import {GitHub} from './github';
+import {Scm} from './scm';
 import {ReleaserConfig} from './manifest';
 import {BaseStrategyOptions} from './strategies/base';
 import {Bazel} from './strategies/bazel';
@@ -25,6 +25,7 @@ import {Elixir} from './strategies/elixir';
 import {Expo} from './strategies/expo';
 import {Go} from './strategies/go';
 import {GoYoshi} from './strategies/go-yoshi';
+import {GoLibrarian} from './strategies/go-librarian';
 import {Helm} from './strategies/helm';
 import {Java} from './strategies/java';
 import {JavaYoshi} from './strategies/java-yoshi';
@@ -32,10 +33,13 @@ import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
 import {KRMBlueprint} from './strategies/krm-blueprint';
 import {Maven} from './strategies/maven';
 import {Node} from './strategies/node';
+import {NodeLibrarian} from './strategies/node-librarian';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
 import {Python} from './strategies/python';
+import {PythonLibrarian} from './strategies/python-librarian';
+import {R} from './strategies/r';
 import {Ruby} from './strategies/ruby';
 import {RubyYoshi} from './strategies/ruby-yoshi';
 import {Rust} from './strategies/rust';
@@ -62,7 +66,7 @@ export type ReleaseType = string;
 export type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 
 export interface StrategyFactoryOptions extends ReleaserConfig {
-  github: GitHub;
+  github: Scm;
   path?: string;
   targetBranch?: string;
 }
@@ -71,6 +75,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   'dotnet-yoshi': options => new DotnetYoshi(options),
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
+  'go-librarian': options => new GoLibrarian(options),
   java: options => new Java(options),
   maven: options => new Maven(options),
   'java-yoshi': options => new JavaYoshi(options),
@@ -95,11 +100,14 @@ const releasers: Record<string, ReleaseBuilder> = {
     }),
   'krm-blueprint': options => new KRMBlueprint(options),
   node: options => new Node(options),
+  'node-librarian': options => new NodeLibrarian(options),
   expo: options => new Expo(options),
   ocaml: options => new OCaml(options),
   php: options => new PHP(options),
   'php-yoshi': options => new PHPYoshi(options),
   python: options => new Python(options),
+  'python-librarian': options => new PythonLibrarian(options),
+  r: options => new R(options),
   ruby: options => new Ruby(options),
   'ruby-yoshi': options => new RubyYoshi(options),
   rust: options => new Rust(options),
@@ -155,6 +163,7 @@ export async function buildStrategy(
   });
   const strategyOptions: BaseStrategyOptions = {
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
+    skipChangelog: options.skipChangelog,
     ...options,
     targetBranch,
     versioningStrategy,

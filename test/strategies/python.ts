@@ -17,7 +17,11 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Python} from '../../src/strategies/python';
 import * as sinon from 'sinon';
-import {buildGitHubFileContent, assertHasUpdate} from '../helpers';
+import {
+  buildGitHubFileContent,
+  assertHasUpdate,
+  assertNoHasUpdate,
+} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {PythonFileWithVersion} from '../../src/updaters/python/python-file-with-version';
 import {TagName} from '../../src/util/tag-name';
@@ -119,6 +123,48 @@ describe('Python', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'setup.cfg', SetupCfg);
+      assertHasUpdate(updates, 'setup.py', SetupPy);
+      assertHasUpdate(
+        updates,
+        'google-cloud-automl/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(
+        updates,
+        'src/google-cloud-automl/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(
+        updates,
+        'google_cloud_automl/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(
+        updates,
+        'src/google_cloud_automl/__init__.py',
+        PythonFileWithVersion
+      );
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Python({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'setup.cfg', SetupCfg);
       assertHasUpdate(updates, 'setup.py', SetupPy);
       assertHasUpdate(

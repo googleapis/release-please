@@ -48,14 +48,15 @@ export class PHP extends BaseStrategy {
     const version = options.newVersion;
     const versionsMap: VersionsMap = new Map();
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    !this.skipChangelog &&
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
 
     // update composer.json
     updates.push({

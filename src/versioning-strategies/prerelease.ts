@@ -28,6 +28,7 @@ import {
 interface PrereleaseVersioningStrategyOptions
   extends DefaultVersioningStrategyOptions {
   prereleaseType?: string;
+  prerelease?: boolean;
 }
 
 /**
@@ -176,10 +177,12 @@ class PrereleaseMajorVersionUpdate extends AbstractPrereleaseVersionUpdate {
  */
 export class PrereleaseVersioningStrategy extends DefaultVersioningStrategy {
   readonly prereleaseType?: string;
+  readonly prerelease: boolean;
 
   constructor(options: PrereleaseVersioningStrategyOptions = {}) {
     super(options);
     this.prereleaseType = options.prereleaseType;
+    this.prerelease = options.prerelease === true;
   }
 
   determineReleaseType(
@@ -207,19 +210,40 @@ export class PrereleaseVersioningStrategy extends DefaultVersioningStrategy {
       }
     }
 
+    let bumpedVersionUpdater: VersionUpdater;
     if (breaking > 0) {
       if (version.isPreMajor && this.bumpMinorPreMajor) {
-        return new PrereleaseMinorVersionUpdate(this.prereleaseType);
+        bumpedVersionUpdater = new PrereleaseMinorVersionUpdate(
+          this.prereleaseType
+        );
       } else {
-        return new PrereleaseMajorVersionUpdate(this.prereleaseType);
+        bumpedVersionUpdater = new PrereleaseMajorVersionUpdate(
+          this.prereleaseType
+        );
       }
     } else if (features > 0) {
       if (version.isPreMajor && this.bumpPatchForMinorPreMajor) {
-        return new PrereleasePatchVersionUpdate(this.prereleaseType);
+        bumpedVersionUpdater = new PrereleasePatchVersionUpdate(
+          this.prereleaseType
+        );
       } else {
-        return new PrereleaseMinorVersionUpdate(this.prereleaseType);
+        bumpedVersionUpdater = new PrereleaseMinorVersionUpdate(
+          this.prereleaseType
+        );
       }
+    } else {
+      bumpedVersionUpdater = new PrereleasePatchVersionUpdate(
+        this.prereleaseType
+      );
     }
-    return new PrereleasePatchVersionUpdate(this.prereleaseType);
+    if (!this.prerelease) {
+      const bumpedVersion: Version = bumpedVersionUpdater.bump(version);
+      return new CustomVersionUpdate(
+        Version.parse(
+          `${bumpedVersion.major}.${bumpedVersion.minor}.${bumpedVersion.patch}`
+        ).toString()
+      );
+    }
+    return bumpedVersionUpdater;
   }
 }

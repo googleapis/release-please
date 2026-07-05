@@ -16,7 +16,8 @@
 
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
-import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
+import {GitHub} from '../github';
+import {GH_API_URL, GH_GRAPHQL_URL} from '../github-api';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
@@ -30,6 +31,8 @@ import {
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
+import {Scm} from '../scm';
+import {LocalGitHub} from '../local-github';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -49,6 +52,9 @@ interface GitHubArgs {
   apiUrl?: string;
   graphqlUrl?: string;
   fork?: boolean;
+  local?: boolean;
+  localPath?: string;
+  localCloneDepth?: number;
 
   // deprecated in favor of targetBranch
   defaultBranch?: string;
@@ -84,6 +90,7 @@ interface ManifestConfigArgs {
 
 interface ReleaseArgs {
   draft?: boolean;
+  forceTag?: boolean;
   prerelease?: boolean;
   releaseLabel?: string;
   snapshotLabel?: string;
@@ -117,6 +124,7 @@ interface TaggingArgs {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
+  componentNoSpace?: boolean;
 }
 
 interface CreatePullRequestArgs
@@ -186,6 +194,20 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       type: 'boolean',
       default: false,
     })
+    .option('local', {
+      describe: 'Whether to use local clone',
+      type: 'boolean',
+      default: false,
+    })
+    .option('local-path', {
+      describe:
+        'Path to local clone directory. If not set, uses a temporary directory.',
+      type: 'string',
+    })
+    .option('local-clone-depth', {
+      describe: 'Depth of local clone. Defaults to the entire repo.',
+      type: 'number',
+    })
     .middleware(_argv => {
       const argv = _argv as GitHubArgs;
       // allow secrets to be loaded from file path
@@ -203,6 +225,11 @@ function releaseOptions(yargs: yargs.Argv): yargs.Argv {
         'mark release as a draft. no tag is created but tag_name and ' +
         'target_commitish are associated with the release for future ' +
         'tag creation upon "un-drafting" the release.',
+      type: 'boolean',
+      default: false,
+    })
+    .option('force-tag-creation', {
+      describe: 'Force the creation of a Git tag for the release.',
       type: 'boolean',
       default: false,
     })
@@ -350,6 +377,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'Override the detected latest tag name',
       type: 'string',
     })
+    .option('date-format', {
+      describe: 'format in strftime format for updating dates',
+      type: 'string',
+    })
     .middleware(_argv => {
       const argv = _argv as CreatePullRequestArgs;
 
@@ -429,6 +460,12 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
     .option('pull-request-footer', {
       describe: 'Footer for release PR',
       type: 'string',
+    })
+    .option('component-no-space', {
+      describe:
+        'release-please automatically adds ` ` (space) in front of parsed ${component}. Should this be disabled?',
+      type: 'boolean',
+      default: false,
     });
 }
 
@@ -470,6 +507,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
           pullRequestHeader: argv.pullRequestHeader,
           pullRequestFooter: argv.pullRequestFooter,
+          componentNoSpace: argv.componentNoSpace,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,
@@ -562,6 +600,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
           component: argv.component,
           packageName: argv.packageName,
           draft: argv.draft,
+          forceTag: argv.forceTag,
           prerelease: argv.prerelease,
           includeComponentInTag: argv.monorepoTags,
           includeVInTag: argv.includeVInTags,
@@ -725,6 +764,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       component: argv.component,
       packageName: argv.packageName,
       draft: argv.draft,
+      forceTag: argv.forceTag,
       prerelease: argv.prerelease,
       draftPullRequest: argv.draftPullRequest,
       bumpMinorPreMajor: argv.bumpMinorPreMajor,
@@ -803,16 +843,29 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
   },
 };
 
-async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
+async function buildGitHub(argv: GitHubArgs): Promise<Scm> {
   const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
-  const github = await GitHub.create({
-    owner,
-    repo,
-    token: argv.token!,
-    apiUrl: argv.apiUrl,
-    graphqlUrl: argv.graphqlUrl,
-  });
-  return github;
+  if (argv.local) {
+    const localGitHub = await LocalGitHub.create({
+      owner,
+      repo,
+      token: argv.token!,
+      apiUrl: argv.apiUrl,
+      graphqlUrl: argv.graphqlUrl,
+      localRepoPath: argv.localPath,
+      cloneDepth: argv.localCloneDepth,
+    });
+    return localGitHub;
+  } else {
+    const github = await GitHub.create({
+      owner,
+      repo,
+      token: argv.token!,
+      apiUrl: argv.apiUrl,
+      graphqlUrl: argv.graphqlUrl,
+    });
+    return github;
+  }
 }
 
 export const parser = yargs

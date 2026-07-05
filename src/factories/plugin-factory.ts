@@ -19,7 +19,7 @@ import {
   SentenceCasePluginConfig,
   GroupPriorityPluginConfig,
 } from '../manifest';
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 import {ManifestPlugin} from '../plugin';
 import {LinkedVersions} from '../plugins/linked-versions';
 import {CargoWorkspace} from '../plugins/cargo-workspace';
@@ -34,10 +34,11 @@ import {WorkspacePluginOptions} from '../plugins/workspace';
 
 export interface PluginFactoryOptions {
   type: PluginType;
-  github: GitHub;
+  github: Scm;
   targetBranch: string;
   repositoryConfig: RepositoryConfig;
   manifestPath: string;
+  separatePullRequests?: boolean;
 
   // node options
   alwaysLinkLocal?: boolean;
@@ -54,6 +55,8 @@ export type PluginBuilder = (options: PluginFactoryOptions) => ManifestPlugin;
 
 const pluginFactories: Record<string, PluginBuilder> = {
   'linked-versions': options =>
+    // NOTE: linked-versions had already have a different behavior about merging
+    // see test/plugins/compatibility/linked-versions-workspace.ts
     new LinkedVersions(
       options.github,
       options.targetBranch,
@@ -73,6 +76,9 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
+        merge:
+          (options.type as WorkspacePluginOptions).merge ??
+          !options.separatePullRequests,
       }
     ),
   'node-workspace': options =>
@@ -83,6 +89,9 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
+        merge:
+          (options.type as WorkspacePluginOptions).merge ??
+          !options.separatePullRequests,
       }
     ),
   'maven-workspace': options =>
@@ -93,6 +102,9 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
+        merge:
+          (options.type as WorkspacePluginOptions).merge ??
+          !options.separatePullRequests,
       }
     ),
   'sentence-case': options =>
@@ -112,6 +124,9 @@ const pluginFactories: Record<string, PluginBuilder> = {
 };
 
 export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
+  if (!options.separatePullRequests) {
+    options.separatePullRequests = false;
+  }
   if (typeof options.type === 'object') {
     const builder = pluginFactories[options.type.type];
     if (builder) {

@@ -153,6 +153,31 @@ describe('DotnetYoshi', () => {
       );
       assertHasUpdate(updates, 'apis/apis.json', Apis);
     });
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new DotnetYoshi({
+        targetBranch: 'main',
+        github,
+        path: 'apis/Google.Cloud.SecurityCenter.V1',
+        component: 'Google.Cloud.SecurityCenter.V1',
+        skipChangelog: true,
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('apis/apis.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
+      const latestRelease = undefined;
+      const pullRequest = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = pullRequest!.updates;
+      expect(updates).lengthOf(1);
+      assertNoHasUpdate(
+        updates,
+        'apis/Google.Cloud.SecurityCenter.V1/docs/history.md'
+      );
+      assertHasUpdate(updates, 'apis/apis.json', Apis);
+    });
   });
   describe('buildRelease', () => {
     it('overrides the tag separator', async () => {

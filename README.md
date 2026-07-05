@@ -3,7 +3,7 @@
 # [Release Please](https://github.com/googleapis/release-please)
 
 [![npm version](https://img.shields.io/npm/v/release-please.svg)](https://www.npmjs.org/package/release-please)
-[![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/main.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
+[![codecov](https://codecov.io/gh/googleapis/release-please/graph/badge.svg)](https://codecov.io/gh/googleapis/release-please)
 
 Release Please automates CHANGELOG generation, the creation of GitHub releases,
 and version bumps for your projects.
@@ -194,7 +194,8 @@ Release Please automates releases for the following flavors of repositories:
 | `expo`              | [An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md](https://github.com/dmi3y/expo-release-please-example) |
 | `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | `php`               | A repository with a composer.json and a CHANGELOG.md |
-| `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
+| `python`            | [A Python repository with a pyproject.toml, &lt;project&gt;/\_\_init\_\_.py, CHANGELOG.md or optionally a setup.py, setup.cfg](https://github.com/googleapis/python-storage) |
+| `R`               | A repository with a DESCRIPTION and a NEWS.md |
 | `ruby`              | A repository with a version.rb and a CHANGELOG.md |
 | `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace, although note that workspaces require a [manifest driven release](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) and the "cargo-workspace" plugin) and a CHANGELOG.md |
 | `sfdx`              | A repository with a [sfdx-project.json](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) and a CHANGELOG.md |
@@ -212,13 +213,6 @@ The easiest way to run Release Please is as a GitHub action. Please see [googlea
 ### Running as CLI
 
 Please see [Running release-please CLI](docs/cli.md) for all the configuration options.
-
-### Install the GitHub App
-
-There is a probot application available, which allows you to deploy Release
-Please as a GitHub App. Please see 
-[github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please)
-for installation and configuration instructions.
 
 ## Bootstrapping your Repository
 

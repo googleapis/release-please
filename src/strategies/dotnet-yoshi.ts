@@ -127,15 +127,16 @@ export class DotnetYoshi extends BaseStrategy {
         `Skipping changelog for ${component} via noVersionHistory configuration`
       );
     } else {
-      updates.push({
-        path: this.addPath(this.changelogPath),
-        createIfMissing: true,
-        updater: new Changelog({
-          version,
-          changelogEntry: options.changelogEntry,
-          versionHeaderRegex: '\n## Version [0-9[]+',
-        }),
-      });
+      !this.skipChangelog &&
+        updates.push({
+          path: this.addPath(this.changelogPath),
+          createIfMissing: true,
+          updater: new Changelog({
+            version,
+            changelogEntry: options.changelogEntry,
+            versionHeaderRegex: '\n## Version [0-9[]+',
+          }),
+        });
     }
 
     if (!component) {

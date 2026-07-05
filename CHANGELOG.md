@@ -4,6 +4,269 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.1](https://github.com/googleapis/release-please/compare/v17.10.0...v17.10.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* avoid duplicate updates in librarian.yaml for Go v2+ ([#2830](https://github.com/googleapis/release-please/issues/2830)) ([2cfa196](https://github.com/googleapis/release-please/commit/2cfa1968e0f92ad6c26e84d799d64399b5018d18)), closes [#2826](https://github.com/googleapis/release-please/issues/2826)
+
+## [17.10.0](https://github.com/googleapis/release-please/compare/v17.9.0...v17.10.0) (2026-06-22)
+
+
+### Features
+
+* update librarian preview version ([#2809](https://github.com/googleapis/release-please/issues/2809)) ([d6c840a](https://github.com/googleapis/release-please/commit/d6c840a609045f9967a774d9941ef204333b93d6))
+* upgrade project to Node 22 ([#2812](https://github.com/googleapis/release-please/issues/2812)) ([285b023](https://github.com/googleapis/release-please/commit/285b0231703007e13f99aaaedce0b77f67bf1422))
+
+
+### Bug Fixes
+
+* **go-librarian:** change default version to 0.1.0 ([#2821](https://github.com/googleapis/release-please/issues/2821)) ([ad4603f](https://github.com/googleapis/release-please/commit/ad4603f974c18fe09645184861cccce34e880956))
+* **go-librarian:** support Go v2 subdirectory releases without branch collisions ([#2818](https://github.com/googleapis/release-please/issues/2818)) ([6fb9ee0](https://github.com/googleapis/release-please/commit/6fb9ee0487f076ed8aed736249aa3a94f16c3eb2)), closes [#2817](https://github.com/googleapis/release-please/issues/2817)
+* **yoshi-java-monorepo:** do not update released_version for java beta snapshot ([#2815](https://github.com/googleapis/release-please/issues/2815)) ([a0a80d1](https://github.com/googleapis/release-please/commit/a0a80d1bb775d423bd569906ce4c1f3683e84976))
+
+## [17.9.0](https://github.com/googleapis/release-please/compare/v17.8.0...v17.9.0) (2026-06-09)
+
+
+### Features
+
+* remove dep on code-suggester ([#2770](https://github.com/googleapis/release-please/issues/2770)) ([0e8d1e2](https://github.com/googleapis/release-please/commit/0e8d1e2199b88ef9e1e617219c01617c7819b6c0))
+
+
+### Bug Fixes
+
+* fixup all open GitHub code scanning reports ([#2806](https://github.com/googleapis/release-please/issues/2806)) ([f91614d](https://github.com/googleapis/release-please/commit/f91614d812ca4f2c1b9a705cf60cad319e8189d1))
+
+## [17.8.0](https://github.com/googleapis/release-please/compare/v17.7.0...v17.8.0) (2026-06-04)
+
+
+### Features
+
+* add go-librarian release strategy ([#2799](https://github.com/googleapis/release-please/issues/2799)) ([0e6400b](https://github.com/googleapis/release-please/commit/0e6400b65b8d784e6c635a53b7fc679701c747fd))
+* add python-librarian release strategy ([#2802](https://github.com/googleapis/release-please/issues/2802)) ([03477f5](https://github.com/googleapis/release-please/commit/03477f5d12ccc1f017fb2b42efb975d35e8efdc4))
+* **yoshi-java-monorepo:** update java.released_version in librarian.yaml ([#2800](https://github.com/googleapis/release-please/issues/2800)) ([ed10aa8](https://github.com/googleapis/release-please/commit/ed10aa8e457355c61e33c6b0309d60f81da769d9))
+
+
+### Bug Fixes
+
+* **go:** match semver dot-sep prerelease suffixes ([#2803](https://github.com/googleapis/release-please/issues/2803)) ([d5cc945](https://github.com/googleapis/release-please/commit/d5cc945b673fa169e6996da82f9b12495d0bf1fd))
+
+## [17.7.0](https://github.com/googleapis/release-please/compare/v17.6.1...v17.7.0) (2026-05-29)
+
+
+### Features
+
+* update librarian.yaml for Node ([#2775](https://github.com/googleapis/release-please/issues/2775)) ([0c8f20a](https://github.com/googleapis/release-please/commit/0c8f20a5a6f297b2996a55d68ddcfb9ced23620f))
+
+
+### Bug Fixes
+
+* upgrade tmp to 0.2.6 to resolve path traversal vulnerability ([#2794](https://github.com/googleapis/release-please/issues/2794)) ([fcec69c](https://github.com/googleapis/release-please/commit/fcec69c81a4c68fb55249e3118ed4b69cd2f5b5d))
+* use `artifact_id` instead of `distribution_name_override` in librarian.yaml ([#2792](https://github.com/googleapis/release-please/issues/2792)) ([9acbc83](https://github.com/googleapis/release-please/commit/9acbc83185e335aaee7f88bb200719976e5b69ac))
+
+## [17.6.1](https://github.com/googleapis/release-please/compare/v17.6.0...v17.6.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* implement dynamic batch size backoff for GraphQL requests ([#2783](https://github.com/googleapis/release-please/issues/2783)) ([e5033c1](https://github.com/googleapis/release-please/commit/e5033c13070a2f702fb06927f92ca198ac18a830)), closes [#2592](https://github.com/googleapis/release-please/issues/2592)
+
+## [17.6.0](https://github.com/googleapis/release-please/compare/v17.5.2...v17.6.0) (2026-04-13)
+
+
+### Features
+
+* **yoshi-java-monorepo:** update library version in librarian.yaml ([#2750](https://github.com/googleapis/release-please/issues/2750)) ([8cd3491](https://github.com/googleapis/release-please/commit/8cd3491874fcb44bcaad4ba4999402deed181d24))
+
+
+### Bug Fixes
+
+* use GitHub API for updating files ([#2751](https://github.com/googleapis/release-please/issues/2751)) ([e53fa6d](https://github.com/googleapis/release-please/commit/e53fa6d9b6c0ab4896168b95ea3eab56221ccf55))
+
+## [17.5.2](https://github.com/googleapis/release-please/compare/v17.5.1...v17.5.2) (2026-04-10)
+
+
+### Bug Fixes
+
+* limit git fetch to cloneDepth config ([#2744](https://github.com/googleapis/release-please/issues/2744)) ([90c4293](https://github.com/googleapis/release-please/commit/90c4293b7aa567bef0d5679d330a83dda25548c3))
+
+## [17.5.1](https://github.com/googleapis/release-please/compare/v17.5.0...v17.5.1) (2026-04-09)
+
+
+### Bug Fixes
+
+* adding no-verify option in Git operations ([#2742](https://github.com/googleapis/release-please/issues/2742)) ([51d0c84](https://github.com/googleapis/release-please/commit/51d0c84a71803f17f3a50800f43a1c097ea4b122))
+
+## [17.5.0](https://github.com/googleapis/release-please/compare/v17.4.1...v17.5.0) (2026-04-09)
+
+
+### Features
+
+* add include-commit-authors option to include author info in changelogs ([#2628](https://github.com/googleapis/release-please/issues/2628)) ([77b12ad](https://github.com/googleapis/release-please/commit/77b12adf477fc4de4dea6fead96bc58a9f241be9)), closes [#1716](https://github.com/googleapis/release-please/issues/1716)
+* create Scm abstraction ([#2729](https://github.com/googleapis/release-please/issues/2729)) ([8c5e2ae](https://github.com/googleapis/release-please/commit/8c5e2ae31e8f4eda506fd372eba3c342e7a9ef22))
+
+## [17.4.1](https://github.com/googleapis/release-please/compare/v17.4.0...v17.4.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* do not attempt to create pull request when no changes detected ([#2722](https://github.com/googleapis/release-please/issues/2722)) ([9ecabc4](https://github.com/googleapis/release-please/commit/9ecabc40a724e1ba64158844fc9b27ee5d6ed0a2))
+
+## [17.4.0](https://github.com/googleapis/release-please/compare/v17.3.0...v17.4.0) (2026-04-06)
+
+
+### Features
+
+* **java-yoshi-mono-repo:** look for Version.java files ([#2730](https://github.com/googleapis/release-please/issues/2730)) ([5126fee](https://github.com/googleapis/release-please/commit/5126feefac4cee1fb02142e2f515fda4d9f345d4))
+* resolve Dependabot security alerts ([#2709](https://github.com/googleapis/release-please/issues/2709)) ([7f2e4ec](https://github.com/googleapis/release-please/commit/7f2e4ec0fee60fb14f279218102ea8b07032b956))
+
+## [17.3.0](https://github.com/googleapis/release-please/compare/v17.2.1...v17.3.0) (2026-02-18)
+
+
+### Features
+
+* add ability to configure how many commits we retrieve when iterating through repo history ([#2679](https://github.com/googleapis/release-please/issues/2679)) ([fee210a](https://github.com/googleapis/release-please/commit/fee210a14777ee17b6993ec276b7ac768bfd4253))
+
+## [17.2.1](https://github.com/googleapis/release-please/compare/v17.2.0...v17.2.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* "prerelease" versioning strategy ([#2516](https://github.com/googleapis/release-please/issues/2516)) ([95a6568](https://github.com/googleapis/release-please/commit/95a65681a591c39ed7b2e55db0064bb8839575b4))
+* a bug where a reference to an missing variable in PowerShell would cause an exception ([#2619](https://github.com/googleapis/release-please/issues/2619)) ([0279fcf](https://github.com/googleapis/release-please/commit/0279fcf19c6ef73633a02b45e9cd31e78d8df77e))
+
+## [17.2.0](https://github.com/googleapis/release-please/compare/v17.1.3...v17.2.0) (2026-01-20)
+
+
+### Features
+
+* add --force-tag option to explicitly create git tags for releases. ([#2627](https://github.com/googleapis/release-please/issues/2627)) ([e3eba37](https://github.com/googleapis/release-please/commit/e3eba3771d2df132bacd6a18949d7c690790c952))
+* add include-v-in-release-name config option ([#2633](https://github.com/googleapis/release-please/issues/2633)) ([84a43ef](https://github.com/googleapis/release-please/commit/84a43efcae8dc1028d132377fb387b816113f5cb))
+* **dependency-manifest.ts:** add support for Dependabot commit messages ([#2584](https://github.com/googleapis/release-please/issues/2584)) ([6a9ddb7](https://github.com/googleapis/release-please/commit/6a9ddb7112984f89a89c8856a0edd385e662aa9a))
+
+## [17.1.3](https://github.com/googleapis/release-please/compare/v17.1.2...v17.1.3) (2025-10-06)
+
+
+### Bug Fixes
+
+* fixing bug with major version generic updater ([#2422](https://github.com/googleapis/release-please/issues/2422)) ([2ec56e7](https://github.com/googleapis/release-please/commit/2ec56e7c9b3fd36b2c7cabfbad9eb949197224ba))
+* merge updates when creating a changeset ([#2601](https://github.com/googleapis/release-please/issues/2601)) ([3208848](https://github.com/googleapis/release-please/commit/320884894f59ea434a63e3a9c8b9f3552c9ccda4))
+
+## [17.1.2](https://github.com/googleapis/release-please/compare/v17.1.1...v17.1.2) (2025-08-19)
+
+
+### Bug Fixes
+
+* reduce graphQL pagination size to 10 ([#2579](https://github.com/googleapis/release-please/issues/2579)) ([05e31e4](https://github.com/googleapis/release-please/commit/05e31e402b850952f7ded53c816679865d9ba42c))
+
+## [17.1.1](https://github.com/googleapis/release-please/compare/v17.1.0...v17.1.1) (2025-06-30)
+
+
+### Bug Fixes
+
+* skipSnapshot is not working for java-yoshi ([#2562](https://github.com/googleapis/release-please/issues/2562)) ([2f04f4f](https://github.com/googleapis/release-please/commit/2f04f4f7ddd0db27d7c0ce40b3a11541d9c3067e))
+
+## [17.1.0](https://github.com/googleapis/release-please/compare/v17.0.0...v17.1.0) (2025-06-05)
+
+
+### Features
+
+* add skip-changelog flag ([#2535](https://github.com/googleapis/release-please/issues/2535)) ([2492658](https://github.com/googleapis/release-please/commit/2492658b9dd93d765e0bbfa45f41ca8a48af996c))
+
+
+### Bug Fixes
+
+* use version-file if it's set for go projects ([#2542](https://github.com/googleapis/release-please/issues/2542)) ([a015272](https://github.com/googleapis/release-please/commit/a015272b5d900c086f80a674785cf88f2f151f43))
+
+## [17.0.0](https://github.com/googleapis/release-please/compare/v16.18.0...v17.0.0) (2025-03-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** update octokit to v20 ([#2490](https://github.com/googleapis/release-please/issues/2490))
+
+### Features
+
+* **deps:** update octokit to v20 ([#2490](https://github.com/googleapis/release-please/issues/2490)) ([9f3b669](https://github.com/googleapis/release-please/commit/9f3b6699474b0ff1987ef3ad4ca5a96ce69d9a6a))
+
+## [16.18.0](https://github.com/googleapis/release-please/compare/v16.17.0...v16.18.0) (2025-02-27)
+
+
+### Features
+
+* Manifest.createRelease to return PR numbers ([#2491](https://github.com/googleapis/release-please/issues/2491)) ([0f07691](https://github.com/googleapis/release-please/commit/0f076910c719b8dc8563936039b0708567811049))
+
+## [16.17.0](https://github.com/googleapis/release-please/compare/v16.16.0...v16.17.0) (2025-02-20)
+
+
+### Features
+
+* allow date updating in generic strategy ([#2440](https://github.com/googleapis/release-please/issues/2440)) ([3099091](https://github.com/googleapis/release-please/commit/3099091bb6787e49fe36e289db36ac01a71af2c3))
+
+## [16.16.0](https://github.com/googleapis/release-please/compare/v16.15.0...v16.16.0) (2025-02-19)
+
+
+### Features
+
+* add strategy for R packages ([#2436](https://github.com/googleapis/release-please/issues/2436)) ([2b5ff3b](https://github.com/googleapis/release-please/commit/2b5ff3b5d7b5c8546bb112149908e150e9eba680))
+
+
+### Bug Fixes
+
+* **deps:** bump dependency versions ([#2486](https://github.com/googleapis/release-please/issues/2486)) ([6db2fb4](https://github.com/googleapis/release-please/commit/6db2fb48adcdf60f1779601fb36f982e2fb7f6f7))
+
+## [16.15.0](https://github.com/googleapis/release-please/compare/v16.14.4...v16.15.0) (2024-11-13)
+
+
+### Features
+
+* add `always-update` option to push to always push to release branch ([72d40df](https://github.com/googleapis/release-please/commit/72d40df677b08fd52654a4c3b320649f63b9c635))
+
+## [16.14.4](https://github.com/googleapis/release-please/compare/v16.14.3...v16.14.4) (2024-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency jsonpath-plus to v10.0.7 [security] ([#2427](https://github.com/googleapis/release-please/issues/2427)) ([f9614e3](https://github.com/googleapis/release-please/commit/f9614e30557a4a0741005f761da87417834d6871))
+
+## [16.14.3](https://github.com/googleapis/release-please/compare/v16.14.2...v16.14.3) (2024-10-15)
+
+
+### Bug Fixes
+
+* **deps:** bump jsonpath-plus from 9.0.0 to 10.0.0 ([ab989e4](https://github.com/googleapis/release-please/commit/ab989e41032ab6eca2938ea46521792440fb0882))
+
+## [16.14.2](https://github.com/googleapis/release-please/compare/v16.14.1...v16.14.2) (2024-10-08)
+
+
+### Bug Fixes
+
+* **java-yoshi:** match full artifact id when updating versions ([#2398](https://github.com/googleapis/release-please/issues/2398)) ([e062dc1](https://github.com/googleapis/release-please/commit/e062dc1b73b336b021f62971c50917d6ca4c266b))
+* make workspace plugin with `separate-pull-request` fine ([#2310](https://github.com/googleapis/release-please/issues/2310)) ([15c75a9](https://github.com/googleapis/release-please/commit/15c75a92761f844dfeb8dec36efbb15af6848e27))
+
+## [16.14.1](https://github.com/googleapis/release-please/compare/v16.14.0...v16.14.1) (2024-10-01)
+
+
+### Bug Fixes
+
+* **deps:** replace jsonpath with jsonpath-plus ([#2391](https://github.com/googleapis/release-please/issues/2391)) ([47db9b5](https://github.com/googleapis/release-please/commit/47db9b5ce447fdc71a169c94e58480b525210679))
+* when parsing multiple messages from a single commit, require 2 newlines ([#2390](https://github.com/googleapis/release-please/issues/2390)) ([bb5e69b](https://github.com/googleapis/release-please/commit/bb5e69b958c9dd4818c30315ae99d3ecc7e41fa1))
+
+## [16.14.0](https://github.com/googleapis/release-please/compare/v16.13.0...v16.14.0) (2024-09-17)
+
+
+### Features
+
+* handle multiple commits in a single message ([#2358](https://github.com/googleapis/release-please/issues/2358)) ([ec41c38](https://github.com/googleapis/release-please/commit/ec41c38422fc23c6671f4ee7e4f09e9e120ab751))
+
+## [16.13.0](https://github.com/googleapis/release-please/compare/v16.12.2...v16.13.0) (2024-09-16)
+
+
+### Features
+
+* Introduce `componentNoSpace` parameter (Removes whitespace character from `${component}` title pattern)  ([#2330](https://github.com/googleapis/release-please/issues/2330)) ([0a2d5c6](https://github.com/googleapis/release-please/commit/0a2d5c6fc53feb01ad66b937bb39c20fa4ba53b0))
+
 ## [16.12.2](https://github.com/googleapis/release-please/compare/v16.12.1...v16.12.2) (2024-09-11)
 
 

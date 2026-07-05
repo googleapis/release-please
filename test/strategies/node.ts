@@ -18,6 +18,7 @@ import {
   buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
+  assertNoHasUpdate,
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
@@ -234,6 +235,34 @@ describe('Node', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'package-lock.json', PackageLockJson);
+      assertHasUpdate(updates, 'npm-shrinkwrap.json', PackageLockJson);
+      const update = assertHasUpdate(
+        updates,
+        'samples/package.json',
+        SamplesPackageJson
+      );
+      const updater = update.updater as SamplesPackageJson;
+      expect(updater.packageName).to.equal('google-cloud-automl-pkg');
+      assertHasUpdate(updates, 'package.json', PackageJson);
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Node({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl-pkg',
+        skipChangelog: true,
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'package-lock.json', PackageLockJson);
       assertHasUpdate(updates, 'npm-shrinkwrap.json', PackageLockJson);
       const update = assertHasUpdate(

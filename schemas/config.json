@@ -58,8 +58,16 @@
           "description": "Skip tagging GitHub releases for this package. Release-Please still requires releases to be tagged, so this option should only be used if you have existing infrastructure to tag these releases.Defaults to `false`.",
           "type": "boolean"
         },
+        "skip-changelog": {
+          "description": "Skip generating a changelog for this package. Defaults to `false`.",
+          "type": "boolean"
+        },
         "draft": {
           "description": "Create the GitHub release in draft mode. Defaults to `false`.",
+          "type": "boolean"
+        },
+        "force-tag-creation": {
+          "description": "Force the creation of a Git tag for the release. This is particularly useful when `draft` is enabled, because GitHub does not create a Git tag for draft releases until they are published. This 'lazy tag creation' causes release-please to fail to find the previous release, potentially generating incorrect changelogs. Setting this to `true` ensures the tag is created immediately. Defaults to `false`.",
           "type": "boolean"
         },
         "prerelease": {
@@ -79,7 +87,11 @@
           "type": "boolean"
         },
         "include-v-in-tag": {
-          "description": "When tagging a release, include `v` in the tag. Defaults to `false`.",
+          "description": "When tagging a release, include `v` in the tag. Defaults to `true`.",
+          "type": "boolean"
+        },
+        "include-v-in-release-name": {
+          "description": "Include `v` in the GitHub release name. Defaults to `true`.",
           "type": "boolean"
         },
         "changelog-type": {
@@ -115,8 +127,16 @@
           "description": "Open a separate release pull request for each component. Defaults to `false`.",
           "type": "boolean"
         },
+        "always-update": {
+          "description": "Always update the pull request with the latest changes. Defaults to `false`.",
+          "type": "boolean"
+        },
         "tag-separator": {
           "description": "Customize the separator between the component and version in the GitHub tag.",
+          "type": "string"
+        },
+        "date-format": {
+          "description": "Date format given as a strftime expression for the generic strategy.",
           "type": "string"
         },
         "extra-files": {
@@ -237,6 +257,10 @@
         "initial-version": {
           "description": "Releases the initial library with a specified version",
           "type": "string"
+        },
+        "component-no-space": {
+          "description": "release-please automatically adds ` ` (space) in front of parsed ${component}. This option indicates whether that behaviour should be disabled. Defaults to `false`",
+          "type": "boolean"
         }
       }
     }
@@ -321,10 +345,7 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": [
-                      "cargo-workspace",
-                      "maven-workspace"
-                    ]
+                    "enum": ["cargo-workspace", "maven-workspace"]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -347,9 +368,7 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": [
-                      "node-workspace"
-                    ]
+                    "enum": ["node-workspace"]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -416,6 +435,10 @@
           "description": "When considering commit history, only look this many commits deep.",
           "type": "number"
         },
+        "commit-batch-size": {
+          "description": "Number of commits to fetch per API request when searching commit history. Lower values result in more API calls but may help avoid timeouts. Defaults to 10.",
+          "type": "number"
+        },
         "sequential-calls": {
           "description": "Whether to open pull requests/releases sequentially rather than concurrently. If you have many components, you may want to set this to avoid secondary rate limits.",
           "type": "boolean"
@@ -427,6 +450,10 @@
         "release-label": {
           "description": "Comma-separated list of labels to add to a pull request that has been released/tagged",
           "type": "string"
+        },
+        "component-no-space": {
+          "description": "release-please automatically adds ` ` (space) in front of parsed ${component}. This option indicates whether that behaviour should be disabled. Defaults to `false`",
+          "type": "boolean"
         }
       },
       "required": ["packages"]
@@ -443,6 +470,7 @@
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,
     "commit-search-depth": true,
+    "commit-batch-size": true,
     "sequential-calls": true,
     "release-type": true,
     "bump-minor-pre-major": true,
@@ -451,7 +479,9 @@
     "changelog-sections": true,
     "release-as": true,
     "skip-github-release": true,
+    "skip-changelog": true,
     "draft": true,
+    "force-tag-creation": true,
     "prerelease": true,
     "draft-pull-request": true,
     "label": true,
@@ -459,6 +489,7 @@
     "extra-label": true,
     "include-component-in-tag": true,
     "include-v-in-tag": true,
+    "include-v-in-release-name": true,
     "changelog-type": true,
     "changelog-host": true,
     "changelog-path": true,
@@ -467,11 +498,14 @@
     "pull-request-header": true,
     "pull-request-footer": true,
     "separate-pull-requests": true,
+    "always-update": true,
     "tag-separator": true,
+    "date-format": true,
     "extra-files": true,
     "version-file": true,
     "snapshot-label": true,
     "initial-version": true,
-    "exclude-paths": true
+    "exclude-paths": true,
+    "component-no-space": false
   }
 }

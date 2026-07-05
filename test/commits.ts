@@ -51,10 +51,18 @@ describe('parseConventionalCommits', () => {
     const commits = [buildCommitFromFixture('multiple-messages')];
     const conventionalCommits = parseConventionalCommits(commits);
     expect(conventionalCommits).lengthOf(2);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[0].scope).is.null;
+    expect(conventionalCommits[1].type).to.equal('fix');
+    expect(conventionalCommits[1].scope).is.null;
+  });
+
+  it('can parse multiple commit messages requires 2 line breaks', async () => {
+    const commits = [buildCommitFromFixture('dependabot')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
     expect(conventionalCommits[0].type).to.equal('fix');
     expect(conventionalCommits[0].scope).is.null;
-    expect(conventionalCommits[1].type).to.equal('feat');
-    expect(conventionalCommits[1].scope).is.null;
   });
 
   it('handles BREAKING CHANGE body', async () => {
@@ -154,6 +162,18 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].message).not.include('I should be removed');
   });
 
+  it('parses multiple commits from a single message', async () => {
+    const commits = [buildCommitFromFixture('multiple-commits-single-message')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(3);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[0].scope).is.null;
+    expect(conventionalCommits[1].type).to.equal('fix');
+    expect(conventionalCommits[1].scope).to.equal('utils');
+    expect(conventionalCommits[2].type).to.equal('feat');
+    expect(conventionalCommits[2].scope).to.equal('utils');
+  });
+
   // Refs: #1257
   it('removes content before and after BREAKING CHANGE in body', async () => {
     const commits = [buildCommitFromFixture('1257-breaking-change')];
@@ -211,10 +231,10 @@ describe('parseConventionalCommits', () => {
 
     const conventionalCommits = parseConventionalCommits([commit]);
     expect(conventionalCommits).lengthOf(2);
-    expect(conventionalCommits[0].type).to.eql('feat');
-    expect(conventionalCommits[0].bareMessage).to.eql('another feature');
-    expect(conventionalCommits[1].type).to.eql('fix');
-    expect(conventionalCommits[1].bareMessage).to.eql('some fix');
+    expect(conventionalCommits[0].type).to.eql('fix');
+    expect(conventionalCommits[0].bareMessage).to.eql('some fix');
+    expect(conventionalCommits[1].type).to.eql('feat');
+    expect(conventionalCommits[1].bareMessage).to.eql('another feature');
   });
 
   it('handles a special commit separator', async () => {

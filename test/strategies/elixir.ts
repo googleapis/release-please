@@ -14,7 +14,11 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {Elixir} from '../../src/strategies/elixir';
-import {buildMockConventionalCommit, assertHasUpdate} from '../helpers';
+import {
+  buildMockConventionalCommit,
+  assertHasUpdate,
+  assertNoHasUpdate,
+} from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
@@ -93,6 +97,22 @@ describe('Elixir', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'mix.exs', ElixirMixExs);
+    });
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Elixir({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'mix.exs', ElixirMixExs);
     });
   });
