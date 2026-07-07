@@ -558,6 +558,32 @@ libraries:
       const newContent = updater.updateContent(oldContentMissingJava);
       expect(newContent).to.eq(expectedContent);
     });
+
+    it('updates specialArtifacts like google-cloud-pom-parent without adding prefix', () => {
+      const content = `language: java
+libraries:
+  - name: google-cloud-pom-parent
+    version: 0.1.0
+    skip_generate: true
+`;
+      const expected = `language: java
+libraries:
+  - name: google-cloud-pom-parent
+    version: 0.2.0
+    skip_generate: true
+    java:
+      released_version: 0.2.0
+`;
+      const versionsMap = new Map<string, Version>();
+      versionsMap.set('google-cloud-pom-parent', Version.parse('0.2.0'));
+
+      const updater = new LibrarianYamlUpdater({
+        version: Version.parse('1.0.0'), // Unused
+        versionsMap,
+      });
+      const newContent = updater.updateContent(content);
+      expect(newContent).to.eq(expected);
+    });
   });
 
   describe('Preview Version Match Logic', () => {
