@@ -86,7 +86,7 @@
     "figures": "^3.0.0",
     "http-proxy-agent": "^7.0.0",
     "https-proxy-agent": "^7.0.0",
-    "js-yaml": "^4.0.0",
+    "js-yaml": "^4.3.0",
     "jsonpath-plus": "^10.0.0",
     "node-html-parser": "^6.0.0",
     "parse-github-repo-url": "^1.4.1",
@@ -103,7 +103,8 @@
     "node": ">=22.0.0"
   },
   "overrides": {
-    "tmp": "0.2.6",
-    "serialize-javascript": "^7.0.5"
+    "tmp": "^0.2.7",
+    "serialize-javascript": "^7.0.5",
+    "js-yaml": "^4.3.0"
   }
 }
