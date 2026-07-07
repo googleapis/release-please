@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.2](https://github.com/googleapis/release-please/compare/v17.10.1...v17.10.2) (2026-07-07)
+
+
+### Bug Fixes
+
+* bump deps for security alerts ([#2839](https://github.com/googleapis/release-please/issues/2839)) ([12fa5ca](https://github.com/googleapis/release-please/commit/12fa5ca57780366520360e48a2feb4baf1e01068))
+
 ## [17.10.1](https://github.com/googleapis/release-please/compare/v17.10.0...v17.10.1) (2026-06-29)
 
 
