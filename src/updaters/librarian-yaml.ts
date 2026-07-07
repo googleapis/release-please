@@ -55,6 +55,7 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
 
   private readonly specialArtifacts: ReadonlyMap<string, string> = new Map([
     ['google-cloud-java', 'google-cloud-java'],
+    ['google-cloud-pom-parent', 'google-cloud-pom-parent'],
   ]);
 
   constructor(options: LibrarianUpdateOptions) {
