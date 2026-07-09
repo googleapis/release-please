@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.3](https://github.com/googleapis/release-please/compare/v17.10.2...v17.10.3) (2026-07-07)
+
+
+### Bug Fixes
+
+* **src/updaters:** add google-cloud-pom-parent to specialArtifacts in librarian-yaml ([#2841](https://github.com/googleapis/release-please/issues/2841)) ([6846245](https://github.com/googleapis/release-please/commit/6846245b382f04bb45d5f47dba32a8008a137c50))
+
 ## [17.10.2](https://github.com/googleapis/release-please/compare/v17.10.1...v17.10.2) (2026-07-07)
 
 
