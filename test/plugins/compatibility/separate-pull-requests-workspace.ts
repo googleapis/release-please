@@ -23,12 +23,14 @@ import {
   mockCommits,
   safeSnapshot,
   stubFilesFromFixtures,
+  assertHasUpdate,
   assertHasUpdates,
 } from '../../helpers';
 import {Version} from '../../../src/version';
 import {PackageJson} from '../../../src/updaters/node/package-json';
 import {expect} from 'chai';
 import {Changelog} from '../../../src/updaters/changelog';
+import {ReleasePleaseManifest} from '../../../src/updaters/release-please-manifest';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -171,6 +173,21 @@ describe('Plugin compatibility', () => {
         ) as Update
       ).updater as Changelog;
       expect(updaterA.version.toString()).to.eql('1.0.1');
+      // the pull request must carry the pending-release label, otherwise
+      // it is invisible to the tagging phase after being merged
+      expect(pullRequest1.labels).to.eql(['autorelease: pending']);
+      // the pull request must update its own manifest entry, otherwise the
+      // manifest falls out of sync when it is merged independently
+      const manifestUpdaterA = (
+        assertHasUpdate(
+          pullRequest1.updates,
+          '.release-please-manifest.json',
+          ReleasePleaseManifest
+        ) as Update
+      ).updater as ReleasePleaseManifest;
+      expect(
+        manifestUpdaterA.versionsMap?.get('packages/node1')?.toString()
+      ).to.eql('1.0.1');
 
       const pullRequest2 = pullRequests[1];
       safeSnapshot(pullRequest2.body.toString());
@@ -182,6 +199,17 @@ describe('Plugin compatibility', () => {
         ) as Update
       ).updater as Changelog;
       expect(updaterB.version.toString()).to.eql('1.0.1');
+      expect(pullRequest2.labels).to.eql(['autorelease: pending']);
+      const manifestUpdaterB = (
+        assertHasUpdate(
+          pullRequest2.updates,
+          '.release-please-manifest.json',
+          ReleasePleaseManifest
+        ) as Update
+      ).updater as ReleasePleaseManifest;
+      expect(
+        manifestUpdaterB.versionsMap?.get('packages/node2')?.toString()
+      ).to.eql('1.0.1');
 
       const pullRequest3 = pullRequests[2];
       safeSnapshot(pullRequest3.body.toString());
@@ -193,6 +221,12 @@ describe('Plugin compatibility', () => {
         ) as Update
       ).updater as Changelog;
       expect(updaterC.version.toString()).to.eql('1.1.0');
+      expect(pullRequest3.labels).to.eql(['autorelease: pending']);
+      assertHasUpdate(
+        pullRequest3.updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      );
     });
   });
 });
