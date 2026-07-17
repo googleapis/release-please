@@ -67,8 +67,11 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       config.types = options.changelogSections;
     }
     const preset = await presetFactory(config);
+    // Replace the default ", closes" keyword with ", refs" to prevent GitHub from
+    // automatically closing referenced issues when the release PR is merged.
     preset.writerOpts.commitPartial =
-      this.commitPartial || preset.writerOpts.commitPartial;
+      this.commitPartial ||
+      preset.writerOpts.commitPartial?.replace(/,\s*closes/g, ', refs');
     preset.writerOpts.headerPartial =
       this.headerPartial || preset.writerOpts.headerPartial;
     preset.writerOpts.mainTemplate =
