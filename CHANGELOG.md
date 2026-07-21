@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.4](https://github.com/googleapis/release-please/compare/v17.10.3...v17.10.4) (2026-07-21)
+
+
+### Bug Fixes
+
+* dynamically replace changelog reference keyword with 'refs' ([5b31578](https://github.com/googleapis/release-please/commit/5b3157824739ed7fe5d2e0fd5d1c1c8f0c4fa204))
+
 ## [17.10.3](https://github.com/googleapis/release-please/compare/v17.10.2...v17.10.3) (2026-07-07)
 
 
