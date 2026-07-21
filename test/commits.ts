@@ -237,6 +237,32 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[1].bareMessage).to.eql('another feature');
   });
 
+  it('falls back to header-only parsing when the body is unparseable', async () => {
+    // A body line that opens `(` without closing it on the same line trips
+    // the @conventional-commits/parser grammar with
+    // `unexpected token '\n' ... valid tokens [)]`. This commonly happens
+    // when a GitHub PR body wraps a function call across two lines.
+    // Without the fallback, the commit silently disappears from the
+    // changelog.
+    const message = [
+      'feat(parser): handle wrapped function calls',
+      '',
+      'Body wraps a call:',
+      'computeValue(longArgumentName',
+      '= true)',
+      'so the upstream parser throws on the unmatched paren.',
+    ].join('\n');
+    const commits = [buildMockCommit(message)];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[0].scope).to.equal('parser');
+    expect(conventionalCommits[0].bareMessage).to.equal(
+      'handle wrapped function calls'
+    );
+    expect(conventionalCommits[0].breaking).to.be.false;
+  });
+
   it('handles a special commit separator', async () => {
     const commits = [buildCommitFromFixture('multiple-commits-with-separator')];
     const conventionalCommits = parseConventionalCommits(commits);
