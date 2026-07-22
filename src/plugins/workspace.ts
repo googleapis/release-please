@@ -147,6 +147,14 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
           newCandidatePaths.add(newCandidate.path);
           newCandidates.push(newCandidate);
         }
+      } else if (!this.shouldCreateReleasePullRequest(pkg)) {
+        // Dependent-only bump: its version is already in `updatedVersions`, so
+        // dependents are still updated, but it opts out of its own release.
+        this.logger.info(
+          `Skipping release pull request for ${this.packageNameFromPackage(
+            pkg
+          )}`
+        );
       } else {
         // otherwise, build a new pull request with changelog and entry update
         this.logger.info(
@@ -266,7 +274,10 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         const version = this.bumpVersion(pkg);
         this.logger.debug(`version: ${version} forced bump`);
         updatedVersions.set(packageName, version);
-        if (this.isReleaseVersion(version)) {
+        if (
+          this.isReleaseVersion(version) &&
+          this.shouldCreateReleasePullRequest(pkg)
+        ) {
           updatedPathVersions.set(this.pathFromPackage(pkg), version);
         }
       }
@@ -283,6 +294,15 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
    * @param {Version} _version The release version
    */
   protected isReleaseVersion(_version: Version): boolean {
+    return true;
+  }
+
+  /**
+   * Whether a dependent-only package should get its own release pull request.
+   * Defaults to `true`; the package is version-bumped regardless.
+   * @param {T} _pkg The dependent package being considered
+   */
+  protected shouldCreateReleasePullRequest(_pkg: T): boolean {
     return true;
   }
 
