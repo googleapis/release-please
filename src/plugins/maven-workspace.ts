@@ -437,7 +437,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
           }),
         },
       ],
-      labels: [],
+      labels: this.labels,
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
       version,
       draft: false,
