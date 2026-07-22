@@ -20,10 +20,14 @@ const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[\w.]+))?(\+(?<build>[-\w.]+))?/;
 const MAJOR_VERSION_REGEX = /\d+\b/;
 const SINGLE_VERSION_REGEX = /\b\d+\b/;
-const INLINE_UPDATE_REGEX =
-  /x-release-please-(?<scope>major|minor|patch|version-date|version|date)/;
-const BLOCK_START_REGEX =
-  /x-release-please-start-(?<scope>major|minor|patch|version-date|version|date)/;
+const INLINE_UPDATE_REGEX = (component?: string) =>
+  new RegExp(
+    `x-release-please(-${component})?-(?<scope>major|minor|patch|version-date|version|date)`
+  );
+const BLOCK_START_REGEX = (component?: string) =>
+  new RegExp(
+    `x-release-please-start(-${component})?-(?<scope>major|minor|patch|version-date|version|date)`
+  );
 const BLOCK_END_REGEX = /x-release-please-end/;
 const DATE_FORMAT_REGEX = /%[Ymd]/g;
 export const DEFAULT_DATE_FORMAT = '%Y-%m-%d';
@@ -45,6 +49,7 @@ export interface GenericUpdateOptions extends UpdateOptions {
   blockEndRegex?: RegExp;
   date?: Date;
   dateFormat?: string;
+  component?: string;
 }
 
 /**
@@ -73,6 +78,9 @@ export interface GenericUpdateOptions extends UpdateOptions {
  * be considered for version replacement. You can also open these blocks
  * with `x-release-please-start-<major|minor|patch|version-date>` to replace
  * single numbers
+ *
+ * In every case (except x-release-please-end), the component can be added
+ * to the directive, for example `x-release-please-myapp-version`.
  */
 export class Generic extends DefaultUpdater {
   private readonly inlineUpdateRegex: RegExp;
@@ -84,8 +92,10 @@ export class Generic extends DefaultUpdater {
   constructor(options: GenericUpdateOptions) {
     super(options);
 
-    this.inlineUpdateRegex = options.inlineUpdateRegex ?? INLINE_UPDATE_REGEX;
-    this.blockStartRegex = options.blockStartRegex ?? BLOCK_START_REGEX;
+    this.inlineUpdateRegex =
+      options.inlineUpdateRegex ?? INLINE_UPDATE_REGEX(options.component);
+    this.blockStartRegex =
+      options.blockStartRegex ?? BLOCK_START_REGEX(options.component);
     this.blockEndRegex = options.blockEndRegex ?? BLOCK_END_REGEX;
     this.date = options.date ?? new Date();
     this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
