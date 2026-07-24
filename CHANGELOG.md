@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.5](https://github.com/googleapis/release-please/compare/v17.10.4...v17.10.5) (2026-07-24)
+
+
+### Bug Fixes
+
+* **deps:** update brace-expansion to address Dependabot alerts [#99](https://github.com/googleapis/release-please/issues/99) and [#100](https://github.com/googleapis/release-please/issues/100) ([#2857](https://github.com/googleapis/release-please/issues/2857)) ([e9e921a](https://github.com/googleapis/release-please/commit/e9e921a89fc7ae36dbd10184ffc1dfbfb33c29b2))
+
 ## [17.10.4](https://github.com/googleapis/release-please/compare/v17.10.3...v17.10.4) (2026-07-21)
 
 
