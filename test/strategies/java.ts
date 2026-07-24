@@ -230,6 +230,31 @@ describe('Java', () => {
         expect(release?.labels).to.eql(['bot', 'custom:snapshot']);
       });
 
+      it('includes header and footer in snapshot PR', async () => {
+        const strategy = new Java({
+          targetBranch: 'main',
+          github,
+          pullRequestHeader: 'My custom header',
+          pullRequestFooter: 'My custom footer',
+        });
+
+        const latestRelease = {
+          tag: new TagName(Version.parse('2.3.3')),
+          sha: 'abc123',
+          notes: 'some notes',
+        };
+        const release = await strategy.buildReleasePullRequest(
+          COMMITS_NO_SNAPSHOT,
+          latestRelease,
+          false,
+          DEFAULT_LABELS
+        );
+
+        const body = release?.body.toString();
+        expect(body).to.include('My custom header');
+        expect(body).to.include('My custom footer');
+      });
+
       it('creates draft snapshot PR', async () => {
         const strategy = new Java({
           targetBranch: 'main',
