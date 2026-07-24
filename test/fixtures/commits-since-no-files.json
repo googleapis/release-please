@@ -19,7 +19,43 @@
                     "mergeCommit": {
                       "oid": "e6daec403626c9987c7af0d97b34f324cd84320a"
                     },
-                    "files": null
+                    "files": null,
+                    "commits": {
+                      "nodes": [
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "authors": {
+                "nodes": [
+                  {
+                    "email": "chingor@google.com",
+                    "name": "Jeff Ching"
                   }
                 ]
               },
@@ -43,7 +79,43 @@
                     },
                     "files": {
                       "nodes": []
+                    },
+                    "commits": {
+                      "nodes": [
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
                     }
+                  }
+                ]
+              },
+              "authors": {
+                "nodes": [
+                  {
+                    "email": "chingor@google.com",
+                    "name": "Jeff Ching"
                   }
                 ]
               },

@@ -71,8 +71,6 @@ export interface GitHubOptions {
   logger?: Logger;
 }
 
-type CommitFilter = (commit: Commit) => boolean;
-
 interface GraphQLCommitAuthor {
   name?: string;
   email?: string;
@@ -81,12 +79,22 @@ interface GraphQLCommitAuthor {
   } | null;
 }
 
+type CommitFilter = (commit: Commit) => boolean;
+
+interface GraphQLAuthor {
+  name: string;
+  email: string;
+}
+
 interface GraphQLCommit {
   sha: string;
   message: string;
   author?: GraphQLCommitAuthor;
   associatedPullRequests: {
     nodes: GraphQLPullRequest[];
+  };
+  authors: {
+    nodes: GraphQLAuthor[];
   };
 }
 
@@ -103,6 +111,11 @@ interface GraphQLPullRequest {
   };
   mergeCommit?: {
     oid: string;
+  };
+  commits: {
+    nodes: {
+      commit: GraphQLCommit;
+    }[];
   };
   files: {
     nodes: {
@@ -277,6 +290,24 @@ export class GitHub implements Scm {
                           hasNextPage
                         }
                       }
+                      commits(first: 100) {
+                        nodes {
+                          commit {
+                            authors(first: 10) {
+                              nodes {
+                                email
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  authors(first: 10) {
+                    nodes {
+                      email
+                      name
                     }
                   }
                   sha: oid
@@ -354,6 +385,7 @@ export class GitHub implements Scm {
             }
           : undefined,
       };
+
       const mergePullRequest = graphCommit.associatedPullRequests.nodes.find(
         pr => {
           return (
@@ -369,8 +401,17 @@ export class GitHub implements Scm {
           );
         }
       );
+
       const pullRequest =
         mergePullRequest || graphCommit.associatedPullRequests.nodes[0];
+
+      const authors = pullRequest
+        ? pullRequest.commits.nodes.flatMap(node => node.commit.authors.nodes)
+        : graphCommit.authors.nodes;
+
+      const authorNameSet = new Set<string>(authors.map(author => author.name));
+      commit.authors = Array.from(authorNameSet);
+
       if (pullRequest) {
         commit.pullRequest = {
           sha: commit.sha,

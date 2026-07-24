@@ -132,6 +132,7 @@ export interface ReleaserConfig {
   changelogPath?: string;
   changelogType?: ChangelogNotesType;
   changelogHost?: string;
+  commitPartialPath?: string;
   includeCommitAuthors?: boolean;
 
   // Ruby-only
@@ -180,6 +181,7 @@ interface ReleaserConfigJson {
   'include-v-in-release-name'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'changelog-host'?: string;
+  'commit-partial-path'?: string;
   'include-commit-authors'?: boolean;
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
@@ -677,6 +679,7 @@ export class Manifest {
         message: commit.message,
         files: commit.files,
         pullRequest: commit.pullRequest,
+        authors: commit.authors,
       });
     }
 
@@ -1399,6 +1402,7 @@ function extractReleaserConfig(
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
+    commitPartialPath: config['commit-partial-path'],
     includeCommitAuthors: config['include-commit-authors'],
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
@@ -1757,6 +1761,8 @@ function mergeReleaserConfig(
     changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,
     changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
+    commitPartialPath:
+      pathConfig.commitPartialPath ?? defaultConfig.commitPartialPath,
     includeCommitAuthors:
       pathConfig.includeCommitAuthors ?? defaultConfig.includeCommitAuthors,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
