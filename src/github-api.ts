@@ -34,8 +34,7 @@ import {
 import {logger as defaultLogger} from './util/logger';
 
 import {graphql} from '@octokit/graphql';
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {HttpProxyAgent} from 'http-proxy-agent';
+import {ProxyAgent} from 'undici';
 
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
@@ -167,30 +166,32 @@ export class GitHubApi {
     this.logger = options.logger ?? defaultLogger;
   }
 
-  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
+  static createProxyFetch(defaultProxy?: ProxyOption) {
     if (!defaultProxy) {
       return undefined;
     }
 
     const {host, port} = defaultProxy;
-    if (new URL(baseUrl).protocol.replace(':', '') === 'http') {
-      return new HttpProxyAgent(`http://${host}:${port}`);
-    } else {
-      return new HttpsProxyAgent(`https://${host}:${port}`);
-    }
+    const dispatcher = new ProxyAgent(`http://${host}:${port}`);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (url: string, opts?: any) => {
+      return fetch(url, {...opts, dispatcher});
+    };
   }
 
   static async create(options: GitHubCreateOptions): Promise<GitHubApi> {
     const apiUrl = options.apiUrl ?? GH_API_URL;
     const graphqlUrl = options.graphqlUrl ?? GH_GRAPHQL_URL;
     const releasePleaseVersion = require('../../package.json').version;
+    const proxyFetch = this.createProxyFetch(options.proxy);
+    const fetchToUse = options.fetch ?? proxyFetch;
     const apis = options.octokitAPIs ?? {
       octokit: new Octokit({
         baseUrl: apiUrl,
         auth: options.token,
         request: {
-          agent: this.createDefaultAgent(apiUrl, options.proxy),
-          fetch: options.fetch,
+          fetch: fetchToUse,
         },
       }),
       request: request.defaults({
@@ -199,13 +200,12 @@ export class GitHubApi {
           'user-agent': `release-please/${releasePleaseVersion}`,
           Authorization: `token ${options.token}`,
         },
-        fetch: options.fetch,
+        fetch: fetchToUse,
       }),
       graphql: graphql.defaults({
         baseUrl: graphqlUrl,
         request: {
-          agent: this.createDefaultAgent(graphqlUrl, options.proxy),
-          fetch: options.fetch,
+          fetch: fetchToUse,
         },
         headers: {
           'user-agent': `release-please/${releasePleaseVersion}`,
