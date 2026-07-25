@@ -176,15 +176,31 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       newCandidates = await mergePlugin.run(newCandidates);
     }
 
-    const newUpdates = newCandidates[0].pullRequest.updates;
-    newUpdates.push({
-      path: this.manifestPath,
-      createIfMissing: false,
-      updater: new ReleasePleaseManifest({
-        version: newCandidates[0].pullRequest.version!,
-        versionsMap: updatedPathVersions,
-      }),
-    });
+    if (this.merge) {
+      const candidate = newCandidates[0];
+      candidate.pullRequest.updates.push({
+        path: this.manifestPath,
+        createIfMissing: false,
+        updater: new ReleasePleaseManifest({
+          version: candidate.pullRequest.version!,
+          versionsMap: updatedPathVersions,
+        }),
+      });
+    } else {
+      for (const candidate of newCandidates) {
+        const version = updatedPathVersions.get(candidate.path);
+        if (version) {
+          candidate.pullRequest.updates.push({
+            path: this.manifestPath,
+            createIfMissing: false,
+            updater: new ReleasePleaseManifest({
+              version: candidate.pullRequest.version!,
+              versionsMap: new Map([[candidate.path, version]]),
+            }),
+          });
+        }
+      }
+    }
 
     this.logger.info(
       `Post-processing ${newCandidates.length} in-scope candidates`

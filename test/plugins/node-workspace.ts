@@ -315,6 +315,70 @@ describe('NodeWorkspace plugin', () => {
       expect(updater.versionsMap?.get('node5')?.toString()).to.eql('1.0.1');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
+    it('adds separate manifest updates to new candidates', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'node1/package.json',
+          'node2/package.json',
+          'node5/package.json',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        {
+          node1: {releaseType: 'node'},
+          node2: {releaseType: 'node'},
+          node5: {releaseType: 'node'},
+        },
+        {
+          merge: false,
+        }
+      );
+
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(3);
+
+      const node1Candidate = newCandidates.find(
+        candidate => candidate.path === 'node1'
+      )!;
+      const node2Candidate = newCandidates.find(
+        candidate => candidate.path === 'node2'
+      )!;
+      const node5Candidate = newCandidates.find(
+        candidate => candidate.path === 'node5'
+      )!;
+
+      assertNoHasUpdate(
+        node1Candidate.pullRequest.updates,
+        '.release-please-manifest.json'
+      );
+      const node2Manifest = assertHasUpdate(
+        node2Candidate.pullRequest.updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(Array.from(node2Manifest.versionsMap!.keys())).to.eql(['node2']);
+      const node5Manifest = assertHasUpdate(
+        node5Candidate.pullRequest.updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(Array.from(node5Manifest.versionsMap!.keys())).to.eql(['node5']);
+    });
     it('walks dependency tree and updates previously untouched packages (prerelease)', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('node1', 'node', '3.3.4-beta', {
