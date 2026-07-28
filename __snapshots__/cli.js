@@ -290,3 +290,7 @@ Options:
                                     project?
                                       [default: ".release-please-manifest.json"]
 `
+
+exports['CLI handleError handles an error 1'] = [
+  "command foobar failed with status 404"
+]
