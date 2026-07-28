@@ -20,7 +20,6 @@ import * as sinon from 'sinon';
 import {assertHasUpdate, buildMockConventionalCommit} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {VersionRB} from '../../src/updaters/ruby/version-rb';
-import {GemfileLock} from '../../src/updaters/ruby/gemfile-lock';
 import {LibrarianYamlUpdater} from '../../src/updaters/librarian-yaml';
 import {Update} from '../../src/update';
 
@@ -61,7 +60,7 @@ describe('RubyLibrarian', () => {
   });
 
   describe('buildUpdates', () => {
-    it('builds common ruby files and appends librarian.yaml correctly', async () => {
+    it('builds common ruby-yoshi files and appends librarian.yaml correctly', async () => {
       const strategy = new RubyLibrarian({
         targetBranch: 'main',
         github,
@@ -74,10 +73,9 @@ describe('RubyLibrarian', () => {
       );
       const updates = release!.updates;
 
-      // Verify standard ruby updates (inherited from Ruby strategy)
+      // Verify standard ruby-yoshi updates (inherited from RubyYoshi strategy)
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/google/cloud/asset/version.rb', VersionRB);
-      assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
 
       // Verify librarian.yaml is correctly registered as an update
       const update = assertHasUpdate(

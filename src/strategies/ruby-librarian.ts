@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Ruby} from './ruby';
+import {RubyYoshi} from './ruby-yoshi';
 import {BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 
-export class RubyLibrarian extends Ruby {
+export class RubyLibrarian extends RubyYoshi {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
