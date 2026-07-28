@@ -76,7 +76,11 @@ describe('RubyLibrarian', () => {
 
       // Verify standard ruby updates (inherited from Ruby strategy)
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-      assertHasUpdate(updates, 'lib/google/cloud/storage/version.rb', VersionRB);
+      assertHasUpdate(
+        updates,
+        'lib/google/cloud/storage/version.rb',
+        VersionRB
+      );
       assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
 
       // Verify librarian.yaml is correctly registered as an update
