@@ -42,6 +42,7 @@ import {PythonLibrarian} from './strategies/python-librarian';
 import {R} from './strategies/r';
 import {Ruby} from './strategies/ruby';
 import {RubyYoshi} from './strategies/ruby-yoshi';
+import {RubyLibrarian} from './strategies/ruby-librarian';
 import {Rust} from './strategies/rust';
 import {Sfdx} from './strategies/sfdx';
 import {Simple} from './strategies/simple';
@@ -108,6 +109,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   r: options => new R(options),
   ruby: options => new Ruby(options),
   'ruby-yoshi': options => new RubyYoshi(options),
+  'ruby-librarian': options => new RubyLibrarian(options),
   rust: options => new Rust(options),
   salesforce: options => new Sfdx(options),
   sfdx: options => new Sfdx(options),
