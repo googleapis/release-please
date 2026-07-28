@@ -49,7 +49,7 @@ describe('RubyLibrarian', () => {
       const strategy = new RubyLibrarian({
         targetBranch: 'main',
         github,
-        component: 'google-cloud-storage',
+        component: 'google-cloud-asset',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -65,7 +65,7 @@ describe('RubyLibrarian', () => {
       const strategy = new RubyLibrarian({
         targetBranch: 'main',
         github,
-        component: 'google-cloud-storage',
+        component: 'google-cloud-asset',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -76,11 +76,7 @@ describe('RubyLibrarian', () => {
 
       // Verify standard ruby updates (inherited from Ruby strategy)
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-      assertHasUpdate(
-        updates,
-        'lib/google/cloud/storage/version.rb',
-        VersionRB
-      );
+      assertHasUpdate(updates, 'lib/google/cloud/asset/version.rb', VersionRB);
       assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
 
       // Verify librarian.yaml is correctly registered as an update
@@ -101,8 +97,8 @@ describe('RubyLibrarian', () => {
       const strategy = new RubyLibrarian({
         targetBranch: 'main',
         github,
-        component: 'google-cloud-storage',
-        path: 'google-cloud-storage',
+        component: 'google-cloud-asset-v1',
+        path: 'google-cloud-asset-v1',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -117,12 +113,12 @@ describe('RubyLibrarian', () => {
 
       const originalYaml = `language: ruby
 libraries:
-  - name: google-cloud-storage
+  - name: google-cloud-asset-v1
     version: 0.5.0
 `;
       const expectedYaml = `language: ruby
 libraries:
-  - name: google-cloud-storage
+  - name: google-cloud-asset-v1
     version: 1.0.0
 `;
       const updatedYaml = librarianUpdate!.updater.updateContent(originalYaml);
