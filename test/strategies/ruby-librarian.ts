@@ -113,11 +113,15 @@ describe('RubyLibrarian', () => {
 
       const originalYaml = `language: ruby
 libraries:
+  - name: google-cloud-asset
+    version: 0.8.0
   - name: google-cloud-asset-v1
     version: 0.5.0
 `;
       const expectedYaml = `language: ruby
 libraries:
+  - name: google-cloud-asset
+    version: 0.8.0
   - name: google-cloud-asset-v1
     version: 1.0.0
 `;
