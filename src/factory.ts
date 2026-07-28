@@ -37,6 +37,7 @@ import {NodeLibrarian} from './strategies/node-librarian';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
+import {PHPLibrarian} from './strategies/php-librarian';
 import {Python} from './strategies/python';
 import {PythonLibrarian} from './strategies/python-librarian';
 import {R} from './strategies/r';
@@ -104,6 +105,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   ocaml: options => new OCaml(options),
   php: options => new PHP(options),
   'php-yoshi': options => new PHPYoshi(options),
+  'php-librarian': options => new PHPLibrarian(options),
   python: options => new Python(options),
   'python-librarian': options => new PythonLibrarian(options),
   r: options => new R(options),
