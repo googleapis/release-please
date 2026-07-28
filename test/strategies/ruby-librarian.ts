@@ -97,8 +97,8 @@ describe('RubyLibrarian', () => {
       const strategy = new RubyLibrarian({
         targetBranch: 'main',
         github,
-        component: 'google-cloud-asset-v1',
-        path: 'google-cloud-asset-v1',
+        component: 'google-cloud-asset',
+        path: 'google-cloud-asset',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -121,9 +121,9 @@ libraries:
       const expectedYaml = `language: ruby
 libraries:
   - name: google-cloud-asset
-    version: 0.8.0
-  - name: google-cloud-asset-v1
     version: 1.0.0
+  - name: google-cloud-asset-v1
+    version: 0.5.0
 `;
       const updatedYaml = librarianUpdate!.updater.updateContent(originalYaml);
       expect(updatedYaml).to.equal(expectedYaml);
