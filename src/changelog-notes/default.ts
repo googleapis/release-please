@@ -87,6 +87,7 @@ export class DefaultChangelogNotes implements ChangelogNotes {
             context.repository
           )
         );
+
       let subject = htmlEscape(commit.bareMessage);
       // Append author info if enabled and author is available
       if (options.includeCommitAuthors && commit.author) {
@@ -94,7 +95,30 @@ export class DefaultChangelogNotes implements ChangelogNotes {
           ? `@${commit.author.username}`
           : commit.author.name;
         subject = `${subject} (${authorDisplay})`;
+        return {
+          body: '', // commit.body,
+          subject,
+          type: commit.type,
+          scope: commit.scope,
+          notes,
+          references: commit.references,
+          mentions: [],
+          merge: null,
+          revert: null,
+          header: commit.message,
+          footer: commit.notes
+            .filter(note => note.title === 'RELEASE AS')
+            .map(note => `Release-As: ${note.text}`)
+            .join('\n'),
+          hash: commit.sha,
+        };
       }
+
+      const authors = commit.authors
+        ? commit.authors.map(author => `@${author}`).join(' ')
+        : null;
+      const prRef = commit.pullRequest ? `#${commit.pullRequest.number}` : null;
+
       return {
         body: '', // commit.body,
         subject,
@@ -111,6 +135,8 @@ export class DefaultChangelogNotes implements ChangelogNotes {
           .map(note => `Release-As: ${note.text}`)
           .join('\n'),
         hash: commit.sha,
+        authors,
+        prRef,
       };
     });
 
