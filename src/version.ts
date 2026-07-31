@@ -14,7 +14,7 @@
 
 import * as semver from 'semver';
 
-const VERSION_REGEX =
+export const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[^+]+))?(\+(?<build>.*))?/;
 
 /**
