@@ -133,6 +133,34 @@ describe('Java', () => {
         assertNoHasUpdate(release!.updates, 'CHANGELOG.md');
       });
 
+      it('returns an rc number bump snapshot PR', async () => {
+        const strategy = new Java({
+          targetBranch: 'main',
+          github,
+        });
+
+        const latestRelease = {
+          tag: new TagName(Version.parse('2.3.3-rc1')),
+          sha: 'abc123',
+          notes: 'some notes',
+        };
+        const release = await strategy.buildReleasePullRequest(
+          COMMITS_NO_SNAPSHOT,
+          latestRelease,
+          false,
+          DEFAULT_LABELS
+        );
+
+        expect(release?.version?.toString()).to.eql('2.3.3-rc2-SNAPSHOT');
+        expect(release?.title.toString()).to.eql(
+          'chore(main): release 2.3.3-rc2-SNAPSHOT'
+        );
+        expect(release?.headRefName).to.eql('release-please--branches--main');
+        expect(release?.draft).to.eql(false);
+        expect(release?.labels).to.eql(DEFAULT_SNAPSHOT_LABELS);
+        assertNoHasUpdate(release!.updates, 'CHANGELOG.md');
+      });
+
       it('skips a snapshot bump PR', async () => {
         const strategy = new Java({
           targetBranch: 'main',
