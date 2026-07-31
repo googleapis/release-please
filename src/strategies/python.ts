@@ -168,6 +168,18 @@ export class Python extends BaseStrategy {
     }
   }
 
+  async getDefaultPackageName(): Promise<string | undefined> {
+    const parsedPyProject = await this.getPyProject(
+      this.addPath('pyproject.toml')
+    );
+    const pyProject = parsedPyProject?.project || parsedPyProject?.tool?.poetry;
+    if (pyProject?.name) {
+      return pyProject.name;
+    }
+    const nameFromSetupPy = await this.getNameFromSetupPy();
+    return nameFromSetupPy ?? undefined;
+  }
+
   protected async getNameFromSetupPy(): Promise<string | null> {
     const ARTIFACT_NAME_REGEX = /name *= *['"](?<name>.*)['"](\r|\n|$)/;
     const setupPyContents = await this.getSetupPyContents();
