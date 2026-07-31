@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.11.1](https://github.com/googleapis/release-please/compare/v17.11.0...v17.11.1) (2026-07-31)
+
+
+### Bug Fixes
+
+* **deps:** upgrade brace-expansion version to 5.0.8 ([6159d83](https://github.com/googleapis/release-please/commit/6159d83eb6b277f1c95dbf2e5a9207940d97749f))
+
 ## [17.11.0](https://github.com/googleapis/release-please/compare/v17.10.4...v17.11.0) (2026-07-28)
 
 
