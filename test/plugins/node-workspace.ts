@@ -696,6 +696,45 @@ describe('NodeWorkspace plugin', () => {
       assertNoHasUpdate(updates, 'plugin1/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
+    it('should not include peer dependency notes in changelog when package has both dev and peer deps', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['node1/package.json', 'plugin2/package.json'],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new NodeWorkspace(github, 'main', {
+        node1: {
+          releaseType: 'node',
+        },
+        plugin2: {
+          releaseType: 'node',
+        },
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'node1/package.json');
+      assertHasUpdate(updates, 'plugin2/package.json');
+      const body = nodeCandidate!.pullRequest.body.toString();
+      expect(body).to.include('devDependencies');
+      expect(body).to.not.include('peerDependencies');
+      snapshot(dateSafe(body));
+    });
   });
   describe('with updatePeerDependencies: true', () => {
     const options = {updatePeerDependencies: true};
@@ -739,6 +778,51 @@ describe('NodeWorkspace plugin', () => {
       assertHasUpdate(updates, 'node1/package.json');
       assertHasUpdate(updates, 'plugin1/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+    });
+
+    it('should include peer dependency notes in changelog when package has both dev and peer deps', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['node1/package.json', 'plugin2/package.json'],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        {
+          node1: {
+            releaseType: 'node',
+          },
+          plugin2: {
+            releaseType: 'node',
+          },
+        },
+        options
+      );
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'node1/package.json');
+      assertHasUpdate(updates, 'plugin2/package.json');
+      const body = nodeCandidate!.pullRequest.body.toString();
+      expect(body).to.include('devDependencies');
+      expect(body).to.include('peerDependencies');
+      snapshot(dateSafe(body));
     });
 
     it('respects version prefix and updates peer dependencies', async () => {
