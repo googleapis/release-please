@@ -50,6 +50,12 @@ public final class Version {
   public static String INLINE_MINOR = "2"; // {x-release-please-minor}
   public static String INLINE_PATCH = "3"; // {x-release-please-patch}
 
+  public static String INLINE_COMPONENT_VERSION = "1.2.3-SNAPSHOT"; // {x-release-please-an-app-called-major-version}
+  public static String INLINE_COMPONENT_MAJOR = "1"; // {x-release-please-an-app-called-major-major}
+  public static String INLINE_COMPONENT_MAJOR_V = "v1"; // {x-release-please-an-app-called-major-major}
+  public static String INLINE_COMPONENT_MINOR = "2"; // {x-release-please-an-app-called-major-minor}
+  public static String INLINE_COMPONENT_PATCH = "3"; // {x-release-please-an-app-called-major-patch}
+
   public static String RELEASE_DATE = "11-12-2014"; // {x-release-please-date}
   public static String RELEASE_INFO = "v1.2.3 11-12-2014"; // {x-release-please-version-date}
 }
