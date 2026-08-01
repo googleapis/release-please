@@ -58,5 +58,28 @@ describe('PubspecYaml', () => {
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
     });
+    it('updates prerelease version in pubspec.yaml file', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './pubspec_prerelease.yaml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n'); // required for windows
+      const version = new PubspecYaml({
+        version: Version.parse('0.6.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
+    it('updates prerelease version with build number in pubspec.yaml file', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './pubspec_prerelease_with_build_no.yaml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n'); // required for windows
+      const version = new PubspecYaml({
+        version: Version.parse('0.6.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
