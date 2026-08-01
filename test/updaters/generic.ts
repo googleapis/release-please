@@ -16,6 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
+import {expect} from 'chai';
 import {Version} from '../../src/version';
 import {Generic} from '../../src/updaters/generic';
 
@@ -38,6 +39,26 @@ describe('Generic', () => {
       });
       const newContent = pom.updateContent(oldContent);
       snapshot(newContent);
+    });
+
+    it('does not update Java update markers', async () => {
+      const oldContent = `
+      package com.google.cloud.eventarc.v1.stub;
+      final class Version {
+        // {x-version-update-start:google-cloud-eventarc:current}
+        static final String VERSION = "0.0.0-SNAPSHOT";
+        // {x-version-update-end}
+      }
+      `;
+      const versions = new Map<string, Version>();
+      versions.set('google-cloud-eventarc', Version.parse('1.0.0'));
+      const updater = new Generic({
+        versionsMap: versions,
+        version: Version.parse('1.0.0'),
+      });
+      const newContent = updater.updateContent(oldContent);
+      // Content should remain unchanged because Generic doesn't support these markers
+      expect(newContent).to.eql(oldContent);
     });
   });
 });
