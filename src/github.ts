@@ -112,6 +112,7 @@ interface GraphQLPullRequest {
       hasNextPage: boolean;
     };
   };
+  authorAssociation?: string;
 }
 
 interface CommitHistory {
@@ -265,6 +266,7 @@ export class GitHub implements Scm {
                         }
                       }
                       body
+                      authorAssociation
                       mergeCommit {
                         oid
                       }
@@ -382,6 +384,8 @@ export class GitHub implements Scm {
           body: pullRequest.body,
           labels: pullRequest.labels.nodes.map(node => node.name),
           files: (pullRequest.files?.nodes || []).map(node => node.path),
+          authorAssociation:
+            pullRequest.authorAssociation as PullRequest['authorAssociation'],
         };
       }
       if (mergePullRequest) {

@@ -3134,6 +3134,7 @@ describe('Manifest', () => {
             labels: [],
             files: [],
             sha: 'abc123',
+            authorAssociation: 'MEMBER',
           },
         },
         {

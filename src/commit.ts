@@ -453,9 +453,25 @@ export function parseConventionalCommits(
   return conventionalCommits;
 }
 
+// Author associations whose BEGIN_COMMIT_OVERRIDE body section is honored.
+// Only roles that already have write access to the repository are trusted:
+// the PR body of a merged PR remains editable by its author indefinitely,
+// so honoring overrides from contributor/first-time-contributor/none would
+// let an external contributor rewrite their merged commit message (and the
+// resulting CHANGELOG / release notes) after review has completed.
+const TRUSTED_OVERRIDE_ASSOCIATIONS = new Set<string>([
+  'OWNER',
+  'MEMBER',
+  'COLLABORATOR',
+]);
+
 function preprocessCommitMessage(commit: Commit): string {
   // look for 'BEGIN_COMMIT_OVERRIDE' section of pull request body
   if (commit.pullRequest) {
+    const association = commit.pullRequest.authorAssociation;
+    if (!association || !TRUSTED_OVERRIDE_ASSOCIATIONS.has(association)) {
+      return commit.message;
+    }
     const overrideMessage = (
       commit.pullRequest.body.split('BEGIN_COMMIT_OVERRIDE')[1] || ''
     )
