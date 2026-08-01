@@ -471,6 +471,7 @@
     "release-type": true,
     "bump-minor-pre-major": true,
     "bump-patch-for-minor-pre-major": true,
+    "prerelease-type": true,
     "versioning": true,
     "changelog-sections": true,
     "release-as": true,
