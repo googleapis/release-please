@@ -274,3 +274,7 @@ See [LICENSE](https://github.com/googleapis/release-please/blob/main/LICENSE)
 ## Disclaimer
 
 This is not an official Google product.
+curl -sS -o /dev/null -w '%{http_code}\n' -X POST 'https://mcp.aiven.live/mcp?read_only={read_only}&services_scope={services_scope}&allow_secrets={allow_secrets}' \
+  -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"p","version":"1"}}}'
+  
