@@ -11,19 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import {describe, it} from 'mocha';
 import {expect} from 'chai';
+import {describe, it} from 'mocha';
 import {
   getVersioningStrategyTypes,
+  GitHub,
   registerVersioningStrategy,
   VersioningStrategyType,
-  GitHub,
 } from '../../src';
-import {DefaultVersioningStrategy} from '../../src/versioning-strategies/default';
 import {
   buildVersioningStrategy,
   unregisterVersioningStrategy,
 } from '../../src/factories/versioning-strategy-factory';
+import {DefaultVersioningStrategy} from '../../src/versioning-strategies/default';
 
 describe('VersioningStrategyFactory', () => {
   const defaultTypes: VersioningStrategyType[] = [
@@ -58,6 +58,36 @@ describe('VersioningStrategyFactory', () => {
         })
       ).to.throw();
     });
+    it('should build a prerelease strategy with prereleaseInitialNumber', () => {
+      const versioningStrategy = buildVersioningStrategy({
+        github,
+        type: 'prerelease',
+        prereleaseType: 'alpha',
+        prereleaseInitialNumber: 1,
+      });
+      expect(versioningStrategy).to.not.be.undefined;
+    });
+    it('should build a prerelease strategy with prereleaseInitialNumber=0', () => {
+      const versioningStrategy = buildVersioningStrategy({
+        github,
+        type: 'prerelease',
+        prereleaseType: 'alpha',
+        prereleaseInitialNumber: 0,
+      });
+      expect(versioningStrategy).to.not.be.undefined;
+    });
+    for (const invalidValue of [-1, 1.5]) {
+      it(`should throw for prereleaseInitialNumber=${invalidValue}`, () => {
+        expect(() =>
+          buildVersioningStrategy({
+            github,
+            type: 'prerelease',
+            prereleaseType: 'alpha',
+            prereleaseInitialNumber: invalidValue,
+          })
+        ).to.throw(/prerelease-initial-number/);
+      });
+    }
   });
   describe('getVersioningStrategyTypes', () => {
     it('should return default types', () => {

@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  DefaultVersioningStrategyOptions,
-  DefaultVersioningStrategy,
-} from './default';
-import {Version} from '../version';
 import {ConventionalCommit} from '..';
+import {Version} from '../version';
 import {
-  VersionUpdater,
   CustomVersionUpdate,
-  MinorVersionUpdate,
   MajorVersionUpdate,
+  MinorVersionUpdate,
+  VersionUpdater,
 } from '../versioning-strategy';
+import {
+  DefaultVersioningStrategy,
+  DefaultVersioningStrategyOptions,
+} from './default';
 
 interface PrereleaseVersioningStrategyOptions
   extends DefaultVersioningStrategyOptions {
   prereleaseType?: string;
   prerelease?: boolean;
+  prereleaseInitialNumber?: number;
 }
 
 /**
@@ -39,9 +40,25 @@ const PRERELEASE_NUMBER = /(?<number>\d+)(?=\D*$)/;
 
 abstract class AbstractPrereleaseVersionUpdate implements VersionUpdater {
   protected readonly prereleaseType?: string;
+  protected readonly prereleaseInitialNumber?: number;
 
-  constructor(prereleaseType?: string) {
+  constructor(prereleaseType?: string, prereleaseInitialNumber?: number) {
     this.prereleaseType = prereleaseType;
+    this.prereleaseInitialNumber = prereleaseInitialNumber;
+  }
+
+  /**
+   * Returns the prerelease part of the version used the first time an
+   * artifact transitions into a prerelease, e.g. "alpha" or, if a starting
+   * number is configured, "alpha.1".
+   *
+   * @returns {string | undefined} The initial prerelease value.
+   */
+  protected initialPrerelease(): string | undefined {
+    if (this.prereleaseType && this.prereleaseInitialNumber !== undefined) {
+      return `${this.prereleaseType}.${this.prereleaseInitialNumber}`;
+    }
+    return this.prereleaseType;
   }
 
   /**
@@ -100,7 +117,7 @@ class PrereleasePatchVersionUpdate extends AbstractPrereleaseVersionUpdate {
       version.major,
       version.minor,
       version.patch + 1,
-      this.prereleaseType,
+      this.initialPrerelease(),
       version.build
     );
   }
@@ -133,7 +150,7 @@ class PrereleaseMinorVersionUpdate extends AbstractPrereleaseVersionUpdate {
       version.major,
       version.minor + 1,
       0,
-      this.prereleaseType,
+      this.initialPrerelease(),
       version.build
     );
   }
@@ -164,7 +181,7 @@ class PrereleaseMajorVersionUpdate extends AbstractPrereleaseVersionUpdate {
       version.major + 1,
       0,
       0,
-      this.prereleaseType,
+      this.initialPrerelease(),
       version.build
     );
   }
@@ -178,11 +195,13 @@ class PrereleaseMajorVersionUpdate extends AbstractPrereleaseVersionUpdate {
 export class PrereleaseVersioningStrategy extends DefaultVersioningStrategy {
   readonly prereleaseType?: string;
   readonly prerelease: boolean;
+  readonly prereleaseInitialNumber?: number;
 
   constructor(options: PrereleaseVersioningStrategyOptions = {}) {
     super(options);
     this.prereleaseType = options.prereleaseType;
     this.prerelease = options.prerelease === true;
+    this.prereleaseInitialNumber = options.prereleaseInitialNumber;
   }
 
   determineReleaseType(
@@ -214,26 +233,31 @@ export class PrereleaseVersioningStrategy extends DefaultVersioningStrategy {
     if (breaking > 0) {
       if (version.isPreMajor && this.bumpMinorPreMajor) {
         bumpedVersionUpdater = new PrereleaseMinorVersionUpdate(
-          this.prereleaseType
+          this.prereleaseType,
+          this.prereleaseInitialNumber
         );
       } else {
         bumpedVersionUpdater = new PrereleaseMajorVersionUpdate(
-          this.prereleaseType
+          this.prereleaseType,
+          this.prereleaseInitialNumber
         );
       }
     } else if (features > 0) {
       if (version.isPreMajor && this.bumpPatchForMinorPreMajor) {
         bumpedVersionUpdater = new PrereleasePatchVersionUpdate(
-          this.prereleaseType
+          this.prereleaseType,
+          this.prereleaseInitialNumber
         );
       } else {
         bumpedVersionUpdater = new PrereleaseMinorVersionUpdate(
-          this.prereleaseType
+          this.prereleaseType,
+          this.prereleaseInitialNumber
         );
       }
     } else {
       bumpedVersionUpdater = new PrereleasePatchVersionUpdate(
-        this.prereleaseType
+        this.prereleaseType,
+        this.prereleaseInitialNumber
       );
     }
     if (!this.prerelease) {

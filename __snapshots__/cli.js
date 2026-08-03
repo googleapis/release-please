@@ -220,6 +220,9 @@ Options:
                                     the first major release
                                                       [boolean] [default: false]
   --prerelease-type                 type of the prerelease, e.g., alpha [string]
+  --prerelease-initial-number       starting number to append to the first
+                                    generated prerelease, e.g., 1 results in a
+                                    first prerelease of 1.0.0-alpha.1   [number]
   --extra-files                     extra files for the strategy to consider
                                                                         [string]
   --version-file                    path to version file to update, e.g.,
