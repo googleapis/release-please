@@ -134,4 +134,52 @@ describe('commit-exclude', () => {
     expect(newCommitsPerPath['a'].length).to.equal(1);
     expect(newCommitsPerPath['d'].length).to.equal(0);
   });
+
+  it('should exclude commits that only touch an excluded file', () => {
+    const commits: Record<string, Commit[]> = {
+      '.': [
+        {
+          sha: 'makefileOnly',
+          message: 'chore: update Makefile',
+          files: ['Makefile'],
+        },
+        {
+          sha: 'makefileAndSrc',
+          message: 'feat: change Makefile and source',
+          files: ['Makefile', 'src/index.ts'],
+        },
+      ],
+    };
+    const config: Record<string, CommitExcludeConfig> = {
+      '.': {excludePaths: ['Makefile']},
+    };
+    const commitExclude = new CommitExclude(config);
+    const newCommitsPerPath = commitExclude.excludeCommits(commits);
+    expect(newCommitsPerPath['.'].length).to.equal(1);
+    expect(newCommitsPerPath['.'][0].sha).to.equal('makefileAndSrc');
+  });
+
+  it('should exclude commits that only touch a nested excluded file', () => {
+    const commits: Record<string, Commit[]> = {
+      '.': [
+        {
+          sha: 'versionOnly',
+          message: 'chore: bump internal version',
+          files: ['internal/version.go'],
+        },
+        {
+          sha: 'versionAndOther',
+          message: 'feat: change version and code',
+          files: ['internal/version.go', 'pkg/foo.go'],
+        },
+      ],
+    };
+    const config: Record<string, CommitExcludeConfig> = {
+      '.': {excludePaths: ['internal/version.go']},
+    };
+    const commitExclude = new CommitExclude(config);
+    const newCommitsPerPath = commitExclude.excludeCommits(commits);
+    expect(newCommitsPerPath['.'].length).to.equal(1);
+    expect(newCommitsPerPath['.'][0].sha).to.equal('versionAndOther');
+  });
 });
