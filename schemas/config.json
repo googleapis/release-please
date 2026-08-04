@@ -232,7 +232,7 @@
           }
         },
         "exclude-paths": {
-          "description": "Path of commits to be excluded from parsing. If all files from commit belong to one of the paths it will be skipped",
+          "description": "Directories or specific file paths to exclude from commit parsing. If all files from a commit belong to one of the paths it will be skipped",
           "type": "array",
           "items": {
             "type": "string"
