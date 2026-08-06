@@ -106,6 +106,7 @@
     "tmp": "^0.2.7",
     "serialize-javascript": "^7.0.5",
     "js-yaml": "^4.3.0",
-    "brace-expansion": "^5.0.8"
+    "brace-expansion": "^5.0.8",
+    "debug": "^4.3.4"
   }
 }
