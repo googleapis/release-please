@@ -501,6 +501,6 @@
     "snapshot-label": true,
     "initial-version": true,
     "exclude-paths": true,
-    "component-no-space": false
+    "component-no-space": true
   }
 }
