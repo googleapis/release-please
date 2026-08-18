@@ -89,6 +89,10 @@ Extra options:
 | ------ | ---- | ----------- |
 | `--config-file` | string | Override the path to the release-please config file. Defaults to `release-please-config.json` |
 | `--manifest-file` | string | Override the path to the release-please manifest file. Defaults to `.release-please-manifest.json` |
+| `--path` | `string` | Release a single component/package from a monorepo manifest at the given path |
+| `--release-as` | `string` | Override the semantically determined release version |
+| `--draft-pull-request` | `boolean` | If set, create pull requests as drafts |
+| `--fork` | `boolean` | Should the PR be created from a fork |
 | `--skip-labeling` | `boolean` | If set, labels will not be applied to pull requests |
 
 ### Without a manifest config
@@ -102,6 +106,7 @@ need to specify your release options:
 | `--package-name` | string | Name of the package being released. Defaults to a value determined by the configured release type |
 | `--component` | string | Name of the component used for branch naming and release tagging. Defaults to a normalized version based on the package name |
 | `--release-type` | ReleaseType | Language strategy that determines which files to update |
+| `--release-as` | string | Override the semantically determined release version |
 | `--initial-version` | string | Version string to set as the last released version of this package. Defaults to `0.0.0` |
 | `--versioning-strategy` | VersioningStrategy | Override method of determining SemVer version bumps based on commits. Defaults to `default` |
 | `--bump-minor-pre-major` | boolean | Configuration option for the versioning strategy. If set, will bump the minor version for breaking changes for versions < 1.0.0 |
