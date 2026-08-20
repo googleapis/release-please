@@ -1089,10 +1089,26 @@ export class Manifest {
     return newPullRequest;
   }
 
+  /**
+   * Normalizes pull request body content by converting CRLF (\r\n) and CR (\r) line endings
+   * to standard LF (\n) and trimming leading/trailing whitespace. This prevents false-positive
+   * diffs caused by GitHub's markdown normalization during API round-trips.
+   *
+   * @param {string | undefined | null} body The raw pull request body text
+   * @returns {string} The normalized body string
+   */
   private normalizePullRequestBody(body: string | undefined | null): string {
     return (body ?? '').replace(/\r\n|\r/g, '\n').trim();
   }
 
+  /**
+   * Checks whether an existing pull request has identical release note content
+   * compared to a newly computed candidate release pull request.
+   *
+   * @param {PullRequest} existing The existing open or snoozed pull request
+   * @param {ReleasePullRequest} pullRequest The computed candidate pull request
+   * @returns {boolean} True if the normalized release note bodies are identical
+   */
   private isPullRequestUnchanged(
     existing: PullRequest,
     pullRequest: ReleasePullRequest
