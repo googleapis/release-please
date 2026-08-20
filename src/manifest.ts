@@ -328,7 +328,6 @@ export class Manifest {
   private bootstrapSha?: string;
   private lastReleaseSha?: string;
   private draft?: boolean;
-  private prerelease?: boolean;
   private draftPullRequest?: boolean;
   private groupPullRequestTitlePattern?: string;
   readonly releaseSearchDepth: number;
@@ -923,7 +922,7 @@ export class Manifest {
    *
    * @returns {PullRequest[]} Pull request numbers of release pull requests
    */
-  async createPullRequests(): Promise<(PullRequest | undefined)[]> {
+  async createPullRequests(): Promise<PullRequest[]> {
     const candidatePullRequests = await this.buildPullRequests();
     if (candidatePullRequests.length === 0) {
       return [];
@@ -967,7 +966,7 @@ export class Manifest {
       }
       const pullNumbers = await Promise.all(promises);
       // reject any pull numbers that were not created or updated
-      return pullNumbers.filter(number => !!number);
+      return pullNumbers.filter((pr): pr is PullRequest => !!pr);
     }
   }
 
@@ -1105,7 +1104,9 @@ export class Manifest {
     return existingBody === candidateBody;
   }
 
-  /// only update an existing pull request if it has release note changes
+  /**
+   * Only update an existing pull request if it has release note changes
+   */
   private async maybeUpdateExistingPullRequest(
     existing: PullRequest,
     pullRequest: ReleasePullRequest
@@ -1117,10 +1118,12 @@ export class Manifest {
       );
       return undefined;
     }
-    return await this.updateExistingPullRequest(existing, pullRequest);
+    return this.updateExistingPullRequest(existing, pullRequest);
   }
 
-  /// only update a snoozed pull request if it has release note changes
+  /**
+   * Only update a snoozed pull request if it has release note changes
+   */
   private async maybeUpdateSnoozedPullRequest(
     snoozed: PullRequest,
     pullRequest: ReleasePullRequest
@@ -1141,7 +1144,9 @@ export class Manifest {
     return updatedPullRequest;
   }
 
-  /// force an update to an existing pull request
+  /**
+   * Force an update to an existing pull request
+   */
   private async updateExistingPullRequest(
     existing: PullRequest,
     pullRequest: ReleasePullRequest
@@ -1199,7 +1204,7 @@ export class Manifest {
     const strategiesByPath = await this.getStrategiesByPath();
 
     // Find merged release pull requests
-    const generator = await this.findMergedReleasePullRequests();
+    const generator = this.findMergedReleasePullRequests();
     const candidateReleases: CandidateRelease[] = [];
     for await (const pullRequest of generator) {
       for (const path in this.repositoryConfig) {

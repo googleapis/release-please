@@ -44,6 +44,10 @@ type CreateCommitResponse = GetResponseTypeFromEndpointMethod<
   typeof octokit.git.createCommit
 >;
 
+type GetRefResponse = GetResponseTypeFromEndpointMethod<
+  typeof octokit.git.getRef
+>;
+
 class FakeCommitSigner implements CommitSigner {
   signature: string;
   constructor(signature: string) {
@@ -299,6 +303,9 @@ describe('Commit and push function', async () => {
   afterEach(() => {
     sandbox.restore();
   });
+  beforeEach(() => {
+    changes.clear();
+  });
   it('When everything works it calls functions with correct parameter values', async () => {
     changes.set('foo.txt', {
       mode: '100755',
@@ -542,7 +549,7 @@ describe('Commit and push function', async () => {
           url: 'http://fake-url.com',
         },
       },
-    } as any);
+    } as unknown as GetRefResponse);
     const stubUpdateRef = sandbox.stub(octokit.git, 'updateRef');
 
     await handler.commitAndPush(
@@ -595,7 +602,7 @@ describe('Commit and push function', async () => {
           url: 'http://fake-url.com',
         },
       },
-    } as any);
+    } as unknown as GetRefResponse);
     const stubUpdateRef = sandbox.stub(octokit.git, 'updateRef');
 
     await handler.commitAndPush(
@@ -633,5 +640,26 @@ describe('Commit and push function', async () => {
     );
 
     sinon.assert.calledOnce(stubUpdateRef);
+  });
+
+  it('handles empty changes map without calling updateRef', async () => {
+    const stubGetCommit = sandbox.stub(octokit.git, 'getCommit');
+    const stubCreateTree = sandbox.stub(octokit.git, 'createTree');
+    const stubCreateCommit = sandbox.stub(octokit.git, 'createCommit');
+    const stubUpdateRef = sandbox.stub(octokit.git, 'updateRef');
+
+    await handler.commitAndPush(
+      octokit,
+      oldHeadSha,
+      new Map(),
+      {branch: branchName, ...origin},
+      message,
+      true
+    );
+
+    sinon.assert.notCalled(stubGetCommit);
+    sinon.assert.notCalled(stubCreateTree);
+    sinon.assert.notCalled(stubCreateCommit);
+    sinon.assert.notCalled(stubUpdateRef);
   });
 });

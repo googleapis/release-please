@@ -105,7 +105,8 @@ export async function createTree(
     );
     return treeSha;
   } catch (e) {
-    throw new CommitError(`Error adding to tree: ${refHead}`, e as Error);
+    const cause = e instanceof Error ? e : new Error(String(e));
+    throw new CommitError(`Error adding to tree: ${refHead}`, cause);
   }
 }
 
@@ -135,14 +136,15 @@ export async function updateRef(
     });
     logger.info(`Successfully updated reference ${origin.branch} to ${newSha}`);
   } catch (e) {
+    const cause = e instanceof Error ? e : new Error(String(e));
     throw new CommitError(
       `Error updating ref heads/${origin.branch} to ${newSha}`,
-      e as Error
+      cause
     );
   }
 }
 
-interface CommitAndPushOptions extends CreateCommitOptions {
+export interface CommitAndPushOptions extends CreateCommitOptions {
   filesPerCommit?: number;
 }
 
@@ -152,10 +154,10 @@ interface CommitAndPushOptions extends CreateCommitOptions {
  * @param {Octokit} octokit The authenticated octokit instance
  * @param {string} refHead the base of the new commit(s)
  * @param {Changes} changes the set of repository changes
- * @param {RepoDomain} origin the the remote repository to push changes to
- * @param {string} originBranchName the remote branch that will contain the new changes
+ * @param {BranchDomain} originBranch the remote branch that will contain the new changes
  * @param {string} commitMessage the message of the new commit
  * @param {boolean} force to force the commit changes given refHead
+ * @param {CommitAndPushOptions} [options] commit and push options
  * @returns {Promise<void>}
  * @throws {CommitError}
  */
@@ -167,7 +169,12 @@ export async function commitAndPush(
   commitMessage: string,
   force: boolean,
   options?: CommitAndPushOptions
-) {
+): Promise<void> {
+  if (changes.size === 0) {
+    logger.info('No changes to commit. Skipping.');
+    return;
+  }
+
   const filesPerCommit = options?.filesPerCommit ?? DEFAULT_FILES_PER_COMMIT;
   const tree = generateTreeObjects(changes);
   let finalTreeSha = '';
@@ -202,8 +209,13 @@ export async function commitAndPush(
         return;
       }
     }
-  } catch (err) {
-    logger.debug(`Could not check existing branch tree: ${err}`);
+  } catch (err: unknown) {
+    const status = (err as {status?: number})?.status;
+    if (status === 404) {
+      logger.debug(`Branch heads/${originBranch.branch} does not exist yet.`);
+    } else {
+      logger.debug(`Could not check existing branch tree: ${err}`);
+    }
   }
 
   await updateRef(octokit, originBranch, refHead, force);
