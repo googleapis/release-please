@@ -1121,7 +1121,11 @@ export class Manifest {
   }
 
   /**
-   * Only update an existing pull request if it has release note changes
+   * Only update an existing pull request if it has release note changes.
+   *
+   * @param {PullRequest} existing The existing open release pull request
+   * @param {ReleasePullRequest} pullRequest The newly computed candidate pull request
+   * @returns {Promise<PullRequest | undefined>} The updated pull request, or undefined if skipped
    */
   private async maybeUpdateExistingPullRequest(
     existing: PullRequest,
@@ -1138,7 +1142,12 @@ export class Manifest {
   }
 
   /**
-   * Only update a snoozed pull request if it has release note changes
+   * Only update a snoozed pull request if it has release note changes.
+   * If updated, the snooze label is removed.
+   *
+   * @param {PullRequest} snoozed The existing snoozed release pull request
+   * @param {ReleasePullRequest} pullRequest The newly computed candidate pull request
+   * @returns {Promise<PullRequest | undefined>} The updated pull request, or undefined if skipped
    */
   private async maybeUpdateSnoozedPullRequest(
     snoozed: PullRequest,
@@ -1161,7 +1170,11 @@ export class Manifest {
   }
 
   /**
-   * Force an update to an existing pull request
+   * Force an update to an existing pull request.
+   *
+   * @param {PullRequest} existing The existing pull request
+   * @param {ReleasePullRequest} pullRequest The updated release pull request data
+   * @returns {Promise<PullRequest>} The updated pull request
    */
   private async updateExistingPullRequest(
     existing: PullRequest,
@@ -1179,6 +1192,11 @@ export class Manifest {
     );
   }
 
+  /**
+   * Generator that yields merged release pull requests on the target branch.
+   *
+   * @yields {PullRequest} Merged release pull requests matching release labels
+   */
   private async *findMergedReleasePullRequests() {
     // Find merged release pull requests
     const pullRequestGenerator = this.github.pullRequestIterator(
