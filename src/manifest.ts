@@ -1090,17 +1090,17 @@ export class Manifest {
     return newPullRequest;
   }
 
-  private normalizePullRequestBody(body: string): string {
-    return body.replace(/\r\n/g, '\n').trim();
+  private normalizePullRequestBody(body: string | undefined | null): string {
+    return (body ?? '').replace(/\r\n|\r/g, '\n').trim();
   }
 
   private isPullRequestUnchanged(
     existing: PullRequest,
     pullRequest: ReleasePullRequest
   ): boolean {
-    const existingBody = this.normalizePullRequestBody(existing.body || '');
+    const existingBody = this.normalizePullRequestBody(existing.body);
     const candidateBody = this.normalizePullRequestBody(
-      pullRequest.body.toString()
+      pullRequest.body?.toString()
     );
     return existingBody === candidateBody;
   }
