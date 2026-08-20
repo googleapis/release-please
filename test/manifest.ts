@@ -4280,6 +4280,57 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(1);
     });
 
+    it('skips updating an existing pull request if the body only differs by line endings or whitespace', async () => {
+      const existingBody = pullRequestBody('release-notes/single-manifest.txt');
+      const existingBodyWithCRLF =
+        existingBody.replace(/\n/g, '\r\n') + '  \r\n';
+      const branchName = 'release-please--branches--main';
+      mockPullRequests(
+        github,
+        [
+          {
+            number: 22,
+            title: 'chore: release main',
+            body: existingBodyWithCRLF,
+            headBranchName: branchName,
+            baseBranchName: 'main',
+            labels: ['autorelease: pending'],
+            files: [],
+          },
+        ],
+        []
+      );
+      const updatePullRequestStub = sandbox.stub(github, 'updatePullRequest');
+      const createPullRequestStub = sandbox.stub(github, 'createPullRequest');
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: PullRequestBody.parse(existingBody)!,
+          updates: [],
+          labels: [],
+          headRefName: branchName,
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(0);
+      sinon.assert.notCalled(updatePullRequestStub);
+      sinon.assert.notCalled(createPullRequestStub);
+    });
+
     describe('with an overflowing body', () => {
       const body = new PullRequestBody(mockReleaseData(1000), {
         useComponents: true,

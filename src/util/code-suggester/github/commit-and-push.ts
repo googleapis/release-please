@@ -170,16 +170,41 @@ export async function commitAndPush(
 ) {
   const filesPerCommit = options?.filesPerCommit ?? DEFAULT_FILES_PER_COMMIT;
   const tree = generateTreeObjects(changes);
+  let finalTreeSha = '';
   for (const treeGroup of inGroupsOf(tree, filesPerCommit)) {
-    const treeSha = await createTree(octokit, originBranch, refHead, treeGroup);
+    finalTreeSha = await createTree(octokit, originBranch, refHead, treeGroup);
     refHead = await createCommit(
       octokit,
       originBranch,
       refHead,
-      treeSha,
+      finalTreeSha,
       commitMessage,
       options
     );
   }
+
+  try {
+    const existingRef = await octokit.git.getRef({
+      owner: originBranch.owner,
+      repo: originBranch.repo,
+      ref: `heads/${originBranch.branch}`,
+    });
+    if (existingRef?.data?.object?.sha) {
+      const existingCommit = await octokit.git.getCommit({
+        owner: originBranch.owner,
+        repo: originBranch.repo,
+        commit_sha: existingRef.data.object.sha,
+      });
+      if (existingCommit?.data?.tree?.sha === finalTreeSha) {
+        logger.info(
+          `Branch ${originBranch.branch} tree is already identical to ${finalTreeSha}. Skipping ref update.`
+        );
+        return;
+      }
+    }
+  } catch (err) {
+    logger.debug(`Could not check existing branch tree: ${err}`);
+  }
+
   await updateRef(octokit, originBranch, refHead, force);
 }

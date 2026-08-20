@@ -1090,13 +1090,28 @@ export class Manifest {
     return newPullRequest;
   }
 
+  private normalizePullRequestBody(body: string): string {
+    return body.replace(/\r\n/g, '\n').trim();
+  }
+
+  private isPullRequestUnchanged(
+    existing: PullRequest,
+    pullRequest: ReleasePullRequest
+  ): boolean {
+    const existingBody = this.normalizePullRequestBody(existing.body || '');
+    const candidateBody = this.normalizePullRequestBody(
+      pullRequest.body.toString()
+    );
+    return existingBody === candidateBody;
+  }
+
   /// only update an existing pull request if it has release note changes
   private async maybeUpdateExistingPullRequest(
     existing: PullRequest,
     pullRequest: ReleasePullRequest
   ): Promise<PullRequest | undefined> {
     // If unchanged, no need to push updates
-    if (existing.body === pullRequest.body.toString()) {
+    if (this.isPullRequestUnchanged(existing, pullRequest)) {
       this.logger.info(
         `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
       );
@@ -1111,7 +1126,7 @@ export class Manifest {
     pullRequest: ReleasePullRequest
   ): Promise<PullRequest | undefined> {
     // If unchanged, no need to push updates
-    if (snoozed.body === pullRequest.body.toString()) {
+    if (this.isPullRequestUnchanged(snoozed, pullRequest)) {
       this.logger.info(
         `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
       );
