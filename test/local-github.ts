@@ -12,9 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import * as child_process from 'child_process';
 import {expect} from 'chai';
 import {describe, it, before} from 'mocha';
 import {LocalGitHub} from '../src/local-github';
+import {FileNotFoundError} from '../src/errors';
+import {GitHubApi} from '../src/github-api';
 
 describe('LocalGitHub', function () {
   this.timeout(60000);
@@ -83,6 +89,132 @@ describe('LocalGitHub', function () {
       } catch (err) {
         const error = err as Error;
         expect(error.name).to.equal('FileNotFoundError');
+      }
+    });
+
+    it('throws FileNotFoundError when encountering a submodule entry (mode 160000)', async () => {
+      const tempDir = await fs.promises.mkdtemp(
+        path.join(os.tmpdir(), 'submodule-test-')
+      );
+      const fakeGlobalConfig = path.join(tempDir, '.gitconfig');
+      await fs.promises.writeFile(
+        fakeGlobalConfig,
+        '[user]\nname=Test\nemail=test@example.com\n'
+      );
+      const env = {...process.env, GIT_CONFIG_GLOBAL: fakeGlobalConfig};
+
+      child_process.execFileSync('git', ['init', '-b', 'main'], {
+        cwd: tempDir,
+        env,
+      });
+      child_process.execFileSync('git', ['config', 'user.name', 'Test'], {
+        cwd: tempDir,
+        env,
+      });
+      child_process.execFileSync(
+        'git',
+        ['config', 'user.email', 'test@example.com'],
+        {cwd: tempDir, env}
+      );
+      child_process.execFileSync('git', ['config', 'commit.gpgSign', 'false'], {
+        cwd: tempDir,
+        env,
+      });
+      child_process.execFileSync(
+        'git',
+        ['commit', '--allow-empty', '-m', 'initial'],
+        {cwd: tempDir, env}
+      );
+      child_process.execFileSync(
+        'git',
+        [
+          'update-index',
+          '--add',
+          '--cacheinfo',
+          '160000,1111111111111111111111111111111111111111,submodule-pkg',
+        ],
+        {cwd: tempDir, env}
+      );
+      child_process.execFileSync(
+        'git',
+        ['commit', '-m', 'add submodule gitlink'],
+        {cwd: tempDir, env}
+      );
+
+      const submoduleGitHub = new LocalGitHub(
+        {owner: 'fake', repo: 'fake', defaultBranch: 'main'},
+        null as unknown as GitHubApi,
+        tempDir
+      );
+
+      try {
+        await submoduleGitHub.getFileContentsOnBranch('submodule-pkg', 'main');
+        expect.fail('Expected FileNotFoundError to be thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(FileNotFoundError);
+      }
+    });
+
+    it('throws FileNotFoundError when git ls-tree or ref resolution fails', async () => {
+      try {
+        await localGitHub.getFileContentsOnBranch(
+          'package.json',
+          'non-existent-ref-xyz'
+        );
+        expect.fail('Expected FileNotFoundError to be thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(FileNotFoundError);
+      }
+    });
+
+    it('throws FileNotFoundError when git show fails', async () => {
+      const tempDir = await fs.promises.mkdtemp(
+        path.join(os.tmpdir(), 'git-show-test-')
+      );
+      const fakeGlobalConfig = path.join(tempDir, '.gitconfig');
+      await fs.promises.writeFile(
+        fakeGlobalConfig,
+        '[user]\nname=Test\nemail=test@example.com\n'
+      );
+      const env = {...process.env, GIT_CONFIG_GLOBAL: fakeGlobalConfig};
+
+      child_process.execFileSync('git', ['init', '-b', 'main'], {
+        cwd: tempDir,
+        env,
+      });
+      child_process.execFileSync('git', ['config', 'user.name', 'Test'], {
+        cwd: tempDir,
+        env,
+      });
+      child_process.execFileSync(
+        'git',
+        ['config', 'user.email', 'test@example.com'],
+        {cwd: tempDir, env}
+      );
+      child_process.execFileSync('git', ['config', 'commit.gpgSign', 'false'], {
+        cwd: tempDir,
+        env,
+      });
+      child_process.execFileSync(
+        'git',
+        ['commit', '--allow-empty', '-m', 'initial'],
+        {cwd: tempDir, env}
+      );
+
+      const localGitHubInstance = new LocalGitHub(
+        {owner: 'fake', repo: 'fake', defaultBranch: 'main'},
+        null as unknown as GitHubApi,
+        tempDir
+      );
+
+      try {
+        await localGitHubInstance.getFileContentsOnBranch(
+          'invalid-file.txt',
+          'main'
+        );
+        expect.fail('Expected FileNotFoundError to be thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(FileNotFoundError);
       }
     });
   });

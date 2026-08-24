@@ -230,22 +230,56 @@ export class LocalGitHub implements Scm {
       `Fetching file contents for file ${path} on branch ${branch}`
     );
 
-    const ref = await this.ensureRef(branch);
-    const lsTreeResult = await execFile('git', ['ls-tree', ref, path], {
-      cwd: this.cloneDir,
-    });
+    let ref: string;
+    try {
+      ref = await this.ensureRef(branch);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to resolve ref ${branch}: ${(err as Error).message}`
+      );
+      throw new FileNotFoundError(path);
+    }
+
+    let lsTreeResult;
+    try {
+      lsTreeResult = await execFile('git', ['ls-tree', ref, path], {
+        cwd: this.cloneDir,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to ls-tree ${path} on ref ${ref}: ${(err as Error).message}`
+      );
+      throw new FileNotFoundError(path);
+    }
 
     if (!lsTreeResult.stdout.trim()) {
       throw new FileNotFoundError(path);
     }
 
-    const [info] = lsTreeResult.stdout.split('\t');
-    const [mode, , sha] = info.split(' ');
+    const firstLine = lsTreeResult.stdout.trim().split('\n')[0];
+    const [info] = firstLine.split('\t');
+    const [mode, type, sha] = info.split(' ');
 
-    const {stdout} = await execFile('git', ['show', `${ref}:${path}`], {
-      cwd: this.cloneDir,
-      maxBuffer: 100 * 1024 * 1024,
-    });
+    if (mode === '160000' || type === 'commit') {
+      this.logger.warn(
+        `Encountered git submodule/gitlink at ${path} on ref ${ref}, treating as not found`
+      );
+      throw new FileNotFoundError(path);
+    }
+
+    let stdout: string;
+    try {
+      const res = await execFile('git', ['show', `${ref}:${path}`], {
+        cwd: this.cloneDir,
+        maxBuffer: 100 * 1024 * 1024,
+      });
+      stdout = res.stdout;
+    } catch (err) {
+      this.logger.warn(
+        `Failed to show ${ref}:${path}: ${(err as Error).message}`
+      );
+      throw new FileNotFoundError(path);
+    }
 
     return {
       content: Buffer.from(stdout).toString('base64'),
