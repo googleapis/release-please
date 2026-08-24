@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
-    "@google-automations/git-file-utils": "^3.0.0",
+    "@google-automations/git-file-utils": "^3.2.0",
     "@iarna/toml": "^3.0.0",
     "@octokit/graphql": "^7.1.0",
     "@octokit/request": "^8.3.1",
