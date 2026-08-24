@@ -612,6 +612,9 @@ export class GitHub implements Scm {
       if (e instanceof MissingFileError) {
         throw new FileNotFoundError(path);
       }
+      if (e instanceof RequestError && (e.status === 404 || e.status === 422)) {
+        throw new FileNotFoundError(path);
+      }
       throw e;
     }
   }
@@ -666,7 +669,22 @@ export class GitHub implements Scm {
       this.logger.debug(
         `finding files by filename: ${filename}, ref: ${ref}, prefix: ${prefix}`
       );
-      return await this.fileCache.findFilesByFilename(filename, ref, prefix);
+      try {
+        return await this.fileCache.findFilesByFilename(filename, ref, prefix);
+      } catch (e) {
+        if (
+          e instanceof RequestError &&
+          (e.status === 404 || e.status === 422)
+        ) {
+          this.logger.warn(
+            `Failed to find files by filename ${filename} on ref ${ref}: ${
+              (e as Error).message
+            }`
+          );
+          return [];
+        }
+        throw e;
+      }
     }
   );
 
@@ -708,7 +726,22 @@ export class GitHub implements Scm {
       this.logger.debug(
         `finding files by glob: ${glob}, ref: ${ref}, prefix: ${prefix}`
       );
-      return await this.fileCache.findFilesByGlob(glob, ref, prefix);
+      try {
+        return await this.fileCache.findFilesByGlob(glob, ref, prefix);
+      } catch (e) {
+        if (
+          e instanceof RequestError &&
+          (e.status === 404 || e.status === 422)
+        ) {
+          this.logger.warn(
+            `Failed to find files by glob ${glob} on ref ${ref}: ${
+              (e as Error).message
+            }`
+          );
+          return [];
+        }
+        throw e;
+      }
     }
   );
 
@@ -901,7 +934,26 @@ export class GitHub implements Scm {
       if (prefix) {
         prefix = normalizePrefix(prefix);
       }
-      return this.fileCache.findFilesByExtension(extension, ref, prefix);
+      try {
+        return await this.fileCache.findFilesByExtension(
+          extension,
+          ref,
+          prefix
+        );
+      } catch (e) {
+        if (
+          e instanceof RequestError &&
+          (e.status === 404 || e.status === 422)
+        ) {
+          this.logger.warn(
+            `Failed to find files by extension ${extension} on ref ${ref}: ${
+              (e as Error).message
+            }`
+          );
+          return [];
+        }
+        throw e;
+      }
     }
   );
 

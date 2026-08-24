@@ -171,6 +171,28 @@ describe('GitHub', () => {
         expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
       });
     });
+
+    it('returns empty array when GitHub returns 422 (e.g. invalid object / submodule)', async () => {
+      req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
+        message:
+          'Invalid object requested. SHA must identify a commit or a tree.',
+      });
+      const pomFiles = await github.findFilesByFilename('pom.xml');
+      expect(pomFiles).to.deep.equal([]);
+      req.done();
+    });
+  });
+
+  describe('findFilesByGlob', () => {
+    it('returns empty array when GitHub returns 422 (e.g. invalid object / submodule)', async () => {
+      req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
+        message:
+          'Invalid object requested. SHA must identify a commit or a tree.',
+      });
+      const files = await github.findFilesByGlob('*.xml');
+      expect(files).to.deep.equal([]);
+      req.done();
+    });
   });
 
   describe('findFilesByExtension', () => {
@@ -183,6 +205,16 @@ describe('GitHub', () => {
         .reply(200, fileSearchResponse);
       const pomFiles = await github.findFilesByExtension('xml');
       snapshot(pomFiles);
+      req.done();
+    });
+
+    it('returns empty array when GitHub returns 422', async () => {
+      req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
+        message:
+          'Invalid object requested. SHA must identify a commit or a tree.',
+      });
+      const pomFiles = await github.findFilesByExtension('xml');
+      expect(pomFiles).to.deep.equal([]);
       req.done();
     });
 
@@ -275,6 +307,19 @@ describe('GitHub', () => {
       await assert.rejects(async () => {
         await github.getFileContents('non-existent-file');
       }, FileNotFoundError);
+    });
+  });
+
+  describe('getFileContents on 422 tree response', () => {
+    it('should throw a missing file error when GitHub returns 422', async () => {
+      req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
+        message:
+          'Invalid object requested. SHA must identify a commit or a tree.',
+      });
+      await assert.rejects(async () => {
+        await github.getFileContents('submodule-file');
+      }, FileNotFoundError);
+      req.done();
     });
   });
 
