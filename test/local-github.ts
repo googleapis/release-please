@@ -22,6 +22,77 @@ import {LocalGitHub} from '../src/local-github';
 import {FileNotFoundError} from '../src/errors';
 import {GitHubApi} from '../src/github-api';
 
+async function createSubmoduleRepo(): Promise<{
+  repoPath: string;
+  localGitHub: LocalGitHub;
+}> {
+  const tempDir = await fs.promises.mkdtemp(
+    path.join(os.tmpdir(), 'local-github-submodule-test-')
+  );
+  const fakeGlobalConfig = path.join(tempDir, '.gitconfig');
+  await fs.promises.writeFile(
+    fakeGlobalConfig,
+    '[user]\nname=Test\nemail=test@example.com\n'
+  );
+  const env = {...process.env, GIT_CONFIG_GLOBAL: fakeGlobalConfig};
+
+  child_process.execFileSync('git', ['init', '-b', 'main'], {
+    cwd: tempDir,
+    env,
+  });
+  child_process.execFileSync('git', ['config', 'user.name', 'Test'], {
+    cwd: tempDir,
+    env,
+  });
+  child_process.execFileSync(
+    'git',
+    ['config', 'user.email', 'test@example.com'],
+    {cwd: tempDir, env}
+  );
+  child_process.execFileSync('git', ['config', 'commit.gpgSign', 'false'], {
+    cwd: tempDir,
+    env,
+  });
+  await fs.promises.writeFile(
+    path.join(tempDir, 'pom.xml'),
+    '<project></project>'
+  );
+  await fs.promises.mkdir(path.join(tempDir, 'packages', 'pkg'), {
+    recursive: true,
+  });
+  await fs.promises.writeFile(
+    path.join(tempDir, 'packages', 'pkg', 'setup.py'),
+    '# setup'
+  );
+  await fs.promises.writeFile(
+    path.join(tempDir, 'packages', 'pkg', 'pom.xml'),
+    '<project>child</project>'
+  );
+  child_process.execFileSync('git', ['add', '.'], {cwd: tempDir, env});
+  child_process.execFileSync(
+    'git',
+    [
+      'update-index',
+      '--add',
+      '--cacheinfo',
+      '160000,1111111111111111111111111111111111111111,submodule-pkg',
+    ],
+    {cwd: tempDir, env}
+  );
+  child_process.execFileSync(
+    'git',
+    ['commit', '-m', 'initial commit with submodule'],
+    {cwd: tempDir, env}
+  );
+
+  const localGitHub = new LocalGitHub(
+    {owner: 'fake', repo: 'fake', defaultBranch: 'main'},
+    null as unknown as GitHubApi,
+    tempDir
+  );
+  return {repoPath: tempDir, localGitHub};
+}
+
 describe('LocalGitHub', function () {
   this.timeout(60000);
   let localGitHub: LocalGitHub;
@@ -93,60 +164,7 @@ describe('LocalGitHub', function () {
     });
 
     it('throws FileNotFoundError when encountering a submodule entry (mode 160000)', async () => {
-      const tempDir = await fs.promises.mkdtemp(
-        path.join(os.tmpdir(), 'submodule-test-')
-      );
-      const fakeGlobalConfig = path.join(tempDir, '.gitconfig');
-      await fs.promises.writeFile(
-        fakeGlobalConfig,
-        '[user]\nname=Test\nemail=test@example.com\n'
-      );
-      const env = {...process.env, GIT_CONFIG_GLOBAL: fakeGlobalConfig};
-
-      child_process.execFileSync('git', ['init', '-b', 'main'], {
-        cwd: tempDir,
-        env,
-      });
-      child_process.execFileSync('git', ['config', 'user.name', 'Test'], {
-        cwd: tempDir,
-        env,
-      });
-      child_process.execFileSync(
-        'git',
-        ['config', 'user.email', 'test@example.com'],
-        {cwd: tempDir, env}
-      );
-      child_process.execFileSync('git', ['config', 'commit.gpgSign', 'false'], {
-        cwd: tempDir,
-        env,
-      });
-      child_process.execFileSync(
-        'git',
-        ['commit', '--allow-empty', '-m', 'initial'],
-        {cwd: tempDir, env}
-      );
-      child_process.execFileSync(
-        'git',
-        [
-          'update-index',
-          '--add',
-          '--cacheinfo',
-          '160000,1111111111111111111111111111111111111111,submodule-pkg',
-        ],
-        {cwd: tempDir, env}
-      );
-      child_process.execFileSync(
-        'git',
-        ['commit', '-m', 'add submodule gitlink'],
-        {cwd: tempDir, env}
-      );
-
-      const submoduleGitHub = new LocalGitHub(
-        {owner: 'fake', repo: 'fake', defaultBranch: 'main'},
-        null as unknown as GitHubApi,
-        tempDir
-      );
-
+      const {localGitHub: submoduleGitHub} = await createSubmoduleRepo();
       try {
         await submoduleGitHub.getFileContentsOnBranch('submodule-pkg', 'main');
         expect.fail('Expected FileNotFoundError to be thrown');
@@ -235,6 +253,12 @@ describe('LocalGitHub', function () {
       );
       expect(files).to.include('package.json');
     });
+
+    it('ignores git submodules and returns only matching files', async () => {
+      const {localGitHub: submoduleGitHub} = await createSubmoduleRepo();
+      const files = await submoduleGitHub.findFilesByFilename('pom.xml');
+      expect(files).to.have.members(['pom.xml', 'packages/pkg/pom.xml']);
+    });
   });
 
   describe('findFilesByGlobAndRef', () => {
@@ -246,6 +270,12 @@ describe('LocalGitHub', function () {
     it('finds files by glob on a branch', async () => {
       const files = await localGitHub.findFilesByGlobAndRef('*.json', '12.x');
       expect(files).to.include('package.json');
+    });
+
+    it('ignores git submodules and returns only matching files by glob', async () => {
+      const {localGitHub: submoduleGitHub} = await createSubmoduleRepo();
+      const files = await submoduleGitHub.findFilesByGlob('**/*.py');
+      expect(files).to.deep.equal(['packages/pkg/setup.py']);
     });
   });
 
@@ -264,6 +294,12 @@ describe('LocalGitHub', function () {
         '12.x'
       );
       expect(files).to.include('package.json');
+    });
+
+    it('ignores git submodules and returns only matching files by extension', async () => {
+      const {localGitHub: submoduleGitHub} = await createSubmoduleRepo();
+      const files = await submoduleGitHub.findFilesByExtension('py');
+      expect(files).to.deep.equal(['packages/pkg/setup.py']);
     });
   });
 

@@ -172,25 +172,137 @@ describe('GitHub', () => {
       });
     });
 
-    it('returns empty array when GitHub returns 422 (e.g. invalid object / submodule)', async () => {
+    it('falls back to non-recursive tree traversal when 422 is returned and finds files across subtrees while ignoring submodules', async () => {
       req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
         message:
           'Invalid object requested. SHA must identify a commit or a tree.',
       });
+      req.get('/repos/fake/fake/git/trees/main').reply(200, {
+        sha: 'main-tree-sha',
+        tree: [
+          {
+            path: 'pom.xml',
+            mode: '100644',
+            type: 'blob',
+            sha: 'pom-blob-sha',
+          },
+          {
+            path: 'submodule-crc32c',
+            mode: '160000',
+            type: 'commit',
+            sha: 'submodule-sha-12345',
+          },
+          {
+            path: 'packages',
+            mode: '040000',
+            type: 'tree',
+            sha: 'packages-tree-sha',
+          },
+        ],
+        truncated: false,
+      });
+      req
+        .get('/repos/fake/fake/git/trees/packages-tree-sha?recursive=true')
+        .reply(200, {
+          sha: 'packages-tree-sha',
+          tree: [
+            {
+              path: 'pkg/setup.py',
+              mode: '100644',
+              type: 'blob',
+              sha: 'setup-blob-sha',
+            },
+            {
+              path: 'pkg/pom.xml',
+              mode: '100644',
+              type: 'blob',
+              sha: 'pkg-pom-blob-sha',
+            },
+            {
+              path: 'pkg/submodule-nested',
+              mode: '160000',
+              type: 'commit',
+              sha: 'nested-submodule-sha',
+            },
+          ],
+          truncated: false,
+        });
       const pomFiles = await github.findFilesByFilename('pom.xml');
-      expect(pomFiles).to.deep.equal([]);
+      expect(pomFiles).to.deep.equal(['pom.xml', 'packages/pkg/pom.xml']);
+      req.done();
+    });
+
+    it('throws GitHubAPIError when tree request fails with 404 (e.g. invalid branch)', async () => {
+      req
+        .get('/repos/fake/fake/git/trees/invalid-branch?recursive=true')
+        .reply(404, {
+          message: 'Not Found',
+        });
+      await assert.rejects(async () => {
+        await github.findFilesByFilenameAndRef('pom.xml', 'invalid-branch');
+      }, GitHubAPIError);
       req.done();
     });
   });
 
   describe('findFilesByGlob', () => {
-    it('returns empty array when GitHub returns 422 (e.g. invalid object / submodule)', async () => {
+    it('falls back to non-recursive tree traversal when 422 is returned and finds files by glob while ignoring submodules', async () => {
       req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
         message:
           'Invalid object requested. SHA must identify a commit or a tree.',
       });
-      const files = await github.findFilesByGlob('*.xml');
-      expect(files).to.deep.equal([]);
+      req.get('/repos/fake/fake/git/trees/main').reply(200, {
+        sha: 'main-tree-sha',
+        tree: [
+          {
+            path: 'pom.xml',
+            mode: '100644',
+            type: 'blob',
+            sha: 'pom-blob-sha',
+          },
+          {
+            path: 'submodule-crc32c',
+            mode: '160000',
+            type: 'commit',
+            sha: 'submodule-sha-12345',
+          },
+          {
+            path: 'packages',
+            mode: '040000',
+            type: 'tree',
+            sha: 'packages-tree-sha',
+          },
+        ],
+        truncated: false,
+      });
+      req
+        .get('/repos/fake/fake/git/trees/packages-tree-sha?recursive=true')
+        .reply(200, {
+          sha: 'packages-tree-sha',
+          tree: [
+            {
+              path: 'pkg/setup.py',
+              mode: '100644',
+              type: 'blob',
+              sha: 'setup-blob-sha',
+            },
+          ],
+          truncated: false,
+        });
+      const files = await github.findFilesByGlob('**/*.py');
+      expect(files).to.deep.equal(['packages/pkg/setup.py']);
+      req.done();
+    });
+
+    it('throws GitHubAPIError when tree request fails with 404', async () => {
+      req
+        .get('/repos/fake/fake/git/trees/invalid-branch?recursive=true')
+        .reply(404, {
+          message: 'Not Found',
+        });
+      await assert.rejects(async () => {
+        await github.findFilesByGlobAndRef('*.xml', 'invalid-branch');
+      }, GitHubAPIError);
       req.done();
     });
   });
@@ -208,13 +320,63 @@ describe('GitHub', () => {
       req.done();
     });
 
-    it('returns empty array when GitHub returns 422', async () => {
+    it('falls back to non-recursive tree traversal when 422 is returned and finds files by extension while ignoring submodules', async () => {
       req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
         message:
           'Invalid object requested. SHA must identify a commit or a tree.',
       });
-      const pomFiles = await github.findFilesByExtension('xml');
-      expect(pomFiles).to.deep.equal([]);
+      req.get('/repos/fake/fake/git/trees/main').reply(200, {
+        sha: 'main-tree-sha',
+        tree: [
+          {
+            path: 'pom.xml',
+            mode: '100644',
+            type: 'blob',
+            sha: 'pom-blob-sha',
+          },
+          {
+            path: 'submodule-crc32c',
+            mode: '160000',
+            type: 'commit',
+            sha: 'submodule-sha-12345',
+          },
+          {
+            path: 'packages',
+            mode: '040000',
+            type: 'tree',
+            sha: 'packages-tree-sha',
+          },
+        ],
+        truncated: false,
+      });
+      req
+        .get('/repos/fake/fake/git/trees/packages-tree-sha?recursive=true')
+        .reply(200, {
+          sha: 'packages-tree-sha',
+          tree: [
+            {
+              path: 'pkg/setup.py',
+              mode: '100644',
+              type: 'blob',
+              sha: 'setup-blob-sha',
+            },
+          ],
+          truncated: false,
+        });
+      const pomFiles = await github.findFilesByExtension('py');
+      expect(pomFiles).to.deep.equal(['packages/pkg/setup.py']);
+      req.done();
+    });
+
+    it('throws GitHubAPIError when tree request fails with 404', async () => {
+      req
+        .get('/repos/fake/fake/git/trees/invalid-branch?recursive=true')
+        .reply(404, {
+          message: 'Not Found',
+        });
+      await assert.rejects(async () => {
+        await github.findFilesByExtensionAndRef('xml', 'invalid-branch');
+      }, GitHubAPIError);
       req.done();
     });
 
@@ -311,13 +473,65 @@ describe('GitHub', () => {
   });
 
   describe('getFileContents on 422 tree response', () => {
-    it('should throw a missing file error when GitHub returns 422', async () => {
+    it('fetches file contents of a valid file on repo with submodules after 422 fallback', async () => {
       req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
         message:
           'Invalid object requested. SHA must identify a commit or a tree.',
       });
+      req.get('/repos/fake/fake/git/trees/main').reply(200, {
+        sha: 'main-tree-sha',
+        tree: [
+          {
+            path: 'pom.xml',
+            mode: '100644',
+            type: 'blob',
+            sha: 'pom-blob-sha',
+          },
+          {
+            path: 'submodule-crc32c',
+            mode: '160000',
+            type: 'commit',
+            sha: 'submodule-sha-12345',
+          },
+        ],
+        truncated: false,
+      });
+      req.get('/repos/fake/fake/git/blobs/pom-blob-sha').reply(200, {
+        sha: 'pom-blob-sha',
+        content: Buffer.from('<project></project>').toString('base64'),
+      });
+
+      const file = await github.getFileContents('pom.xml');
+      expect(file.parsedContent).to.equal('<project></project>');
+      req.done();
+    });
+
+    it('throws FileNotFoundError when fetching a submodule gitlink', async () => {
+      req.get('/repos/fake/fake/git/trees/main?recursive=true').reply(422, {
+        message:
+          'Invalid object requested. SHA must identify a commit or a tree.',
+      });
+      req.get('/repos/fake/fake/git/trees/main').reply(200, {
+        sha: 'main-tree-sha',
+        tree: [
+          {
+            path: 'pom.xml',
+            mode: '100644',
+            type: 'blob',
+            sha: 'pom-blob-sha',
+          },
+          {
+            path: 'submodule-crc32c',
+            mode: '160000',
+            type: 'commit',
+            sha: 'submodule-sha-12345',
+          },
+        ],
+        truncated: false,
+      });
+
       await assert.rejects(async () => {
-        await github.getFileContents('submodule-file');
+        await github.getFileContents('submodule-crc32c');
       }, FileNotFoundError);
       req.done();
     });

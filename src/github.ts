@@ -34,8 +34,8 @@ import {Release} from './release';
 import {ROOT_PROJECT_PATH} from './manifest';
 import {GitHubApi, GitHubCreateOptions} from './github-api';
 import {signoffCommitMessage} from './util/signoff-commit-message';
+import {RepositoryFileCache} from './util/file-cache';
 import {
-  RepositoryFileCache,
   GitHubFileContents,
   DEFAULT_FILE_MODE,
   FileNotFoundError as MissingFileError,
@@ -145,8 +145,12 @@ export class GitHub implements Scm {
     this.repository = options.repository;
     this.octokit = options.octokitAPIs.octokit;
     this.graphql = options.octokitAPIs.graphql;
-    this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
+    this.fileCache = new RepositoryFileCache(
+      this.octokit,
+      this.repository,
+      this.logger
+    );
     this.gitHubApi = new GitHubApi({
       repository: this.repository,
       octokitAPIs: options.octokitAPIs,
@@ -669,22 +673,7 @@ export class GitHub implements Scm {
       this.logger.debug(
         `finding files by filename: ${filename}, ref: ${ref}, prefix: ${prefix}`
       );
-      try {
-        return await this.fileCache.findFilesByFilename(filename, ref, prefix);
-      } catch (e) {
-        if (
-          e instanceof RequestError &&
-          (e.status === 404 || e.status === 422)
-        ) {
-          this.logger.warn(
-            `Failed to find files by filename ${filename} on ref ${ref}: ${
-              (e as Error).message
-            }`
-          );
-          return [];
-        }
-        throw e;
-      }
+      return await this.fileCache.findFilesByFilename(filename, ref, prefix);
     }
   );
 
@@ -726,22 +715,7 @@ export class GitHub implements Scm {
       this.logger.debug(
         `finding files by glob: ${glob}, ref: ${ref}, prefix: ${prefix}`
       );
-      try {
-        return await this.fileCache.findFilesByGlob(glob, ref, prefix);
-      } catch (e) {
-        if (
-          e instanceof RequestError &&
-          (e.status === 404 || e.status === 422)
-        ) {
-          this.logger.warn(
-            `Failed to find files by glob ${glob} on ref ${ref}: ${
-              (e as Error).message
-            }`
-          );
-          return [];
-        }
-        throw e;
-      }
+      return await this.fileCache.findFilesByGlob(glob, ref, prefix);
     }
   );
 
@@ -934,26 +908,10 @@ export class GitHub implements Scm {
       if (prefix) {
         prefix = normalizePrefix(prefix);
       }
-      try {
-        return await this.fileCache.findFilesByExtension(
-          extension,
-          ref,
-          prefix
-        );
-      } catch (e) {
-        if (
-          e instanceof RequestError &&
-          (e.status === 404 || e.status === 422)
-        ) {
-          this.logger.warn(
-            `Failed to find files by extension ${extension} on ref ${ref}: ${
-              (e as Error).message
-            }`
-          );
-          return [];
-        }
-        throw e;
-      }
+      this.logger.debug(
+        `finding files by extension: ${extension}, ref: ${ref}, prefix: ${prefix}`
+      );
+      return await this.fileCache.findFilesByExtension(extension, ref, prefix);
     }
   );
 

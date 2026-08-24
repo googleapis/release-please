@@ -257,10 +257,12 @@ export class LocalGitHub implements Scm {
     }
 
     const firstLine = lsTreeResult.stdout.trim().split('\n')[0];
-    const [info] = firstLine.split('\t');
-    const [mode, type, sha] = info.split(' ');
+    const entry = parseLsTreeLine(firstLine);
+    if (!entry) {
+      throw new FileNotFoundError(path);
+    }
 
-    if (mode === '160000' || type === 'commit') {
+    if (entry.mode === '160000' || entry.type === 'commit') {
       this.logger.warn(
         `Encountered git submodule/gitlink at ${path} on ref ${ref}, treating as not found`
       );
@@ -284,8 +286,8 @@ export class LocalGitHub implements Scm {
     return {
       content: Buffer.from(stdout).toString('base64'),
       parsedContent: stdout,
-      sha,
-      mode,
+      sha: entry.sha,
+      mode: entry.mode,
     };
   }
 
@@ -347,18 +349,19 @@ export class LocalGitHub implements Scm {
 
     const resolvedRef = await this.ensureRef(ref);
     this.logger.trace(
-      `Executing stream: git ls-tree -r --name-only ${resolvedRef} ${treePath}`
+      `Executing stream: git ls-tree -r ${resolvedRef} ${treePath}`
     );
     const matchedPaths: string[] = [];
-    await this.execGitStream(
-      ['ls-tree', '-r', '--name-only', resolvedRef, treePath],
-      line => {
-        const trimmed = line.trim();
-        if (trimmed && path.posix.basename(trimmed) === filename) {
-          matchedPaths.push(trimmed);
-        }
+    await this.execGitStream(['ls-tree', '-r', resolvedRef, treePath], line => {
+      const entry = parseLsTreeLine(line);
+      if (!entry) return;
+      if (entry.mode === '160000' || entry.type === 'commit') {
+        return;
       }
-    );
+      if (path.posix.basename(entry.path) === filename) {
+        matchedPaths.push(entry.path);
+      }
+    });
 
     if (normalizedPrefix) {
       return matchedPaths
@@ -425,20 +428,19 @@ export class LocalGitHub implements Scm {
     const resolvedRef = await this.ensureRef(ref);
     const files: string[] = [];
     const dirs = new Set<string>();
-    await this.execGitStream(
-      ['ls-tree', '-r', '--name-only', resolvedRef, treePath],
-      line => {
-        const trimmed = line.trim();
-        if (trimmed) {
-          files.push(trimmed);
-          let dir = path.posix.dirname(trimmed);
-          while (dir !== '.' && dir !== '/') {
-            dirs.add(dir);
-            dir = path.posix.dirname(dir);
-          }
-        }
+    await this.execGitStream(['ls-tree', '-r', resolvedRef, treePath], line => {
+      const entry = parseLsTreeLine(line);
+      if (!entry) return;
+      if (entry.mode === '160000' || entry.type === 'commit') {
+        return;
       }
-    );
+      files.push(entry.path);
+      let dir = path.posix.dirname(entry.path);
+      while (dir !== '.' && dir !== '/') {
+        dirs.add(dir);
+        dir = path.posix.dirname(dir);
+      }
+    });
 
     const allPaths = [...files, ...dirs];
 
@@ -518,15 +520,16 @@ export class LocalGitHub implements Scm {
 
     const resolvedRef = await this.ensureRef(ref);
     const matchedPaths: string[] = [];
-    await this.execGitStream(
-      ['ls-tree', '-r', '--name-only', resolvedRef, treePath],
-      line => {
-        const trimmed = line.trim();
-        if (trimmed && trimmed.endsWith(`.${extension}`)) {
-          matchedPaths.push(trimmed);
-        }
+    await this.execGitStream(['ls-tree', '-r', resolvedRef, treePath], line => {
+      const entry = parseLsTreeLine(line);
+      if (!entry) return;
+      if (entry.mode === '160000' || entry.type === 'commit') {
+        return;
       }
-    );
+      if (entry.path.endsWith(`.${extension}`)) {
+        matchedPaths.push(entry.path);
+      }
+    });
 
     if (normalizedPrefix) {
       return matchedPaths
@@ -1027,4 +1030,22 @@ function globToRegex(glob: string): RegExp {
     i++;
   }
   return new RegExp(`^${reg}$`);
+}
+
+interface LsTreeEntry {
+  mode: string;
+  type: string;
+  sha: string;
+  path: string;
+}
+
+function parseLsTreeLine(line: string): LsTreeEntry | null {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  const tabIndex = trimmed.indexOf('\t');
+  if (tabIndex === -1) return null;
+  const meta = trimmed.slice(0, tabIndex);
+  const filePath = trimmed.slice(tabIndex + 1);
+  const [mode, type, sha] = meta.split(/\s+/);
+  return {mode, type, sha, path: filePath};
 }
