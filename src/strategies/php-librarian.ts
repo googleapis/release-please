@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {PHPYoshi} from './php-yoshi';
+import {PHP} from './php';
 import {BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 
-export class PHPLibrarian extends PHPYoshi {
+export class PHPLibrarian extends PHP {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
