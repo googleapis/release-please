@@ -58,6 +58,10 @@ export class CommitExclude {
   }
 
   private isRelevant(file: string, path: string) {
-    return path === ROOT_PROJECT_PATH || file.indexOf(`${path}/`) === 0;
+    return (
+      path === ROOT_PROJECT_PATH ||
+      file === path ||
+      file.indexOf(`${path}/`) === 0
+    );
   }
 }
