@@ -263,6 +263,21 @@ describe('parseConventionalCommits', () => {
     expect(commit.type).to.eql('chore');
   });
 
+  it('preserves author metadata when parsing commits', async () => {
+    const commit = buildMockCommit('feat: some feature');
+    commit.author = {
+      name: 'Jane Developer',
+      email: 'jane@example.com',
+      username: 'janedev',
+    };
+    const conventionalCommits = parseConventionalCommits([commit]);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].author).to.not.be.undefined;
+    expect(conventionalCommits[0].author!.name).to.equal('Jane Developer');
+    expect(conventionalCommits[0].author!.email).to.equal('jane@example.com');
+    expect(conventionalCommits[0].author!.username).to.equal('janedev');
+  });
+
   // it('ignores reverted commits', async () => {
   //   const commits = [
   //     {sha: 'sha1', message: 'feat: some feature', files: ['path1/file1.txt']},
