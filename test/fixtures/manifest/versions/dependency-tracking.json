@@ -1,0 +1,4 @@
+{
+  "packages/container-a": "1.0.0",
+  "helm/chart": "1.0.0"
+}
