@@ -73,12 +73,17 @@ export interface GitHubOptions {
 
 type CommitFilter = (commit: Commit) => boolean;
 
-interface GraphQLCommitAuthor {
-  name?: string;
-  email?: string;
-  user?: {
-    login: string;
-  } | null;
+interface GitHubCreateOptions {
+  owner: string;
+  repo: string;
+  defaultBranch?: string;
+  apiUrl?: string;
+  graphqlUrl?: string;
+  octokitAPIs?: OctokitAPIs;
+  token?: string;
+  logger?: Logger;
+  proxy?: ProxyOption;
+  fetch?: unknown;
 }
 
 interface GraphQLCommit {
@@ -434,7 +439,7 @@ export class GitHub implements Scm {
       }
     )) {
       // Paginate plugin doesn't have types for listing files on a commit
-      const data = resp.data as any as {files: {filename: string}[]};
+      const data = resp.data as unknown as {files: {filename: string}[]};
       for (const f of data.files || []) {
         if (f.filename) {
           files.push(f.filename);
