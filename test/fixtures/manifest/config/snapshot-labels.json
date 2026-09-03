@@ -1,0 +1,13 @@
+{
+  "release-type": "java",
+  "snapshot-label": "global-snapshot",
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "node-lib": {
+      "component": "node-lib",
+      "snapshot-label": "per-package-snapshot"
+    }
+  }
+}
