@@ -35,6 +35,7 @@ export interface WorkspacePluginOptions {
   manifestPath?: string;
   updateAllPackages?: boolean;
   merge?: boolean;
+  labels?: string[];
   logger?: Logger;
 }
 
@@ -58,6 +59,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
   private manifestPath: string;
   private merge: boolean;
+  private labels: string[];
   constructor(
     github: Scm,
     targetBranch: string,
@@ -68,6 +70,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;
+    this.labels = options.labels ?? [];
   }
   async run(
     candidates: CandidateReleasePullRequest[]
@@ -161,6 +164,11 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
           );
         } else {
           newCandidatePaths.add(newCandidate.path);
+          for (const label of this.labels) {
+            if (!newCandidate.pullRequest.labels.includes(label)) {
+              newCandidate.pullRequest.labels.push(label);
+            }
+          }
           newCandidates.push(newCandidate);
         }
       }
@@ -176,15 +184,31 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       newCandidates = await mergePlugin.run(newCandidates);
     }
 
-    const newUpdates = newCandidates[0].pullRequest.updates;
-    newUpdates.push({
-      path: this.manifestPath,
-      createIfMissing: false,
-      updater: new ReleasePleaseManifest({
-        version: newCandidates[0].pullRequest.version!,
-        versionsMap: updatedPathVersions,
-      }),
-    });
+    if (this.merge) {
+      const candidate = newCandidates[0];
+      candidate.pullRequest.updates.push({
+        path: this.manifestPath,
+        createIfMissing: false,
+        updater: new ReleasePleaseManifest({
+          version: candidate.pullRequest.version!,
+          versionsMap: updatedPathVersions,
+        }),
+      });
+    } else {
+      for (const candidate of newCandidates) {
+        const version = updatedPathVersions.get(candidate.path);
+        if (version) {
+          candidate.pullRequest.updates.push({
+            path: this.manifestPath,
+            createIfMissing: false,
+            updater: new ReleasePleaseManifest({
+              version: candidate.pullRequest.version!,
+              versionsMap: new Map([[candidate.path, version]]),
+            }),
+          });
+        }
+      }
+    }
 
     this.logger.info(
       `Post-processing ${newCandidates.length} in-scope candidates`
