@@ -185,7 +185,7 @@ Release Please automates releases for the following flavors of repositories:
 | `bazel`             | [A Bazel module, with a MODULE.bazel and a CHANGELOG.md](https://bazel.build/external/module) |
 | `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
 | `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
-| `go`                | A repository with a CHANGELOG.md |
+| `go`                | A repository with a CHANGELOG.md or a go.work (note that workspaces require a [manifest driven release](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) and the "go-workspace" plugin) |
 | `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
 | `java`              | [A strategy that generates SNAPSHOT version after each release](docs/java.md) |
 | `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
