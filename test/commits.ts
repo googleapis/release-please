@@ -207,6 +207,7 @@ describe('parseConventionalCommits', () => {
       labels: [],
       files: [],
       body,
+      authorAssociation: 'MEMBER',
     };
 
     const conventionalCommits = parseConventionalCommits([commit]);
@@ -227,6 +228,7 @@ describe('parseConventionalCommits', () => {
       labels: [],
       files: [],
       body,
+      authorAssociation: 'OWNER',
     };
 
     const conventionalCommits = parseConventionalCommits([commit]);
@@ -235,6 +237,48 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].bareMessage).to.eql('some fix');
     expect(conventionalCommits[1].type).to.eql('feat');
     expect(conventionalCommits[1].bareMessage).to.eql('another feature');
+  });
+
+  it('ignores BEGIN_COMMIT_OVERRIDE from an untrusted PR author', async () => {
+    const commit = buildMockCommit('chore: some commit');
+    const body =
+      'BEGIN_COMMIT_OVERRIDE\nfix!: forged fix\n\nBREAKING CHANGE: forged\nEND_COMMIT_OVERRIDE';
+    commit.pullRequest = {
+      headBranchName: 'fix-something',
+      baseBranchName: 'main',
+      number: 123,
+      title: 'chore: some commit',
+      labels: [],
+      files: [],
+      body,
+      authorAssociation: 'CONTRIBUTOR',
+    };
+
+    const conventionalCommits = parseConventionalCommits([commit]);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.eql('chore');
+    expect(conventionalCommits[0].bareMessage).to.eql('some commit');
+    expect(conventionalCommits[0].breaking).to.be.false;
+    expect(conventionalCommits[0].notes).lengthOf(0);
+  });
+
+  it('ignores BEGIN_COMMIT_OVERRIDE when authorAssociation is missing', async () => {
+    const commit = buildMockCommit('chore: some commit');
+    const body = 'BEGIN_COMMIT_OVERRIDE\nfix: forged fix\nEND_COMMIT_OVERRIDE';
+    commit.pullRequest = {
+      headBranchName: 'fix-something',
+      baseBranchName: 'main',
+      number: 123,
+      title: 'chore: some commit',
+      labels: [],
+      files: [],
+      body,
+    };
+
+    const conventionalCommits = parseConventionalCommits([commit]);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.eql('chore');
+    expect(conventionalCommits[0].bareMessage).to.eql('some commit');
   });
 
   it('handles a special commit separator', async () => {
