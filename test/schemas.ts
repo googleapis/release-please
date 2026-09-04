@@ -67,5 +67,35 @@ describe('schemas', () => {
       expect(error.instancePath).to.eql('');
       expect(error.params.additionalProperty).to.eql('extraField');
     });
+
+    it('accepts component-no-space as a boolean', () => {
+      for (const componentNoSpace of [undefined, false, true]) {
+        const config = {
+          packages: {
+            '.': {},
+          },
+          ...(componentNoSpace === undefined
+            ? {}
+            : {'component-no-space': componentNoSpace}),
+        };
+        expect(configValidator(config)).to.be.true;
+        expect(configValidator.errors).to.be.null;
+      }
+    });
+
+    it('rejects a non-boolean component-no-space', () => {
+      const config = {
+        packages: {
+          '.': {},
+        },
+        'component-no-space': 'true',
+      };
+      expect(configValidator(config)).to.be.false;
+      expect(configValidator.errors).lengthOf(1);
+      expect(configValidator.errors![0].instancePath).to.eql(
+        '/component-no-space'
+      );
+      expect(configValidator.errors![0].message).to.eql('must be boolean');
+    });
   });
 });
