@@ -25,6 +25,7 @@ import {
 import snapshot = require('snap-shot-it');
 import {RawContent} from '../../src/updaters/raw-content';
 import {CompositeUpdater} from '../../src/updaters/composite';
+import {Version} from '../../src/version';
 
 const sandbox = sinon.createSandbox();
 
@@ -184,6 +185,51 @@ describe('Merge plugin', () => {
         'label-c',
       ]);
       snapshot(dateSafe(candidate.pullRequest.body.toString()));
+    });
+    it('preserves version when all candidates are in subdirectories', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/pkgA', 'node', '2.0.0', {
+          component: '@scope/pkgA',
+        }),
+      ];
+      const plugin = new Merge(github, 'main', {});
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const candidate = newCandidates[0];
+      expect(candidate.path).to.eql('.');
+      expect(candidate.pullRequest.version).to.eql(Version.parse('2.0.0'));
+    });
+
+    it('preserves version from root candidate when present', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('.', 'node', '5.0.0', {
+          component: 'root-pkg',
+        }),
+        buildMockCandidatePullRequest('packages/pkgA', 'node', '2.0.0', {
+          component: '@scope/pkgA',
+        }),
+      ];
+      const plugin = new Merge(github, 'main', {});
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const candidate = newCandidates[0];
+      expect(candidate.pullRequest.version).to.eql(Version.parse('5.0.0'));
+    });
+
+    it('preserves version when merging multiple subdirectory candidates', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/pkgA', 'node', '2.0.0', {
+          component: '@scope/pkgA',
+        }),
+        buildMockCandidatePullRequest('packages/pkgB', 'node', '3.1.0', {
+          component: '@scope/pkgB',
+        }),
+      ];
+      const plugin = new Merge(github, 'main', {});
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const candidate = newCandidates[0];
+      expect(candidate.pullRequest.version).to.eql(Version.parse('2.0.0'));
     });
   });
 });
