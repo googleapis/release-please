@@ -13,18 +13,18 @@
 // limitations under the License.
 
 import {expect} from 'chai';
-import {describe, it, afterEach, beforeEach} from 'mocha';
+import {afterEach, beforeEach, describe, it} from 'mocha';
 import * as sinon from 'sinon';
 
-import {parser, handleError} from '../src/bin/release-please';
+import {ParseCallback} from 'yargs';
+import {handleError, parser} from '../src/bin/release-please';
+import {GitHub} from '../src/github';
 import {
-  Manifest,
   DEFAULT_RELEASE_PLEASE_CONFIG,
   DEFAULT_RELEASE_PLEASE_MANIFEST,
+  Manifest,
 } from '../src/manifest';
 import snapshot = require('snap-shot-it');
-import {GitHub} from '../src/github';
-import {ParseCallback} from 'yargs';
 
 const sandbox = sinon.createSandbox();
 
@@ -859,6 +859,33 @@ describe('CLI', () => {
           sinon.match({
             releaseType: 'java-yoshi',
             prereleaseType: 'alpha',
+          }),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createPullRequestsStub);
+      });
+
+      it('handles --prerelease-initial-number', async () => {
+        await parser.parseAsync(
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --prerelease-type=alpha --prerelease-initial-number=1'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({
+            releaseType: 'java-yoshi',
+            prereleaseType: 'alpha',
+            prereleaseInitialNumber: 1,
           }),
           sinon.match.any,
           undefined
