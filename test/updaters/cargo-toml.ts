@@ -69,6 +69,30 @@ describe('CargoToml', () => {
       snapshot(newContent);
     });
 
+    it('preserves a version inherited from the workspace', () => {
+      const oldContent =
+        '[package]\nname = "member"\nversion.workspace = true\n';
+      const cargoToml = new CargoToml({
+        version: Version.parse('2.0.0'),
+        versionsMap: new Map(),
+      });
+
+      expect(cargoToml.updateContent(oldContent)).to.equal(oldContent);
+    });
+
+    it('updates the workspace package version', () => {
+      const oldContent =
+        '[workspace]\nmembers = ["member"]\n\n[workspace.package]\nversion = "1.0.0"\n';
+      const cargoToml = new CargoToml({
+        version: Version.parse('2.0.0'),
+        versionsMap: new Map(),
+      });
+
+      expect(cargoToml.updateContent(oldContent)).to.equal(
+        '[workspace]\nmembers = ["member"]\n\n[workspace.package]\nversion = "2.0.0"\n'
+      );
+    });
+
     it('updates (only) path dependencies', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),

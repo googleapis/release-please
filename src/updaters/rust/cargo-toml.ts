@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import {replaceTomlValue} from '../../util/toml-edit';
-import {DEP_KINDS, parseCargoManifest} from './common';
+import {
+  DEP_KINDS,
+  isWorkspaceInheritedValue,
+  parseCargoManifest,
+} from './common';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
@@ -34,16 +38,29 @@ export class CargoToml extends DefaultUpdater {
     }
 
     const parsed = parseCargoManifest(payload);
-    if (!parsed.package) {
+    const packageVersion = parsed.package?.version;
+    const workspaceVersion = parsed.workspace?.package?.version;
+    if (typeof packageVersion === 'string') {
+      payload = replaceTomlValue(
+        payload,
+        ['package', 'version'],
+        this.version.toString()
+      );
+    } else if (isWorkspaceInheritedValue(packageVersion)) {
+      // This package gets its version from [workspace.package]. Updating the
+      // member manifest would replace `version.workspace = true` and break
+      // the inheritance relationship.
+    } else if (typeof workspaceVersion === 'string') {
+      payload = replaceTomlValue(
+        payload,
+        ['workspace', 'package', 'version'],
+        this.version.toString()
+      );
+    } else {
       const msg = 'is not a package manifest (might be a cargo workspace)';
       logger.error(msg);
       throw new Error(msg);
     }
-    payload = replaceTomlValue(
-      payload,
-      ['package', 'version'],
-      this.version.toString()
-    );
 
     for (const [pkgName, pkgVersion] of this.versionsMap) {
       for (const depKind of DEP_KINDS) {
