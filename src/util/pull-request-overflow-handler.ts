@@ -24,8 +24,10 @@ const OVERFLOW_MESSAGE =
   'This release is too large to preview in the pull request body. View the full release notes here:';
 const OVERFLOW_MESSAGE_REGEX = new RegExp(`${OVERFLOW_MESSAGE} (?<url>.*)`);
 const RELEASE_NOTES_FILENAME = 'release-notes.md';
+// Matches GitHub (`blob/<branch>/…`) and Forgejo/Gitea (`src/branch/<branch>/…`)
+// file URLs.
 const FILE_PATH_REGEX = new RegExp(
-  `blob/(?<branchName>.*)/${RELEASE_NOTES_FILENAME}`
+  `(?:blob|src/branch)/(?<branchName>.*)/${RELEASE_NOTES_FILENAME}`
 );
 
 /**
@@ -116,7 +118,7 @@ export class FilePullRequestOverflowHandler
       if (pathMatch?.groups?.branchName) {
         const fileContents = await this.github.getFileContentsOnBranch(
           RELEASE_NOTES_FILENAME,
-          pathMatch.groups.branchName
+          decodeURIComponent(pathMatch.groups.branchName)
         );
         return PullRequestBody.parse(fileContents.parsedContent);
       }

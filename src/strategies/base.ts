@@ -141,7 +141,7 @@ export abstract class BaseStrategy implements Strategy {
     this.targetBranch = options.targetBranch;
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
-    this.changelogHost = options.changelogHost;
+    this.changelogHost = options.changelogHost ?? options.github.webUrl;
     this.changelogSections = options.changelogSections;
     this.tagSeparator = options.tagSeparator;
     this.skipGitHubRelease = options.skipGitHubRelease || false;

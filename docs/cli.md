@@ -14,6 +14,8 @@ These options are available on all commands.
 | ------ | ---- | ----------- |
 | `--token` | string |REQUIRED. GitHub token with repo write permissions |
 | `--repo-url` | string | REQUIRED. GitHub repository in the format of `<owner>/<repo>` |
+| `--scm` | `github` \| `forgejo` | The source code host. Defaults to `github`. For `forgejo`, pass the full repository URL as `--repo-url` (e.g. `https://git.example.com/<owner>/<repo>`) or set `--api-url` to `https://<host>/api/v1`. See [Forgejo](forgejo.md) |
+| `--wip-prefix` | string | Forgejo only. Title prefix marking draft pull requests. Must be one of the instance's `WORK_IN_PROGRESS_PREFIXES`. Defaults to `WIP:` |
 | `--api-url` | string | Base URI for making REST API requests. Defaults to `https://api.github.com` |
 | `--graphql-url` | string | Base URI for making GraphQL requests. Defaults to `https://api.github.com` |
 | `--target-branch` | string |The branch to open release PRs against and tag releases on. Defaults to the default branch of the repository |

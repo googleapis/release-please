@@ -33,6 +33,7 @@ import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
 import {Scm} from '../scm';
 import {LocalGitHub} from '../local-github';
+import {Forgejo, FORGEJO_API_PATH} from '../forgejo';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -44,9 +45,13 @@ interface ErrorObject {
   stack: string;
 }
 
+type ScmType = 'github' | 'forgejo';
+
 interface GitHubArgs {
   dryRun?: boolean;
   trace?: boolean;
+  scm?: ScmType;
+  wipPrefix?: string;
   repoUrl?: string;
   token?: string;
   apiUrl?: string;
@@ -165,6 +170,18 @@ interface DebugConfigArgs extends GitHubArgs, ManifestArgs {}
 function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
   return yargs
     .option('token', {describe: 'GitHub token with repo write permissions'})
+    .option('scm', {
+      describe:
+        'The source code host. For forgejo, pass the full repository URL as --repo-url or set --api-url to https://<host>/api/v1',
+      choices: ['github', 'forgejo'],
+      default: 'github',
+      type: 'string',
+    })
+    .option('wip-prefix', {
+      describe:
+        'Forgejo only: title prefix marking draft pull requests. Must be one of the instance\'s WORK_IN_PROGRESS_PREFIXES. Defaults to "WIP:"',
+      type: 'string',
+    })
     .option('api-url', {
       describe: 'URL to use when making API requests',
       default: GH_API_URL,
@@ -837,7 +854,59 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
   },
 };
 
+/**
+ * Parse a Forgejo repository URL (`https://host[/subpath]/owner/repo[.git]`,
+ * `git@host:owner/repo.git` or `owner/repo` combined with `--api-url`).
+ */
+function parseForgejoRepoUrl(
+  repoUrl: string,
+  apiUrl?: string
+): {owner: string; repo: string; apiUrl: string} {
+  const explicitApiUrl = apiUrl && apiUrl !== GH_API_URL ? apiUrl : undefined;
+  const sshMatch = repoUrl.match(/^[^@/]+@([^:/]+):(.+)$/);
+  const url = sshMatch ? `https://${sshMatch[1]}/${sshMatch[2]}` : repoUrl;
+  let webUrl: string | undefined;
+  let segments: string[];
+  if (/^https?:\/\//.test(url)) {
+    const parsed = new URL(url);
+    segments = parsed.pathname.split('/').filter(segment => !!segment);
+    webUrl = `${parsed.origin}${
+      segments.length > 2 ? '/' + segments.slice(0, -2).join('/') : ''
+    }`;
+  } else {
+    segments = url.split('/').filter(segment => !!segment);
+  }
+  if (segments.length < 2 || (segments.length > 2 && !webUrl)) {
+    throw new Error(`Unable to parse Forgejo repository URL: ${repoUrl}`);
+  }
+  const [owner, repo] = segments.slice(-2);
+  const resolvedApiUrl =
+    explicitApiUrl ?? (webUrl ? `${webUrl}${FORGEJO_API_PATH}` : undefined);
+  if (!resolvedApiUrl) {
+    throw new Error(
+      'Forgejo requires --api-url (https://<host>/api/v1) or a full --repo-url (https://<host>/<owner>/<repo>)'
+    );
+  }
+  return {owner, repo: repo.replace(/\.git$/, ''), apiUrl: resolvedApiUrl};
+}
+
 async function buildGitHub(argv: GitHubArgs): Promise<Scm> {
+  if (argv.scm === 'forgejo') {
+    if (argv.local) {
+      throw new Error('--local is not supported with --scm=forgejo');
+    }
+    const {owner, repo, apiUrl} = parseForgejoRepoUrl(
+      argv.repoUrl!,
+      argv.apiUrl
+    );
+    return await Forgejo.create({
+      owner,
+      repo,
+      apiUrl,
+      token: argv.token,
+      workInProgressPrefix: argv.wipPrefix,
+    });
+  }
   const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
   if (argv.local) {
     const localGitHub = await LocalGitHub.create({

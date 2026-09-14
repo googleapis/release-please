@@ -24,6 +24,8 @@ import {
 } from '../src/manifest';
 import snapshot = require('snap-shot-it');
 import {GitHub} from '../src/github';
+import {Forgejo} from '../src/forgejo';
+import {request} from '@octokit/request';
 import {ParseCallback} from 'yargs';
 
 const sandbox = sinon.createSandbox();
@@ -90,6 +92,115 @@ describe('CLI', () => {
       );
     });
   });
+  describe('--scm=forgejo', () => {
+    let fakeForgejo: Forgejo;
+    let forgejoCreateStub: sinon.SinonStub;
+    let fromManifestStub: sinon.SinonStub;
+    beforeEach(() => {
+      fakeForgejo = new Forgejo({
+        repository: {owner: 'owner', repo: 'repo', defaultBranch: 'main'},
+        request: request.defaults({}),
+        webUrl: 'https://git.example.com',
+      });
+      forgejoCreateStub = sandbox.stub(Forgejo, 'create').resolves(fakeForgejo);
+      fromManifestStub = sandbox
+        .stub(Manifest, 'fromManifest')
+        .resolves(fakeManifest);
+      sandbox.stub(fakeManifest, 'createPullRequests').resolves([]);
+    });
+
+    it('derives the API url from a full repository url', async () => {
+      await parser.parseAsync(
+        'manifest-pr --scm=forgejo --repo-url=https://git.example.com/owner/repo.git --token=secret --wip-prefix=[WIP]'
+      );
+      sinon.assert.calledOnceWithExactly(forgejoCreateStub, {
+        owner: 'owner',
+        repo: 'repo',
+        apiUrl: 'https://git.example.com/api/v1',
+        token: 'secret',
+        workInProgressPrefix: '[WIP]',
+      });
+      sinon.assert.notCalled(gitHubCreateStub);
+      sinon.assert.calledOnceWithExactly(
+        fromManifestStub,
+        fakeForgejo,
+        'main',
+        DEFAULT_RELEASE_PLEASE_CONFIG,
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        sinon.match.any
+      );
+    });
+
+    it('supports instances hosted under a subpath', async () => {
+      await parser.parseAsync(
+        'manifest-pr --scm=forgejo --repo-url=https://example.com/git/owner/repo'
+      );
+      sinon.assert.calledOnceWithExactly(forgejoCreateStub, {
+        owner: 'owner',
+        repo: 'repo',
+        apiUrl: 'https://example.com/git/api/v1',
+        token: undefined,
+        workInProgressPrefix: undefined,
+      });
+    });
+
+    it('supports ssh repository urls', async () => {
+      await parser.parseAsync(
+        'manifest-pr --scm=forgejo --repo-url=git@git.example.com:owner/repo.git'
+      );
+      sinon.assert.calledOnceWithExactly(forgejoCreateStub, {
+        owner: 'owner',
+        repo: 'repo',
+        apiUrl: 'https://git.example.com/api/v1',
+        token: undefined,
+        workInProgressPrefix: undefined,
+      });
+    });
+
+    it('supports owner/repo with an explicit API url', async () => {
+      await parser.parseAsync(
+        'manifest-pr --scm=forgejo --repo-url=owner/repo --api-url=https://git.example.com/api/v1'
+      );
+      sinon.assert.calledOnceWithExactly(forgejoCreateStub, {
+        owner: 'owner',
+        repo: 'repo',
+        apiUrl: 'https://git.example.com/api/v1',
+        token: undefined,
+        workInProgressPrefix: undefined,
+      });
+    });
+
+    async function parseError(args: string): Promise<Error | undefined> {
+      // don't let yargs exit the test process on handler errors
+      parser.exitProcess(false);
+      sandbox.stub(console, 'error');
+      try {
+        await parser.parseAsync(args);
+      } catch (e) {
+        return e as Error;
+      } finally {
+        parser.exitProcess(true);
+      }
+      return undefined;
+    }
+
+    it('requires an API url for owner/repo', async () => {
+      const error = await parseError(
+        'manifest-pr --scm=forgejo --repo-url=owner/repo'
+      );
+      expect(error?.message).to.include('--api-url');
+      sinon.assert.notCalled(forgejoCreateStub);
+    });
+
+    it('rejects --local', async () => {
+      const error = await parseError(
+        'manifest-pr --scm=forgejo --local --repo-url=https://git.example.com/owner/repo'
+      );
+      expect(error?.message).to.include('--local');
+      sinon.assert.notCalled(forgejoCreateStub);
+    });
+  });
+
   describe('manifest-pr', () => {
     let fromManifestStub: sinon.SinonStub;
     let createPullRequestsStub: sinon.SinonStub;

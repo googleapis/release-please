@@ -214,6 +214,12 @@ The easiest way to run Release Please is as a GitHub action. Please see [googlea
 
 Please see [Running release-please CLI](docs/cli.md) for all the configuration options.
 
+### Forgejo
+
+Release Please can also run against [Forgejo](https://forgejo.org) (v16+), either
+as a Forgejo Action or via the CLI (`--scm forgejo`). Please see
+[Forgejo](docs/forgejo.md) for setup instructions and limitations.
+
 ## Bootstrapping your Repository
 
 Release Please looks at commits since your last release tag. It may or may not be able to find
