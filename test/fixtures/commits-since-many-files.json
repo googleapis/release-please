@@ -24,7 +24,43 @@
                       "pageInfo": {
                         "hasNextPage": true
                       }
+                    },
+                    "commits": {
+                      "nodes": [
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
                     }
+                  }
+                ]
+              },
+              "authors": {
+                "nodes": [
+                  {
+                    "email": "chingor@google.com",
+                    "name": "Jeff Ching"
                   }
                 ]
               },
@@ -48,7 +84,43 @@
                     },
                     "files": {
                       "nodes": []
+                    },
+                    "commits": {
+                      "nodes": [
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "commit": {
+                            "authors": {
+                              "nodes": [
+                                {
+                                  "email": "chingor@google.com",
+                                  "name": "Jeff Ching"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
                     }
+                  }
+                ]
+              },
+              "authors": {
+                "nodes": [
+                  {
+                    "email": "chingor@google.com",
+                    "name": "Jeff Ching"
                   }
                 ]
               },

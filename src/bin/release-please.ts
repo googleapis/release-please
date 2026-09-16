@@ -109,6 +109,7 @@ interface PullRequestStrategyArgs {
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
   changelogHost?: string;
+  commitPartialPath?: string;
   versioningStrategy?: VersioningStrategyType;
 
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
@@ -355,6 +356,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'host for hyperlinks in the changelog',
       type: 'string',
     })
+    .option('commit-partial-path', {
+      describe: 'path to a `.hbs` file for custom commit format',
+      type: 'string',
+    })
     .option('last-package-version', {
       describe: 'last version # that package was released as',
       type: 'string',
@@ -498,6 +503,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
           changelogHost: argv.changelogHost,
+          commitPartialPath: argv.commitPartialPath,
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
           pullRequestHeader: argv.pullRequestHeader,
           pullRequestFooter: argv.pullRequestFooter,
