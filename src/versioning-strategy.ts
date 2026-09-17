@@ -92,6 +92,22 @@ export class PatchVersionUpdate implements VersionUpdater {
 }
 
 /**
+ * This VersionUpdater leaves the version unchanged, i.e. no release is
+ * warranted for the commits considered.
+ */
+export class NoVersionUpdate implements VersionUpdater {
+  /**
+   * Returns the same version, unchanged.
+   *
+   * @param {Version} version The current version
+   * @returns {Version} The same version
+   */
+  bump(version: Version): Version {
+    return version;
+  }
+}
+
+/**
  * This VersionUpdater sets the version to a specific version.
  */
 export class CustomVersionUpdate implements VersionUpdater {

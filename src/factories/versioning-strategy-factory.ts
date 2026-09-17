@@ -21,6 +21,7 @@ import {ServicePackVersioningStrategy} from '../versioning-strategies/service-pa
 import {Scm} from '../scm';
 import {ConfigurationError} from '../errors';
 import {PrereleaseVersioningStrategy} from '../versioning-strategies/prerelease';
+import {ChangelogSection} from '../changelog-notes';
 
 export type VersioningStrategyType = string;
 
@@ -31,6 +32,8 @@ export interface VersioningStrategyFactoryOptions {
   prereleaseType?: string;
   prerelease?: boolean;
   github: Scm;
+  // Only consulted by the "default" strategy, for a per-type `bump` override.
+  changelogSections?: ChangelogSection[];
 }
 
 export type VersioningStrategyBuilder = (
