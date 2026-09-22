@@ -258,6 +258,15 @@ defaults (those are documented in comments)
   // absence defaults to "chore: release ${branch}"
   "group-pull-request-title-pattern": "chore: release ${branch}",
 
+  // when grouping multiple packages into the one pull request, name its branch
+  // release-please--branches--<target-branch>--groups--<group-name> instead of
+  // release-please--branches--<target-branch>. Set a distinct value in each
+  // configuration when several manifests release from the same target branch,
+  // so their pull requests do not share a branch.
+  // This option has no effect when `separate-pull-requests` is `true`.
+  // absence defaults to no group
+  "group-name": "my-group",
+
   // When searching for the latest release SHAs, only consider the last N releases.
   // This option prevents paginating through all releases in history when we
   // expect to find the release within the last N releases. For repositories with
