@@ -427,6 +427,10 @@
           "description": "When grouping multiple release pull requests use this pattern for the title.",
           "type": "string"
         },
+        "group-name": {
+          "description": "When grouping multiple release pull requests into one, name its branch release-please--branches--<target-branch>--groups--<group-name> instead of release-please--branches--<target-branch>. Set a distinct value in each configuration when several manifests release from the same target branch, so their pull requests do not share a branch.",
+          "type": "string"
+        },
         "release-search-depth": {
           "description": "When considering previously releases, only look this deep.",
           "type": "number"
@@ -468,6 +472,7 @@
     "plugins": true,
     "signoff": true,
     "group-pull-request-title-pattern": true,
+    "group-name": true,
     "release-search-depth": true,
     "commit-search-depth": true,
     "commit-batch-size": true,
