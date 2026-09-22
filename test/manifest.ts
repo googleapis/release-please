@@ -316,6 +316,33 @@ describe('Manifest', () => {
       ).to.eql('chore${scope}: send it v${version}');
     });
 
+    it('should read group name from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/group-name.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['groupName']).to.eql('my-group');
+    });
+
     it('should read custom tag separator from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
@@ -1560,6 +1587,30 @@ describe('Manifest', () => {
             },
           },
         ]);
+      });
+
+      it('should name the branch after the group when configured', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          },
+          {
+            separatePullRequests: false,
+            groupName: 'my-group',
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        expect(pullRequests[0].headRefName).to.eql(
+          'release-please--branches--main--groups--my-group'
+        );
       });
 
       it('should handle single package repository', async () => {
