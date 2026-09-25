@@ -1,0 +1,10 @@
+{
+  "name": "@here/plugin2",
+  "version": "1.2.3",
+  "peerDependencies": {
+    "@here/pkgA": "^3.3.3"
+  },
+  "devDependencies": {
+    "@here/pkgA": "workspace:*"
+  }
+}
