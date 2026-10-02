@@ -14,10 +14,37 @@
 
 import {PHPYoshi} from './php-yoshi';
 import {BuildUpdatesOptions} from './base';
+import {ConventionalCommit} from '../commit';
 import {Update} from '../update';
 import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 
 export class PHPLibrarian extends PHPYoshi {
+  protected splitCommits(
+    commits: ConventionalCommit[]
+  ): Record<string, ConventionalCommit[]> {
+    const splitCommits = super.splitCommits(commits);
+    const directories = new Set(Object.keys(splitCommits));
+    const lowerToDirectory = new Map<string, string>();
+    for (const dir of directories) {
+      lowerToDirectory.set(dir.toLowerCase(), dir);
+    }
+    for (const directory of directories) {
+      const filtered = splitCommits[directory].filter(commit => {
+        if (!commit.scope) {
+          return true;
+        }
+        const matchedDir = lowerToDirectory.get(commit.scope.toLowerCase());
+        return !matchedDir || matchedDir === directory;
+      });
+      if (filtered.length > 0) {
+        splitCommits[directory] = filtered;
+      } else {
+        delete splitCommits[directory];
+      }
+    }
+    return splitCommits;
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
