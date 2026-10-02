@@ -121,14 +121,18 @@ describe('PHPLibrarian', () => {
       const client2Version = assertHasUpdate(updates, 'Client2/VERSION');
       expect(client2Version.updater.updateContent('')).to.eql('2.0.1\n');
 
-      // Client3 had no matching scoped commits -> skipped
-      assertNoHasUpdate(updates, 'Client3/VERSION');
+      // Client3 had no matching scoped commits -> falls back to default feat commit (0.1.2 -> 0.2.0)
+      const client3Version = assertHasUpdate(updates, 'Client3/VERSION');
+      expect(client3Version.updater.updateContent('')).to.eql('0.2.0\n');
+
+      // Untouched component -> no update
+      assertNoHasUpdate(updates, 'Client4/VERSION');
 
       // Verify release notes do not bleed across components
       const bodyStr = release!.body.toString();
       expect(bodyStr).to.include('<summary>google/client1 1.3.0</summary>');
       expect(bodyStr).to.include('<summary>google/client2 2.0.1</summary>');
-      expect(bodyStr).to.not.include('google/client3');
+      expect(bodyStr).to.include('<summary>google/client3 0.2.0</summary>');
 
       const client1Section = bodyStr
         .split('<summary>google/client1 1.3.0</summary>')[1]
@@ -141,6 +145,13 @@ describe('PHPLibrarian', () => {
         .split('</details>')[0];
       expect(client2Section).to.include('update comments in Client2');
       expect(client2Section).to.not.include('add new RPC to Client1');
+
+      const client3Section = bodyStr
+        .split('<summary>google/client3 0.2.0</summary>')[1]
+        .split('</details>')[0];
+      expect(client3Section).to.include('update API sources and regenerate');
+      expect(client3Section).to.not.include('add new RPC to Client1');
+      expect(client3Section).to.not.include('update comments in Client2');
     });
   });
 

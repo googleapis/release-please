@@ -38,8 +38,20 @@ export class PHPLibrarian extends PHPYoshi {
       });
       if (filtered.length > 0) {
         splitCommits[directory] = filtered;
-      } else {
-        delete splitCommits[directory];
+      } else if (splitCommits[directory].length > 0) {
+        const baseCommit = splitCommits[directory][0];
+        splitCommits[directory] = [
+          {
+            ...baseCommit,
+            message: `feat(${directory}): update API sources and regenerate`,
+            type: 'feat',
+            scope: directory,
+            bareMessage: 'update API sources and regenerate',
+            notes: [],
+            references: [],
+            breaking: false,
+          },
+        ];
       }
     }
     return splitCommits;
