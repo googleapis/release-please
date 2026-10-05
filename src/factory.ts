@@ -15,8 +15,8 @@
 import {ConfigurationError} from './errors';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
-import {Scm} from './scm';
 import {ReleaserConfig} from './manifest';
+import {Scm} from './scm';
 import {BaseStrategyOptions} from './strategies/base';
 import {Bazel} from './strategies/bazel';
 import {Dart} from './strategies/dart';
@@ -24,8 +24,8 @@ import {DotnetYoshi} from './strategies/dotnet-yoshi';
 import {Elixir} from './strategies/elixir';
 import {Expo} from './strategies/expo';
 import {Go} from './strategies/go';
-import {GoYoshi} from './strategies/go-yoshi';
 import {GoLibrarian} from './strategies/go-librarian';
+import {GoYoshi} from './strategies/go-yoshi';
 import {Helm} from './strategies/helm';
 import {Java} from './strategies/java';
 import {JavaYoshi} from './strategies/java-yoshi';
@@ -36,14 +36,14 @@ import {Node} from './strategies/node';
 import {NodeLibrarian} from './strategies/node-librarian';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
-import {PHPYoshi} from './strategies/php-yoshi';
 import {PHPLibrarian} from './strategies/php-librarian';
+import {PHPYoshi} from './strategies/php-yoshi';
 import {Python} from './strategies/python';
 import {PythonLibrarian} from './strategies/python-librarian';
 import {R} from './strategies/r';
 import {Ruby} from './strategies/ruby';
-import {RubyYoshi} from './strategies/ruby-yoshi';
 import {RubyLibrarian} from './strategies/ruby-librarian';
+import {RubyYoshi} from './strategies/ruby-yoshi';
 import {Rust} from './strategies/rust';
 import {Sfdx} from './strategies/sfdx';
 import {Simple} from './strategies/simple';
@@ -135,6 +135,7 @@ export async function buildStrategy(
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
     prereleaseType: options.prereleaseType,
     prerelease: options.prerelease,
+    prereleaseInitialNumber: options.prereleaseInitialNumber,
   });
   const changelogNotes = buildChangelogNotes({
     type: options.changelogType || 'default',

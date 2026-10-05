@@ -13,40 +13,40 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {Scm, ScmRelease, ScmTag} from './scm';
-import {Version, VersionsMap} from './version';
 import {Commit, parseConventionalCommits} from './commit';
-import {PullRequest} from './pull-request';
-import {logger as defaultLogger, Logger} from './util/logger';
-import {CommitSplit} from './util/commit-split';
-import {TagName} from './util/tag-name';
-import {Repository} from './repository';
-import {BranchName} from './util/branch-name';
-import {PullRequestTitle} from './util/pull-request-title';
-import {ReleasePullRequest} from './release-pull-request';
 import {
-  buildStrategy,
-  ReleaseType,
-  VersioningStrategyType,
-  buildPlugin,
-  ChangelogNotesType,
-} from './factory';
-import {Release} from './release';
-import {Strategy} from './strategy';
-import {MergeOptions, Merge} from './plugins/merge';
-import {ReleasePleaseManifest} from './updaters/release-please-manifest';
-import {
+  ConfigurationError,
   DuplicateReleaseError,
   FileNotFoundError,
-  ConfigurationError,
 } from './errors';
-import {ManifestPlugin} from './plugin';
 import {
-  PullRequestOverflowHandler,
-  FilePullRequestOverflowHandler,
-} from './util/pull-request-overflow-handler';
-import {signoffCommitMessage} from './util/signoff-commit-message';
+  buildPlugin,
+  buildStrategy,
+  ChangelogNotesType,
+  ReleaseType,
+  VersioningStrategyType,
+} from './factory';
+import {ManifestPlugin} from './plugin';
+import {Merge, MergeOptions} from './plugins/merge';
+import {PullRequest} from './pull-request';
+import {Release} from './release';
+import {ReleasePullRequest} from './release-pull-request';
+import {Repository} from './repository';
+import {Scm, ScmRelease, ScmTag} from './scm';
+import {Strategy} from './strategy';
+import {ReleasePleaseManifest} from './updaters/release-please-manifest';
+import {BranchName} from './util/branch-name';
 import {CommitExclude} from './util/commit-exclude';
+import {CommitSplit} from './util/commit-split';
+import {logger as defaultLogger, Logger} from './util/logger';
+import {
+  FilePullRequestOverflowHandler,
+  PullRequestOverflowHandler,
+} from './util/pull-request-overflow-handler';
+import {PullRequestTitle} from './util/pull-request-title';
+import {signoffCommitMessage} from './util/signoff-commit-message';
+import {TagName} from './util/tag-name';
+import {Version, VersionsMap} from './version';
 
 type ExtraGenericFile = {
   type: 'generic';
@@ -101,6 +101,7 @@ export interface ReleaserConfig {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
   prereleaseType?: string;
+  prereleaseInitialNumber?: number;
 
   // Strategy options
   releaseAs?: string;
@@ -164,6 +165,7 @@ interface ReleaserConfigJson {
   'bump-minor-pre-major'?: boolean;
   'bump-patch-for-minor-pre-major'?: boolean;
   'prerelease-type'?: string;
+  'prerelease-initial-number'?: number;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
@@ -1395,6 +1397,7 @@ function extractReleaserConfig(
     bumpMinorPreMajor: config['bump-minor-pre-major'],
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
     prereleaseType: config['prerelease-type'],
+    prereleaseInitialNumber: config['prerelease-initial-number'],
     versioning: config['versioning'],
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
@@ -1751,6 +1754,9 @@ function mergeReleaserConfig(
       pathConfig.bumpPatchForMinorPreMajor ??
       defaultConfig.bumpPatchForMinorPreMajor,
     prereleaseType: pathConfig.prereleaseType ?? defaultConfig.prereleaseType,
+    prereleaseInitialNumber:
+      pathConfig.prereleaseInitialNumber ??
+      defaultConfig.prereleaseInitialNumber,
     versioning: pathConfig.versioning ?? defaultConfig.versioning,
     changelogSections:
       pathConfig.changelogSections ?? defaultConfig.changelogSections,

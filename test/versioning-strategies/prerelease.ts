@@ -15,8 +15,8 @@
 import {describe, it} from 'mocha';
 
 import {expect} from 'chai';
-import {PrereleaseVersioningStrategy} from '../../src/versioning-strategies/prerelease';
 import {Version} from '../../src/version';
+import {PrereleaseVersioningStrategy} from '../../src/versioning-strategies/prerelease';
 
 describe('PrereleaseVersioningStrategy', () => {
   describe('with breaking change', () => {
@@ -482,6 +482,90 @@ describe('PrereleaseVersioningStrategy', () => {
       const oldVersion = Version.parse('1.2.3');
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('3.1.2');
+    });
+  });
+
+  describe('with prerelease initial number', () => {
+    const breakingCommits = [
+      {
+        sha: 'sha1',
+        message: 'fix!: some breaking bugfix',
+        files: ['path1/file1.rb'],
+        type: 'fix',
+        scope: null,
+        bareMessage: 'some breaking bugfix',
+        notes: [{title: 'BREAKING CHANGE', text: 'some breaking bugfix'}],
+        references: [],
+        breaking: true,
+      },
+    ];
+    const fixCommits = [
+      {
+        sha: 'sha2',
+        message: 'fix: some bugfix',
+        files: ['path1/file1.rb'],
+        type: 'fix',
+        scope: null,
+        bareMessage: 'some bugfix',
+        notes: [],
+        references: [],
+        breaking: false,
+      },
+    ];
+
+    it('defaults to unnumbered first prerelease when unset', async () => {
+      const strategy = new PrereleaseVersioningStrategy({
+        prerelease: true,
+        prereleaseType: 'alpha',
+      });
+      const newVersion = await strategy.bump(
+        Version.parse('0.5.0'),
+        breakingCommits
+      );
+      expect(newVersion.toString()).to.equal('1.0.0-alpha');
+    });
+
+    it('starts the first prerelease at the configured number', async () => {
+      const strategy = new PrereleaseVersioningStrategy({
+        prerelease: true,
+        prereleaseType: 'alpha',
+        prereleaseInitialNumber: 1,
+      });
+      const newVersion = await strategy.bump(
+        Version.parse('0.5.0'),
+        breakingCommits
+      );
+      expect(newVersion.toString()).to.equal('1.0.0-alpha.1');
+    });
+
+    it('starts the first prerelease at a configured number of 0', async () => {
+      const strategy = new PrereleaseVersioningStrategy({
+        prerelease: true,
+        prereleaseType: 'alpha',
+        prereleaseInitialNumber: 0,
+      });
+      const newVersion = await strategy.bump(
+        Version.parse('0.5.0'),
+        breakingCommits
+      );
+      expect(newVersion.toString()).to.equal('1.0.0-alpha.0');
+    });
+
+    it('continues incrementing from the configured starting number', async () => {
+      const strategy = new PrereleaseVersioningStrategy({
+        prerelease: true,
+        prereleaseType: 'alpha',
+        prereleaseInitialNumber: 0,
+      });
+      let version = await strategy.bump(
+        Version.parse('0.5.0'),
+        breakingCommits
+      );
+      expect(version.toString()).to.equal('1.0.0-alpha.0');
+      version = await strategy.bump(version, fixCommits);
+      expect(version.toString()).to.equal('1.0.0-alpha.1');
+      version = await strategy.bump(version, fixCommits);
+      expect(version.toString()).to.equal('1.0.0-alpha.2');
     });
   });
 });
