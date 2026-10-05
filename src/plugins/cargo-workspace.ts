@@ -267,9 +267,15 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     const strategy = this.strategiesByPath[updatedPackage.path];
     const latestRelease = this.releasesByPath[updatedPackage.path];
     const basePullRequest = strategy
-      ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
-          newVersion: version,
-        })
+      ? await strategy.buildReleasePullRequest(
+          [],
+          latestRelease,
+          false,
+          this.labels,
+          {
+            newVersion: version,
+          }
+        )
       : undefined;
 
     if (basePullRequest) {
@@ -314,7 +320,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
           }),
         },
       ],
-      labels: [],
+      labels: this.labels,
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
       version,
       draft: false,
