@@ -374,13 +374,29 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.not.include('Test User');
         safeSnapshot(notes);
       });
-      // it('ignores reverted commits', async () => {
-      //   const commits = [buildCommitFromFixture('multiple-messages')];
-      //   const changelogNotes = new DefaultChangelogNotes();
-      //   const notes = await changelogNotes.buildNotes(parseConventionalCommits(commits), notesOptions);
-      //   expect(notes).to.is.string;
-      //   safeSnapshot(notes);
-      // });
+      it('ignores reverted commits', async () => {
+        const commits = parseConventionalCommits([
+          {
+            sha: '1111111111111111111111111111111111111111',
+            message: 'feat: some feature',
+          },
+          {
+            sha: '2222222222222222222222222222222222222222',
+            message:
+              'revert: feat: some feature\n\nThis reverts commit 1111111111111111111111111111111111111111.',
+          },
+          {
+            sha: '3333333333333333333333333333333333333333',
+            message: 'fix: some bugfix',
+          },
+        ]);
+        const changelogNotes = new DefaultChangelogNotes();
+
+        const notes = await changelogNotes.buildNotes(commits, notesOptions);
+
+        expect(notes).to.include('some bugfix');
+        expect(notes).to.not.include('some feature');
+      });
     });
   });
   describe('pull request compatibility', () => {

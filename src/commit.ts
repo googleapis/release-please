@@ -259,7 +259,9 @@ function toConventionalChangelogFormat(
       if (parent.type === 'token') {
         parent = ancestors.pop();
         let footerText = '';
-        const semanticFooter = node.value.toLowerCase() === 'release-as';
+        const footerType = node.value.toLowerCase();
+        const semanticFooter =
+          footerType === 'release-as' || footerType === 'revert';
         visit(
           parent,
           ['type', 'scope', 'breaking-change', 'separator', 'text', 'newline'],
@@ -281,7 +283,7 @@ function toConventionalChangelogFormat(
         );
         // Any footers that carry semantic meaning, e.g., Release-As, should
         // be added to the footer field, for the benefits of post-processing:
-        if (semanticFooter) {
+        if (footerType === 'release-as') {
           let releaseAs = '';
           visit(parent, ['text'], (node: parser.Text) => {
             releaseAs = node.value;
@@ -294,14 +296,16 @@ function toConventionalChangelogFormat(
           if (!headerCommit.footer) headerCommit.footer = '';
           headerCommit.footer += `\n${footerText.toLowerCase()}`.trimStart();
         }
-        try {
-          for (const commit of toConventionalChangelogFormat(
-            parser.parser(footerText)
-          )) {
-            commits.push(commit);
+        if (!semanticFooter) {
+          try {
+            for (const commit of toConventionalChangelogFormat(
+              parser.parser(footerText)
+            )) {
+              commits.push(commit);
+            }
+          } catch (err) {
+            // Footer does not appear to be an additional commit.
           }
-        } catch (err) {
-          // Footer does not appear to be an additional commit.
         }
       }
     }
@@ -402,6 +406,91 @@ function splitMessages(message: string): string[] {
   return [...conventionalCommits, ...messages.slice(1)];
 }
 
+const REVERT_TARGET_PATTERNS = [
+  /(?:^|\r?\n)This reverts commit ([0-9a-z]+)\.?(?=\r?(?:\n|$))/gi,
+  /(?:^|\r?\n)Revert:\s*([0-9a-z]+)\.?(?=\r?(?:\n|$))/gi,
+];
+
+function revertTargets(message: string): string[] {
+  const targets = new Set<string>();
+  for (const pattern of REVERT_TARGET_PATTERNS) {
+    pattern.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(message)) !== null) {
+      targets.add(match[1].toLowerCase());
+    }
+  }
+  return [...targets];
+}
+
+/**
+ * Removes revert pairs whose original and reverting commits both occur in the
+ * current commit range. Reverts of commits outside the range remain visible,
+ * since they describe a change relative to the previous release.
+ */
+function filterRevertedCommits(commits: Commit[]): Commit[] {
+  const revertTargetByCommit = new Map<number, number>();
+  const revertersByTarget = new Map<number, number[]>();
+
+  for (let commitIndex = 0; commitIndex < commits.length; commitIndex++) {
+    const targets = revertTargets(commits[commitIndex].message);
+    if (targets.length === 0) continue;
+
+    let resolvedTarget: number | undefined;
+    let canResolve = true;
+    for (const target of targets) {
+      const matches: number[] = [];
+      for (
+        let candidateIndex = 0;
+        candidateIndex < commits.length;
+        candidateIndex++
+      ) {
+        if (candidateIndex === commitIndex) continue;
+        const candidateSha = commits[candidateIndex].sha.toLowerCase();
+        if (
+          candidateSha.startsWith(target) ||
+          target.startsWith(candidateSha)
+        ) {
+          matches.push(candidateIndex);
+        }
+      }
+
+      if (matches.length !== 1) {
+        canResolve = false;
+        break;
+      }
+      if (resolvedTarget !== undefined && resolvedTarget !== matches[0]) {
+        canResolve = false;
+        break;
+      }
+      resolvedTarget = matches[0];
+    }
+
+    if (!canResolve || resolvedTarget === undefined) continue;
+    revertTargetByCommit.set(commitIndex, resolvedTarget);
+    const reverters = revertersByTarget.get(resolvedTarget) ?? [];
+    reverters.push(commitIndex);
+    revertersByTarget.set(resolvedTarget, reverters);
+  }
+
+  const active = new Map<number, boolean>();
+  const isActive = (commitIndex: number): boolean => {
+    const cached = active.get(commitIndex);
+    if (cached !== undefined) return cached;
+
+    const isReverted = (revertersByTarget.get(commitIndex) ?? []).some(
+      reverterIndex => isActive(reverterIndex)
+    );
+    active.set(commitIndex, !isReverted);
+    return !isReverted;
+  };
+
+  return commits.filter((_, commitIndex) => {
+    if (!isActive(commitIndex)) return false;
+    return !revertTargetByCommit.has(commitIndex);
+  });
+}
+
 /**
  * Given a list of raw commits, parse and expand into conventional commits.
  *
@@ -417,7 +506,7 @@ export function parseConventionalCommits(
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 
-  for (const commit of commits) {
+  for (const commit of filterRevertedCommits(commits)) {
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {
