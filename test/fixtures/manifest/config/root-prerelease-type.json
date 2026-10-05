@@ -1,0 +1,11 @@
+{
+  "prerelease-type": "beta",
+  "packages": {
+    ".": {
+      "package-name": "foo"
+    },
+    "node-package": {
+      "release-type": "node"
+    }
+  }
+}

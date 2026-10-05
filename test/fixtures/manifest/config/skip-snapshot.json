@@ -1,0 +1,11 @@
+{
+  "skip-snapshot": true,
+  "packages": {
+    ".": {
+      "package-name": "foo"
+    },
+    "node-package": {
+      "skip-snapshot": false
+    }
+  }
+}

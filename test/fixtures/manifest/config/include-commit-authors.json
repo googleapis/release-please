@@ -1,0 +1,11 @@
+{
+  "include-commit-authors": true,
+  "packages": {
+    ".": {
+      "package-name": "foo"
+    },
+    "node-package": {
+      "include-commit-authors": false
+    }
+  }
+}
