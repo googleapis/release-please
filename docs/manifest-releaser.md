@@ -309,8 +309,8 @@ defaults (those are documented in comments)
     ".": {
       // overrides release-type for node
       "release-type": "node",
-      // exclude commits from that path from processing
-      "exclude-paths": ["path/to/myPyPkgA"]
+      // exclude commits from directories or specific files from processing
+      "exclude-paths": ["path/to/myPyPkgA", "Makefile"]
     },
 
     // path segment should be a folder relative to repository root
