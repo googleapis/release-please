@@ -5105,6 +5105,56 @@ describe('Manifest', () => {
       expect(releases[0].prerelease).to.be.undefined;
     });
 
+    it('should build a release for every component when notes contain escaped html', async () => {
+      const notes = '### Features\n\n* claim :v&lt;version&gt; only on main';
+      const body = new PullRequestBody([
+        {component: 'pkg1', version: Version.parse('1.0.1'), notes},
+        {component: 'pkg2', version: Version.parse('2.0.1'), notes},
+      ]).toString();
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body,
+            labels: ['autorelease: pending'],
+            files: ['path/a/package.json', 'path/b/package.json'],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('2.0.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(2);
+      expect(releases[0].tag.toString()).to.eql('pkg1-v1.0.1');
+      expect(releases[0].path).to.eql('path/a');
+      expect(releases[0].notes).to.eql(notes);
+      expect(releases[1].tag.toString()).to.eql('pkg2-v2.0.1');
+      expect(releases[1].path).to.eql('path/b');
+      expect(releases[1].notes).to.eql(notes);
+    });
+
     it('should handle a single component release', async () => {
       mockPullRequests(
         github,
