@@ -804,28 +804,12 @@ export class LocalGitHub implements Scm {
       .toString()
       .slice(0, MAX_ISSUE_BODY_SIZE);
 
-    const prNumber = await suggesterCreatePullRequest(
-      this.gitHubApi.octokit,
-      changes,
-      {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title,
-        branch: pullRequest.headRefName,
-        description: body,
-        primary: targetBranch,
-        force: true,
-        fork: options?.fork === false ? false : true,
-        message,
-        logger: this.logger,
-        draft: pullRequest.draft,
-      }
+    // Force-push the new tree onto the PR's head branch, then PATCH the PR's title/body.
+    await this.gitHubApi.commitAndPushChanges(
+      pullRequest.headRefName,
+      message,
+      changes
     );
-    if (prNumber !== number) {
-      this.logger.warn(
-        `updated code for ${prNumber}, but update requested for ${number}`
-      );
-    }
     return this.gitHubApi.updatePullRequest(number, title, body);
   }
 

@@ -1214,6 +1214,114 @@ describe('GitHub', () => {
       sinon.assert.calledOnce(handleOverflowStub);
       req.done();
     });
+
+    it('pushes file changes via the Git Data API and PATCHes the PR (no code-suggester)', async () => {
+      // Stub buildChangeSet so we don't have to nock all of file fetches.
+      const branch = 'release-please--branches--main--components--xdeployment';
+      const changes = new Map();
+      changes.set('CHANGELOG.md', {
+        mode: '100644',
+        content: '# new changelog\n',
+        originalContent: '# old changelog\n',
+      });
+      sandbox.stub(github, 'buildChangeSet').resolves(changes);
+
+      // If code-suggester is reached we'd see /pulls?head=... or POST /pulls;
+      // the absence of a matching nock would error the test if it happened.
+      const createPullRequestSpy = sandbox.spy(
+        codeSuggester,
+        'createPullRequest'
+      );
+
+      // Git Data API call sequence: getRef -> getCommit -> createBlob ->
+      // createTree -> createCommit -> updateRef.
+      req = req
+        .get(`/repos/fake/fake/git/ref/heads%2F${encodeURIComponent(branch)}`)
+        .reply(200, {object: {sha: 'parent-sha'}})
+        .get('/repos/fake/fake/git/commits/parent-sha')
+        .reply(200, {tree: {sha: 'base-tree-sha'}})
+        .post('/repos/fake/fake/git/blobs')
+        .reply(201, {sha: 'blob-sha'})
+        .post('/repos/fake/fake/git/trees', body => {
+          expect(body.base_tree).to.eql('base-tree-sha');
+          expect(body.tree).to.have.lengthOf(1);
+          expect(body.tree[0]).to.deep.include({
+            path: 'CHANGELOG.md',
+            mode: '100644',
+            type: 'blob',
+            sha: 'blob-sha',
+          });
+          return true;
+        })
+        .reply(201, {sha: 'new-tree-sha'})
+        .post('/repos/fake/fake/git/commits', body => {
+          expect(body.tree).to.eql('new-tree-sha');
+          expect(body.parents).to.eql(['parent-sha']);
+          return true;
+        })
+        .reply(201, {sha: 'new-commit-sha'})
+        .patch(
+          `/repos/fake/fake/git/refs/heads%2F${encodeURIComponent(branch)}`,
+          body => {
+            expect(body.sha).to.eql('new-commit-sha');
+            expect(body.force).to.eql(true);
+            return true;
+          }
+        )
+        .reply(200, {object: {sha: 'new-commit-sha'}})
+        .patch('/repos/fake/fake/pulls/123')
+        .reply(200, {
+          number: 123,
+          title: 'updated-title',
+          body: 'updated body',
+          labels: [],
+          head: {ref: branch},
+          base: {ref: 'main'},
+        });
+
+      const pullRequest = {
+        title: PullRequestTitle.ofTargetBranch('main'),
+        body: new PullRequestBody(mockReleaseData(1)),
+        labels: [],
+        headRefName: branch,
+        draft: false,
+        updates: [],
+      };
+      const result = await github.updatePullRequest(123, pullRequest, 'main');
+      expect(result.number).to.eql(123);
+      sinon.assert.notCalled(createPullRequestSpy);
+      req.done();
+    });
+
+    it('skips the commit step when there are no file changes', async () => {
+      sandbox.stub(github, 'buildChangeSet').resolves(new Map());
+      const createPullRequestSpy = sandbox.spy(
+        codeSuggester,
+        'createPullRequest'
+      );
+
+      req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
+        number: 123,
+        title: 'updated-title',
+        body: 'updated body',
+        labels: [],
+        head: {ref: 'release-please--branches--main'},
+        base: {ref: 'main'},
+      });
+
+      const pullRequest = {
+        title: PullRequestTitle.ofTargetBranch('main'),
+        body: new PullRequestBody(mockReleaseData(1)),
+        labels: [],
+        headRefName: 'release-please--branches--main',
+        draft: false,
+        updates: [],
+      };
+      const result = await github.updatePullRequest(123, pullRequest, 'main');
+      expect(result.number).to.eql(123);
+      sinon.assert.notCalled(createPullRequestSpy);
+      req.done();
+    });
   });
 
   describe('graphqlRequest backoff', () => {
