@@ -431,6 +431,7 @@ export function parseConventionalCommits(
             message: parsedCommit.header,
             files: commit.files,
             pullRequest: commit.pullRequest,
+            author: commit.author,
             type: parsedCommit.type,
             scope: parsedCommit.scope,
             bareMessage: parsedCommit.subject,
