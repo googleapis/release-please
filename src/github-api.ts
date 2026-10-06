@@ -150,6 +150,29 @@ export interface ReleaseHistory {
 export type ReleaseIteratorOptions = ScmReleaseIteratorOptions;
 
 export const MAX_SLEEP_SECONDS = 20;
+
+const TRANSIENT_GRAPHQL_STATUSES = [500, 502, 503, 504];
+const TRANSIENT_GRAPHQL_MESSAGES = [
+  'something went wrong while executing your query',
+  'respond to your request in time',
+];
+
+export function isTransientGraphqlError(err: unknown): boolean {
+  const {status, errors} = (err ?? {}) as {
+    status?: number;
+    errors?: {message?: string}[];
+  };
+  if (typeof status === 'number') {
+    return TRANSIENT_GRAPHQL_STATUSES.includes(status);
+  }
+  return (
+    Array.isArray(errors) &&
+    errors.some(e =>
+      TRANSIENT_GRAPHQL_MESSAGES.some(m => e.message?.toLowerCase().includes(m))
+    )
+  );
+}
+
 export const MAX_ISSUE_BODY_SIZE = 65536;
 
 export class GitHubApi {
@@ -263,7 +286,7 @@ export class GitHubApi {
           }
           this.logger.trace('no GraphQL response, retrying');
         } catch (err) {
-          if ((err as GitHubAPIError).status !== 502) {
+          if (!isTransientGraphqlError(err)) {
             throw err;
           }
           if (maxRetries === 0) {
@@ -271,7 +294,7 @@ export class GitHubApi {
             throw err;
           }
           this.logger.info(
-            `received 502 error, ${maxRetries} attempts remaining`
+            `received transient GraphQL error, ${maxRetries} attempts remaining`
           );
           if (typeof opts.num === 'number') {
             if (maxRetries === 1) {
