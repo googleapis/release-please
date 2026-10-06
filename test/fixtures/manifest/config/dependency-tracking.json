@@ -1,0 +1,20 @@
+{
+  "packages": {
+    "packages/container-a": {
+      "release-type": "simple",
+      "component": "container-a"
+    },
+    "helm/chart": {
+      "release-type": "simple",
+      "component": "my-chart",
+      "extra-files": [
+        {
+          "type": "yaml",
+          "path": "helm/chart/values.yaml",
+          "jsonpath": "$.containerA.image.tag",
+          "component": "container-a"
+        }
+      ]
+    }
+  }
+}
