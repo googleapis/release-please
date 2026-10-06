@@ -437,6 +437,7 @@ export function parseConventionalCommits(
             notes: parsedCommit.notes,
             references: parsedCommit.references,
             breaking,
+            author: commit.author,
           });
         }
       } catch (_err) {

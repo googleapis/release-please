@@ -94,6 +94,10 @@
           "description": "Include `v` in the GitHub release name. Defaults to `true`.",
           "type": "boolean"
         },
+        "include-commit-authors": {
+          "description": "Include commit authors in changelog entries (e.g., `(@username)`). Defaults to `false`",
+          "type": "boolean"
+        },
         "changelog-type": {
           "description": "The type of changelog to use. Defaults to `default`.",
           "type": "string",
@@ -491,6 +495,7 @@
     "include-component-in-tag": true,
     "include-v-in-tag": true,
     "include-v-in-release-name": true,
+    "include-commit-authors": true,
     "changelog-type": true,
     "changelog-host": true,
     "changelog-path": true,
