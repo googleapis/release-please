@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
-import {Manifest} from '../src/manifest';
+import {Manifest, ROOT_PROJECT_PATH} from '../src/manifest';
 import {GitHub, ReleaseOptions} from '../src/github';
 import * as githubModule from '../src/github';
 import * as sinon from 'sinon';
@@ -954,6 +954,43 @@ describe('Manifest', () => {
       });
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+      expect(ROOT_PROJECT_PATH in manifest.repositoryConfig)
+    });
+
+    it('should propagate paths to strategy', async () => {
+      mockCommits(sandbox, github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(sandbox, github, [
+        {
+          id: 123456,
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+      }, undefined, "foo");
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+      expect("foo" in manifest.repositoryConfig);
     });
     it('should find custom release pull request title', async () => {
       mockCommits(sandbox, github, [
