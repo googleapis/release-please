@@ -1,0 +1,8 @@
+[package]
+name = "pkgUnpub"
+version = "6.6.6"
+publish = false
+
+[dependencies]
+pkgA = { version = "1.1.1", path = "../pkgA" }
+tracing = "1.0.0"
