@@ -45,6 +45,11 @@
               "hidden": {
                 "description": "Skip displaying this type of commit. Defaults to `false`.",
                 "type": "boolean"
+              },
+              "bump": {
+                "description": "Override which SemVer bump this commit type causes, independent of `hidden`. `none` never bumps the version for this type (still overridden by an explicit breaking change or a `Release-As` footer on the commit); `minor`/`major` force that bump, as if this were feat/breaking; `breaking` is an alias for `major`. Unset (the default) leaves this type's classification exactly as before: feat bumps minor, a breaking change bumps major, anything else bumps patch.",
+                "type": "string",
+                "enum": ["none", "minor", "major", "breaking"]
               }
             },
             "required": ["type", "section"]
