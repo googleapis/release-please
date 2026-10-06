@@ -135,6 +135,50 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].version?.toString()).to.eql('0.1.0');
       expect(releaseData[0].notes).matches(/initial generation/);
     });
+
+    // A commit subject can contain a token like `<details>` inside an
+    // inline code span. The HTML parser does not understand markdown, so
+    // the release notes end up containing what looks like a real
+    // `<details>` element without a `<summary>`.
+    // https://github.com/googleapis/release-please/issues/2801
+    it('should tolerate a <details> element missing a <summary>', () => {
+      const body = [
+        ':robot: I have created a release *beep* *boop*',
+        '---',
+        '',
+        '',
+        '## [1.2.3](https://github.com/googleapis/release-please/compare/v1.2.2...v1.2.3) (2026-08-22)',
+        '',
+        '',
+        '### Bug Fixes',
+        '',
+        '* escape an unbalanced `<details>` tag instead of refusing the draft ([#133](https://github.com/googleapis/release-please/issues/133))',
+        '',
+        '---',
+        'This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).',
+      ].join('\n');
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      const releaseData = pullRequestBody!.releaseData;
+      expect(releaseData).lengthOf(1);
+      expect(releaseData[0].version?.toString()).to.eql('1.2.3');
+      expect(releaseData[0].notes).matches(/unbalanced/);
+    });
+
+    it('should keep parsing valid components around a <details> element missing a <summary>', () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './multiple.txt'),
+        'utf8'
+      );
+      // Inject a stray, summary-less <details> block before the valid ones.
+      const poisoned = body.replace(
+        '<details>',
+        '<details>\nchore: mention `</details>` handling\n</details>\n<details>'
+      );
+      const pullRequestBody = PullRequestBody.parse(poisoned);
+      expect(pullRequestBody).to.not.be.undefined;
+      expect(pullRequestBody!.releaseData.length).to.be.greaterThan(0);
+    });
   });
   describe('toString', () => {
     it('can handle multiple entries', () => {

@@ -126,7 +126,17 @@ function extractMultipleReleases(notes: string, logger: Logger): ReleaseData[] {
   const root = parse(notes);
   for (const detail of root.getElementsByTagName('details')) {
     const summaryNode = detail.getElementsByTagName('summary')[0];
-    const summary = summaryNode?.textContent;
+    if (!summaryNode) {
+      // A commit subject can legitimately contain a token like
+      // `<details>` inside an inline code span. The HTML parser does not
+      // understand markdown, so it sees that text as a real element.
+      // Skip it and let the caller fall back to single-release parsing.
+      logger.warn(
+        'found a <details> block without a <summary>, skipping it - the release notes may contain raw HTML from commit subjects'
+      );
+      continue;
+    }
+    const summary = summaryNode.textContent;
     const match = summary.match(SUMMARY_PATTERN);
     if (match?.groups) {
       detail.removeChild(summaryNode);
