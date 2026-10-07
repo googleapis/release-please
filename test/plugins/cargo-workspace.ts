@@ -19,6 +19,7 @@ import {CandidateReleasePullRequest} from '../../src/manifest';
 import {Update} from '../../src/update';
 import {
   buildGitHubFileContent,
+  buildGitHubFileRaw,
   buildMockCandidatePullRequest,
   assertHasUpdate,
   dateSafe,
@@ -46,12 +47,15 @@ export function buildMockPackageUpdate(
 ): Update {
   const cachedFileContents = buildGitHubFileContent(fixturesPath, fixtureName);
   const manifest = parseCargoManifest(cachedFileContents.parsedContent);
+  const manifestVersion = manifest.package?.version;
   return {
     path,
     createIfMissing: false,
     cachedFileContents,
     updater: new CargoToml({
-      version: Version.parse(manifest.package?.version || 'FIXME'),
+      version: Version.parse(
+        typeof manifestVersion === 'string' ? manifestVersion : 'FIXME'
+      ),
     }),
   };
 }
@@ -136,6 +140,65 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustA/Cargo.toml');
       assertHasUpdate(updates, 'Cargo.lock');
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+    });
+    it('handles package versions inherited from the workspace', async () => {
+      const workspaceManifest =
+        '[workspace]\nmembers = ["subcrate"]\n\n[workspace.package]\nversion = "1.1.1"\n';
+      const memberManifest =
+        '[package]\nname = "subcrate"\nversion.workspace = true\n';
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('subcrate', 'rust', '1.2.0', {
+          component: 'subcrate',
+          updates: [
+            {
+              path: 'subcrate/Cargo.toml',
+              createIfMissing: false,
+              cachedFileContents: buildGitHubFileRaw(memberManifest),
+              updater: new CargoToml({
+                version: Version.parse('1.2.0'),
+              }),
+            },
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [],
+        flatten: false,
+        targetBranch: 'main',
+        inlineFiles: [
+          ['Cargo.toml', workspaceManifest],
+          ['subcrate/Cargo.toml', memberManifest],
+        ],
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('subcrate', 'main')
+        .resolves(['subcrate']);
+      plugin = new CargoWorkspace(github, 'main', {
+        subcrate: {
+          releaseType: 'rust',
+        },
+      });
+
+      const newCandidates = await plugin.run(candidates);
+
+      expect(newCandidates).lengthOf(1);
+      const updates = newCandidates[0].pullRequest.updates;
+      const memberUpdate = assertHasUpdate(
+        updates,
+        'subcrate/Cargo.toml',
+        RawContent
+      );
+      expect(memberUpdate.updater.updateContent(memberManifest)).to.equal(
+        memberManifest
+      );
+      const workspaceUpdate = assertHasUpdate(updates, 'Cargo.toml', CargoToml);
+      expect(workspaceUpdate.updater.updateContent(workspaceManifest)).to.equal(
+        '[workspace]\nmembers = ["subcrate"]\n\n[workspace.package]\nversion = "1.2.0"\n'
+      );
     });
     it('combines rust packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
