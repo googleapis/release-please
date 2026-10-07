@@ -3276,6 +3276,23 @@ describe('Manifest', () => {
         sinon.assert.calledOnce(mockPlugin.run);
       });
 
+      it('should pass always-link-local to plugins', async () => {
+        const buildPlugin = sandbox
+          .stub(pluginFactory, 'buildPlugin')
+          .returns(sandbox.createStubInstance(NodeWorkspace));
+        new Manifest(
+          github,
+          'main',
+          {'path/a': {releaseType: 'node', component: 'pkg1'}},
+          {'path/a': Version.parse('1.0.0')},
+          {plugins: ['node-workspace'], alwaysLinkLocal: false}
+        );
+        sinon.assert.calledWith(
+          buildPlugin,
+          sinon.match({type: 'node-workspace', alwaysLinkLocal: false})
+        );
+      });
+
       it('should load and run multiple plugins', async () => {
         const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
         mockPlugin.run.returnsArg(0);
