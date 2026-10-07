@@ -134,4 +134,39 @@ describe('commit-exclude', () => {
     expect(newCommitsPerPath['a'].length).to.equal(1);
     expect(newCommitsPerPath['d'].length).to.equal(0);
   });
+
+  it('should include empty commits even with exclude-paths configured', () => {
+    const emptyCommit: Commit = {
+      sha: 'emptyRelease',
+      message: 'chore: force a release\n\nRelease-As: 1.0.1',
+      files: [],
+    };
+    const commits: Record<string, Commit[]> = {
+      '.': [emptyCommit],
+    };
+    const config: Record<string, CommitExcludeConfig> = {
+      '.': {excludePaths: ['syntax']},
+    };
+    const commitExclude = new CommitExclude(config);
+    const newCommitsPerPath = commitExclude.excludeCommits(commits);
+    expect(newCommitsPerPath['.'].length).to.equal(1);
+    expect(newCommitsPerPath['.'][0].sha).to.equal('emptyRelease');
+  });
+
+  it('should include commits with no files property even with exclude-paths configured', () => {
+    const noFilesCommit: Commit = {
+      sha: 'noFilesRelease',
+      message: 'chore: force a release\n\nRelease-As: 1.0.2',
+    };
+    const commits: Record<string, Commit[]> = {
+      '.': [noFilesCommit],
+    };
+    const config: Record<string, CommitExcludeConfig> = {
+      '.': {excludePaths: ['syntax']},
+    };
+    const commitExclude = new CommitExclude(config);
+    const newCommitsPerPath = commitExclude.excludeCommits(commits);
+    expect(newCommitsPerPath['.'].length).to.equal(1);
+    expect(newCommitsPerPath['.'][0].sha).to.equal('noFilesRelease');
+  });
 });
