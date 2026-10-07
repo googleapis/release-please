@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Updater} from '../update';
-import {Version, VersionsMap} from '../version';
+import {Version, VersionsMap, VERSION_REGEX} from '../version';
 
 // Constructor options for the DefaultUpdater class
 export interface UpdateOptions {
@@ -42,7 +42,13 @@ export class DefaultUpdater implements Updater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(_content: string): string {
+  updateContent(content: string): string {
+    // if there is already a version in the content then just replace it. This
+    // allows us to preserve the version format in the file such as a `v` prefix
+    if (content.match(VERSION_REGEX)) {
+      return content.replace(VERSION_REGEX, this.version.toString());
+    }
+
     return this.version + '\n';
   }
 }
