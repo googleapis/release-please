@@ -238,6 +238,29 @@ Release notes for path: node1, releaseType: node
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['NodeWorkspace plugin run should not include peer dependency notes in changelog when package has both dev and peer deps 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 3.3.4</summary>
+
+Release notes for path: node1, releaseType: node
+</details>
+
+<details><summary>@here/plugin2: 4.4.5</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @here/pkgA bumped from ^3.3.3 to ^3.3.4
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['NodeWorkspace plugin run walks dependency tree and updates previously untouched packages (prerelease) 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
@@ -347,6 +370,31 @@ exports['NodeWorkspace plugin with updatePeerDependencies: true respects version
     "@here/pkgA": "^2.2.2"
   }
 }
+`
+
+exports['NodeWorkspace plugin with updatePeerDependencies: true should include peer dependency notes in changelog when package has both dev and peer deps 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 3.3.4</summary>
+
+Release notes for path: node1, releaseType: node
+</details>
+
+<details><summary>@here/plugin2: 4.4.5</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @here/pkgA bumped from ^3.3.3 to ^3.3.4
+  * peerDependencies
+    * @here/pkgA bumped from ^3.3.3 to ^3.3.4
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
 exports['NodeWorkspace plugin with updatePeerDependencies: true should not ignore peer dependencies 1'] = `
