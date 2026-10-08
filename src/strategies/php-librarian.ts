@@ -14,10 +14,55 @@
 
 import {PHPYoshi} from './php-yoshi';
 import {BuildUpdatesOptions} from './base';
+import {ConventionalCommit} from '../commit';
 import {Update} from '../update';
 import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 
 export class PHPLibrarian extends PHPYoshi {
+  protected splitCommits(
+    commits: ConventionalCommit[]
+  ): Record<string, ConventionalCommit[]> {
+    const splitCommits = super.splitCommits(commits);
+    const shaToDirectories = new Map<string, Map<string, string>>();
+    for (const [directory, dirCommits] of Object.entries(splitCommits)) {
+      for (const commit of dirCommits) {
+        let lowerToDir = shaToDirectories.get(commit.sha);
+        if (!lowerToDir) {
+          lowerToDir = new Map<string, string>();
+          shaToDirectories.set(commit.sha, lowerToDir);
+        }
+        lowerToDir.set(directory.toLowerCase(), directory);
+      }
+    }
+
+    for (const [directory, dirCommits] of Object.entries(splitCommits)) {
+      const commitsBySha = new Map<string, ConventionalCommit[]>();
+      for (const commit of dirCommits) {
+        let group = commitsBySha.get(commit.sha);
+        if (!group) {
+          group = [];
+          commitsBySha.set(commit.sha, group);
+        }
+        group.push(commit);
+      }
+
+      const result: ConventionalCommit[] = [];
+      for (const [sha, group] of commitsBySha.entries()) {
+        const lowerToDir = shaToDirectories.get(sha)!;
+        const filtered = group.filter(commit => {
+          if (!commit.scope) {
+            return true;
+          }
+          const matchedDir = lowerToDir.get(commit.scope.toLowerCase());
+          return !matchedDir || matchedDir === directory;
+        });
+        result.push(...(filtered.length > 0 ? filtered : group));
+      }
+      splitCommits[directory] = result;
+    }
+    return splitCommits;
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
