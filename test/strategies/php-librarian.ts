@@ -74,21 +74,15 @@ describe('PHPLibrarian', () => {
         .withArgs('Client2/VERSION', 'main')
         .resolves(buildGitHubFileRaw('2.0.0'));
       getFileStub
-        .withArgs('Client3/VERSION', 'main')
-        .resolves(buildGitHubFileRaw('0.1.2'));
-      getFileStub
         .withArgs('Client1/composer.json', 'main')
         .resolves(buildGitHubFileRaw('{"name": "google/client1"}'));
       getFileStub
         .withArgs('Client2/composer.json', 'main')
         .resolves(buildGitHubFileRaw('{"name": "google/client2"}'));
-      getFileStub
-        .withArgs('Client3/composer.json', 'main')
-        .resolves(buildGitHubFileRaw('{"name": "google/client3"}'));
 
       const commit = buildMockCommit(
         'feat: update API sources and regenerate',
-        ['Client1/foo.php', 'Client2/bar.php', 'Client3/baz.php']
+        ['Client1/foo.php', 'Client2/bar.php']
       );
       commit.pullRequest = {
         headBranchName: 'chore-update-libraries',
@@ -121,18 +115,13 @@ describe('PHPLibrarian', () => {
       const client2Version = assertHasUpdate(updates, 'Client2/VERSION');
       expect(client2Version.updater.updateContent('')).to.eql('2.0.1\n');
 
-      // Client3 had no matching scoped commits -> falls back to default feat commit (0.1.2 -> 0.2.0)
-      const client3Version = assertHasUpdate(updates, 'Client3/VERSION');
-      expect(client3Version.updater.updateContent('')).to.eql('0.2.0\n');
-
       // Untouched component -> no update
-      assertNoHasUpdate(updates, 'Client4/VERSION');
+      assertNoHasUpdate(updates, 'Client3/VERSION');
 
       // Verify release notes do not bleed across components
       const bodyStr = release!.body.toString();
       expect(bodyStr).to.include('<summary>google/client1 1.3.0</summary>');
       expect(bodyStr).to.include('<summary>google/client2 2.0.1</summary>');
-      expect(bodyStr).to.include('<summary>google/client3 0.2.0</summary>');
 
       const client1Section = bodyStr
         .split('<summary>google/client1 1.3.0</summary>')[1]
@@ -145,13 +134,58 @@ describe('PHPLibrarian', () => {
         .split('</details>')[0];
       expect(client2Section).to.include('update comments in Client2');
       expect(client2Section).to.not.include('add new RPC to Client1');
+    });
 
-      const client3Section = bodyStr
-        .split('<summary>google/client3 0.2.0</summary>')[1]
+    it('preserves cross-component scoped commits on unmatched components alongside other commits in the release window', async () => {
+      const getFileStub = sandbox.stub(github, 'getFileContentsOnBranch');
+      getFileStub
+        .withArgs('Core/VERSION', 'main')
+        .resolves(buildGitHubFileRaw('1.73.0'));
+      getFileStub
+        .withArgs('Storage/VERSION', 'main')
+        .resolves(buildGitHubFileRaw('2.5.0'));
+      getFileStub
+        .withArgs('Core/composer.json', 'main')
+        .resolves(buildGitHubFileRaw('{"name": "google/cloud-core"}'));
+      getFileStub
+        .withArgs('Storage/composer.json', 'main')
+        .resolves(buildGitHubFileRaw('{"name": "google/cloud-storage"}'));
+
+      const crossComponentCommit = buildMockCommit(
+        'feat(Storage): implement GCS idempotency tokens for all API operations',
+        ['Core/src/Retry.php', 'Storage/src/Bucket.php']
+      );
+      const coreDocsCommit = buildMockCommit('docs(Core): clarify retry docs', [
+        'Core/README.md',
+      ]);
+
+      const strategy = new PHPLibrarian({
+        targetBranch: 'main',
+        github,
+      });
+      const release = await strategy.buildReleasePullRequest([
+        crossComponentCommit,
+        coreDocsCommit,
+      ]);
+      const updates = release!.updates;
+
+      // Core receives both feat(Storage) and docs(Core) -> minor bump (1.73.0 -> 1.74.0)
+      const coreVersion = assertHasUpdate(updates, 'Core/VERSION');
+      expect(coreVersion.updater.updateContent('')).to.eql('1.74.0\n');
+
+      // Storage receives feat(Storage) -> minor bump (2.5.0 -> 2.6.0)
+      const storageVersion = assertHasUpdate(updates, 'Storage/VERSION');
+      expect(storageVersion.updater.updateContent('')).to.eql('2.6.0\n');
+
+      const bodyStr = release!.body.toString();
+      const coreSection = bodyStr
+        .split('<summary>google/cloud-core 1.74.0</summary>')[1]
         .split('</details>')[0];
-      expect(client3Section).to.include('update API sources and regenerate');
-      expect(client3Section).to.not.include('add new RPC to Client1');
-      expect(client3Section).to.not.include('update comments in Client2');
+      expect(coreSection).to.include(
+        'implement GCS idempotency tokens for all API operations'
+      );
+      expect(coreSection).to.include('clarify retry docs');
+      expect(coreSection).to.not.include('update API sources and regenerate');
     });
   });
 
