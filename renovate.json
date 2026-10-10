@@ -4,15 +4,13 @@
     "docker:disable",
     ":disableDependencyDashboard"
   ],
-  "pinVersions": false,
-  "rebaseStalePrs": true,
-  "schedule": [
-    "after 9am and before 3pm"
-  ],
+  "rangeStrategy": "replace",
+  "rebaseWhen": "behind-base-branch",
+  "schedule": ["after 9am and before 3pm"],
   "gitAuthor": null,
   "packageRules": [
     {
-      "extends": "packages:linters",
+      "extends": ["packages:linters"],
       "groupName": "linters"
     }
   ],
