@@ -2019,6 +2019,111 @@ describe('Manifest', () => {
       snapshot(dateSafe(pullRequests[1].body.toString()));
     });
 
+    describe('Go v2 subdirectories (GoLibrarian)', () => {
+      it('should handle Go v2 subdirectories sharing the tag component name without collisions', async () => {
+        mockReleases(sandbox, github, [
+          {
+            id: 111,
+            sha: 'sha-v1',
+            tagName: 'pubsub/v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pubsub/v1.0.0',
+          },
+          {
+            id: 222,
+            sha: 'sha-v2',
+            tagName: 'pubsub/v2.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pubsub/v2.0.0',
+          },
+        ]);
+        mockCommits(sandbox, github, [
+          {
+            sha: 'commit-v1-fix',
+            message: 'fix: a bugfix in v1',
+            files: ['pubsub/file.go'],
+          },
+          {
+            sha: 'sha-v1',
+            message: 'chore: release pubsub v1.0.0',
+            files: [],
+            pullRequest: {
+              headBranchName:
+                'release-please--branches--main--components--pubsub',
+              baseBranchName: 'main',
+              number: 111,
+              title: 'chore: release pubsub v1.0.0',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'sha-v1',
+            },
+          },
+          {
+            sha: 'commit-v2-fix',
+            message: 'feat: a new feature in v2',
+            files: ['pubsub/v2/file.go'],
+          },
+          {
+            sha: 'sha-v2',
+            message: 'chore: release pubsub v2.0.0',
+            files: [],
+            pullRequest: {
+              headBranchName:
+                'release-please--branches--main--components--pubsub-v2',
+              baseBranchName: 'main',
+              number: 222,
+              title: 'chore: release pubsub v2.0.0',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'sha-v2',
+            },
+          },
+        ]);
+
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            pubsub: {
+              releaseType: 'go-librarian',
+              component: 'pubsub',
+              tagSeparator: '/',
+              excludePaths: ['pubsub/v2'],
+            },
+            'pubsub/v2': {
+              releaseType: 'go-librarian',
+              component: 'pubsub/v2',
+              tagSeparator: '/',
+            },
+          },
+          {
+            pubsub: Version.parse('1.0.0'),
+            'pubsub/v2': Version.parse('2.0.0'),
+          },
+          {
+            separatePullRequests: true,
+          }
+        );
+
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(2);
+
+        // Find the PR for pubsub v1
+        const prV1 = pullRequests.find(pr =>
+          pr.headRefName.endsWith('--pubsub')
+        );
+        expect(prV1).to.not.be.undefined;
+        expect(prV1!.version?.toString()).to.eql('1.0.1');
+
+        // Find the PR for pubsub v2
+        const prV2 = pullRequests.find(pr =>
+          pr.headRefName.endsWith('--pubsub-v2')
+        );
+        expect(prV2).to.not.be.undefined;
+        expect(prV2!.version?.toString()).to.eql('2.1.0');
+      });
+    });
+
     it('should allow forcing release-as on a single component', async () => {
       mockReleases(sandbox, github, [
         {

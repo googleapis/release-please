@@ -17,8 +17,8 @@ import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
 import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
-import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
+import * as suggester from '../src/util/code-suggester';
+import {CreatePullRequestUserOptions} from '../src/util/code-suggester/types';
 import {Octokit} from '@octokit/rest';
 import {
   Commit,

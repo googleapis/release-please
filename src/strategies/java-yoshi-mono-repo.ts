@@ -30,7 +30,7 @@ import {
 import {ConventionalCommit} from '../commit';
 import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
-import {LibrarianYamlUpdater} from '../updaters/java/librarian-yaml';
+import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 import {filterCommits} from '../util/filter-commits';
 
 export class JavaYoshiMonoRepo extends Java {

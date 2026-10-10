@@ -136,6 +136,14 @@ describe('PullRequestTitle', () => {
         /^chore(\((?<branch>[\w-./]+)\))?: release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
       );
     });
+    it('escapes multiple occurrences of brackets and parentheses', () => {
+      const matchPattern = generateMatchPattern(
+        '[[chore]]${scope}: release${component} ${version} ((foo))'
+      );
+      expect(matchPattern).to.eql(
+        /^\[\[chore\]\](\((?<branch>[\w-./]+)\))?: release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*) \(\(foo\)\)$/
+      );
+    });
   });
 });
 

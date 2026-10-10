@@ -18,7 +18,7 @@ import * as os from 'os';
 import * as child_process from 'child_process';
 import * as util from 'util';
 import * as readline from 'readline';
-import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
+import {createPullRequest as suggesterCreatePullRequest} from './util/code-suggester';
 
 const execFile = util.promisify(child_process.execFile);
 const mkdtemp = fs.promises.mkdtemp;
@@ -53,7 +53,7 @@ import {
   MAX_ISSUE_BODY_SIZE,
   GitHubCreateOptions,
 } from './github-api';
-import {Logger} from 'code-suggester/build/src/types';
+import {Logger} from './util/code-suggester/types';
 import {logger as defaultLogger} from './util/logger';
 
 export interface LocalGitHubCreateOptions extends GitHubCreateOptions {

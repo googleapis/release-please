@@ -128,7 +128,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle bug 
 
 ### Bug Fixes
 
-* some fix ([71489e6](https://github.com/googleapis/java-asset/commit/71489e63ad212c54598f5bdcbedec5f6)), closes [#123](https://github.com/googleapis/java-asset/issues/123)
+* some fix ([71489e6](https://github.com/googleapis/java-asset/commit/71489e63ad212c54598f5bdcbedec5f6)), refs [#123](https://github.com/googleapis/java-asset/issues/123)
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle git trailers 1'] = `

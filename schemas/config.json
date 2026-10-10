@@ -107,6 +107,10 @@
           "description": "Path to the file that tracks release note changes. Defaults to `CHANGELOG.md`.",
           "type": "string"
         },
+        "include-commit-authors": {
+          "description": "Include commit authors in changelog entries (e.g., `(@username)`). Defaults to `false`.",
+          "type": "boolean"
+        },
         "pull-request-title-pattern": {
           "description": "Customize the release pull request title.",
           "type": "string"
@@ -483,6 +487,7 @@
     "release-type": true,
     "bump-minor-pre-major": true,
     "bump-patch-for-minor-pre-major": true,
+    "prerelease-type": true,
     "versioning": true,
     "changelog-sections": true,
     "release-as": true,
@@ -501,6 +506,7 @@
     "changelog-type": true,
     "changelog-host": true,
     "changelog-path": true,
+    "include-commit-authors": true,
     "pull-request-title-pattern": true,
     "pull-request-header": true,
     "pull-request-footer": true,
@@ -511,6 +517,7 @@
     "extra-files": true,
     "version-file": true,
     "snapshot-label": true,
+    "skip-snapshot": true,
     "initial-version": true,
     "exclude-paths": true,
     "component-no-space": false,

@@ -18,7 +18,7 @@ import {Commit} from './commit';
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {RequestError} from '@octokit/request-error';
-import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
+import {createPullRequest as suggesterCreatePullRequest} from './util/code-suggester';
 import {GitHubAPIError, FileNotFoundError} from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
@@ -40,7 +40,7 @@ import {
   DEFAULT_FILE_MODE,
   FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
-import {Logger} from 'code-suggester/build/src/types';
+import {Logger} from './util/code-suggester/types';
 import {mergeUpdates} from './updaters/composite';
 import {
   Scm,
@@ -480,6 +480,20 @@ export class GitHub implements Scm {
           this.logger.info(
             `received 502 error, ${maxRetries} attempts remaining`
           );
+          if (typeof opts.num === 'number') {
+            if (maxRetries === 1) {
+              this.logger.info('last retry, forcing batch size to 1');
+              opts.num = 1;
+            } else {
+              const nextNum = Math.floor(opts.num / 2);
+              if (nextNum >= 1) {
+                this.logger.info(
+                  `halving batch size from ${opts.num} to ${nextNum}`
+                );
+                opts.num = nextNum;
+              }
+            }
+          }
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {

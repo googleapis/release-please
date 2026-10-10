@@ -103,6 +103,9 @@ export class BranchName {
   toString(): string {
     return '';
   }
+  isComponent(): boolean {
+    return false;
+  }
 }
 
 /**
@@ -183,6 +186,9 @@ class V12ComponentBranchName extends BranchName {
   toString(): string {
     return `${RELEASE_PLEASE}/branches/${this.targetBranch}/components/${this.component}`;
   }
+  isComponent(): boolean {
+    return true;
+  }
 }
 
 const DEFAULT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)$`;
@@ -217,6 +223,9 @@ class ComponentBranchName extends BranchName {
   }
   toString(): string {
     return `${RELEASE_PLEASE}--branches--${this.targetBranch}--components--${this.component}`;
+  }
+  isComponent(): boolean {
+    return true;
   }
 }
 

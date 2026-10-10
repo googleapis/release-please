@@ -15,7 +15,7 @@
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {RequestError} from '@octokit/request-error';
-import {Logger} from 'code-suggester/build/src/types';
+import {Logger} from './util/code-suggester/types';
 
 import {PullRequest} from './pull-request';
 import {Repository} from './repository';
@@ -273,6 +273,20 @@ export class GitHubApi {
           this.logger.info(
             `received 502 error, ${maxRetries} attempts remaining`
           );
+          if (typeof opts.num === 'number') {
+            if (maxRetries === 1) {
+              this.logger.info('last retry, forcing batch size to 1');
+              opts.num = 1;
+            } else {
+              const nextNum = Math.floor(opts.num / 2);
+              if (nextNum >= 1) {
+                this.logger.info(
+                  `halving batch size from ${opts.num} to ${nextNum}`
+                );
+                opts.num = nextNum;
+              }
+            }
+          }
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {

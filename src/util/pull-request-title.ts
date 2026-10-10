@@ -45,10 +45,10 @@ export function generateMatchPattern(
     logger.warn("pullRequestTitlePattern miss the part of '${version}'");
   return new RegExp(
     `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
-      .replace('[', '\\[') // TODO: handle all regex escaping
-      .replace(']', '\\]')
-      .replace('(', '\\(')
-      .replace(')', '\\)')
+      .replace(/\[/g, '\\[') // TODO: handle all regex escaping
+      .replace(/\]/g, '\\]')
+      .replace(/\(/g, '\\(')
+      .replace(/\)/g, '\\)')
       .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
       .replace(
         '${component}',

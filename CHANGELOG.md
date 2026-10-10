@@ -4,6 +4,122 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.11.2](https://github.com/googleapis/release-please/compare/v17.11.1...v17.11.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* bump @google-automations/git-file-utils to ^3.2.0 ([f082e5c](https://github.com/googleapis/release-please/commit/f082e5c53545c6c5efd468396f28bd2f718ebec6))
+
+## [17.11.1](https://github.com/googleapis/release-please/compare/v17.11.0...v17.11.1) (2026-07-31)
+
+
+### Bug Fixes
+
+* **deps:** upgrade brace-expansion version to 5.0.8 ([6159d83](https://github.com/googleapis/release-please/commit/6159d83eb6b277f1c95dbf2e5a9207940d97749f))
+
+## [17.11.0](https://github.com/googleapis/release-please/compare/v17.10.4...v17.11.0) (2026-07-28)
+
+
+### Features
+
+* add PHPLibrarian strategy ([#2862](https://github.com/googleapis/release-please/issues/2862)) ([9aa4fc0](https://github.com/googleapis/release-please/commit/9aa4fc069f502094b3e79c323677af860c9d64d8))
+* add ruby-librarian strategy ([#2861](https://github.com/googleapis/release-please/issues/2861)) ([cb1b179](https://github.com/googleapis/release-please/commit/cb1b17992ca4b9f97b838c6e3466cc8f654bcc04))
+
+
+### Bug Fixes
+
+* **deps:** update brace-expansion to address Dependabot alerts [#99](https://github.com/googleapis/release-please/issues/99) and [#100](https://github.com/googleapis/release-please/issues/100) ([#2857](https://github.com/googleapis/release-please/issues/2857)) ([e9e921a](https://github.com/googleapis/release-please/commit/e9e921a89fc7ae36dbd10184ffc1dfbfb33c29b2))
+
+## [17.10.4](https://github.com/googleapis/release-please/compare/v17.10.3...v17.10.4) (2026-07-21)
+
+
+### Bug Fixes
+
+* dynamically replace changelog reference keyword with 'refs' ([5b31578](https://github.com/googleapis/release-please/commit/5b3157824739ed7fe5d2e0fd5d1c1c8f0c4fa204))
+
+## [17.10.3](https://github.com/googleapis/release-please/compare/v17.10.2...v17.10.3) (2026-07-07)
+
+
+### Bug Fixes
+
+* **src/updaters:** add google-cloud-pom-parent to specialArtifacts in librarian-yaml ([#2841](https://github.com/googleapis/release-please/issues/2841)) ([6846245](https://github.com/googleapis/release-please/commit/6846245b382f04bb45d5f47dba32a8008a137c50))
+
+## [17.10.2](https://github.com/googleapis/release-please/compare/v17.10.1...v17.10.2) (2026-07-07)
+
+
+### Bug Fixes
+
+* bump deps for security alerts ([#2839](https://github.com/googleapis/release-please/issues/2839)) ([12fa5ca](https://github.com/googleapis/release-please/commit/12fa5ca57780366520360e48a2feb4baf1e01068))
+
+## [17.10.1](https://github.com/googleapis/release-please/compare/v17.10.0...v17.10.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* avoid duplicate updates in librarian.yaml for Go v2+ ([#2830](https://github.com/googleapis/release-please/issues/2830)) ([2cfa196](https://github.com/googleapis/release-please/commit/2cfa1968e0f92ad6c26e84d799d64399b5018d18)), closes [#2826](https://github.com/googleapis/release-please/issues/2826)
+
+## [17.10.0](https://github.com/googleapis/release-please/compare/v17.9.0...v17.10.0) (2026-06-22)
+
+
+### Features
+
+* update librarian preview version ([#2809](https://github.com/googleapis/release-please/issues/2809)) ([d6c840a](https://github.com/googleapis/release-please/commit/d6c840a609045f9967a774d9941ef204333b93d6))
+* upgrade project to Node 22 ([#2812](https://github.com/googleapis/release-please/issues/2812)) ([285b023](https://github.com/googleapis/release-please/commit/285b0231703007e13f99aaaedce0b77f67bf1422))
+
+
+### Bug Fixes
+
+* **go-librarian:** change default version to 0.1.0 ([#2821](https://github.com/googleapis/release-please/issues/2821)) ([ad4603f](https://github.com/googleapis/release-please/commit/ad4603f974c18fe09645184861cccce34e880956))
+* **go-librarian:** support Go v2 subdirectory releases without branch collisions ([#2818](https://github.com/googleapis/release-please/issues/2818)) ([6fb9ee0](https://github.com/googleapis/release-please/commit/6fb9ee0487f076ed8aed736249aa3a94f16c3eb2)), closes [#2817](https://github.com/googleapis/release-please/issues/2817)
+* **yoshi-java-monorepo:** do not update released_version for java beta snapshot ([#2815](https://github.com/googleapis/release-please/issues/2815)) ([a0a80d1](https://github.com/googleapis/release-please/commit/a0a80d1bb775d423bd569906ce4c1f3683e84976))
+
+## [17.9.0](https://github.com/googleapis/release-please/compare/v17.8.0...v17.9.0) (2026-06-09)
+
+
+### Features
+
+* remove dep on code-suggester ([#2770](https://github.com/googleapis/release-please/issues/2770)) ([0e8d1e2](https://github.com/googleapis/release-please/commit/0e8d1e2199b88ef9e1e617219c01617c7819b6c0))
+
+
+### Bug Fixes
+
+* fixup all open GitHub code scanning reports ([#2806](https://github.com/googleapis/release-please/issues/2806)) ([f91614d](https://github.com/googleapis/release-please/commit/f91614d812ca4f2c1b9a705cf60cad319e8189d1))
+
+## [17.8.0](https://github.com/googleapis/release-please/compare/v17.7.0...v17.8.0) (2026-06-04)
+
+
+### Features
+
+* add go-librarian release strategy ([#2799](https://github.com/googleapis/release-please/issues/2799)) ([0e6400b](https://github.com/googleapis/release-please/commit/0e6400b65b8d784e6c635a53b7fc679701c747fd))
+* add python-librarian release strategy ([#2802](https://github.com/googleapis/release-please/issues/2802)) ([03477f5](https://github.com/googleapis/release-please/commit/03477f5d12ccc1f017fb2b42efb975d35e8efdc4))
+* **yoshi-java-monorepo:** update java.released_version in librarian.yaml ([#2800](https://github.com/googleapis/release-please/issues/2800)) ([ed10aa8](https://github.com/googleapis/release-please/commit/ed10aa8e457355c61e33c6b0309d60f81da769d9))
+
+
+### Bug Fixes
+
+* **go:** match semver dot-sep prerelease suffixes ([#2803](https://github.com/googleapis/release-please/issues/2803)) ([d5cc945](https://github.com/googleapis/release-please/commit/d5cc945b673fa169e6996da82f9b12495d0bf1fd))
+
+## [17.7.0](https://github.com/googleapis/release-please/compare/v17.6.1...v17.7.0) (2026-05-29)
+
+
+### Features
+
+* update librarian.yaml for Node ([#2775](https://github.com/googleapis/release-please/issues/2775)) ([0c8f20a](https://github.com/googleapis/release-please/commit/0c8f20a5a6f297b2996a55d68ddcfb9ced23620f))
+
+
+### Bug Fixes
+
+* upgrade tmp to 0.2.6 to resolve path traversal vulnerability ([#2794](https://github.com/googleapis/release-please/issues/2794)) ([fcec69c](https://github.com/googleapis/release-please/commit/fcec69c81a4c68fb55249e3118ed4b69cd2f5b5d))
+* use `artifact_id` instead of `distribution_name_override` in librarian.yaml ([#2792](https://github.com/googleapis/release-please/issues/2792)) ([9acbc83](https://github.com/googleapis/release-please/commit/9acbc83185e335aaee7f88bb200719976e5b69ac))
+
+## [17.6.1](https://github.com/googleapis/release-please/compare/v17.6.0...v17.6.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* implement dynamic batch size backoff for GraphQL requests ([#2783](https://github.com/googleapis/release-please/issues/2783)) ([e5033c1](https://github.com/googleapis/release-please/commit/e5033c13070a2f702fb06927f92ca198ac18a830)), closes [#2592](https://github.com/googleapis/release-please/issues/2592)
+
 ## [17.6.0](https://github.com/googleapis/release-please/compare/v17.5.2...v17.6.0) (2026-04-13)
 
 

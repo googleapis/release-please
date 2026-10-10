@@ -16,7 +16,8 @@ import {expect} from 'chai';
 import {describe, it, before} from 'mocha';
 import {LocalGitHub} from '../src/local-github';
 
-describe('LocalGitHub', () => {
+describe('LocalGitHub', function () {
+  this.timeout(60000);
   let localGitHub: LocalGitHub;
 
   before(async () => {
