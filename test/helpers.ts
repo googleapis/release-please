@@ -42,6 +42,11 @@ import {CompositeUpdater} from '../src/updaters/composite';
 import {PullRequestOverflowHandler} from '../src/util/pull-request-overflow-handler';
 import {ReleasePullRequest} from '../src/release-pull-request';
 import {PullRequest} from '../src/pull-request';
+import {DEFAULT_CHANGELOG_SECTIONS} from '../src/changelog-sections';
+
+export const defaultConventionalTypes = DEFAULT_CHANGELOG_SECTIONS.map(
+  c => c.type
+);
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -130,17 +135,20 @@ export function buildMockConventionalCommit(
   message: string,
   files: string[] = []
 ): ConventionalCommit[] {
-  return parseConventionalCommits([
-    {
-      // Ensure SHA is same on Windows with replace:
-      sha: crypto
-        .createHash('md5')
-        .update(message.replace(/\r\n/g, '\n'))
-        .digest('hex'),
-      message,
-      files: files,
-    },
-  ]);
+  return parseConventionalCommits(
+    [
+      {
+        // Ensure SHA is same on Windows with replace:
+        sha: crypto
+          .createHash('md5')
+          .update(message.replace(/\r\n/g, '\n'))
+          .digest('hex'),
+        message,
+        files: files,
+      },
+    ],
+    new Set(defaultConventionalTypes)
+  );
 }
 
 export function buildMockCommit(message: string, files: string[] = []): Commit {

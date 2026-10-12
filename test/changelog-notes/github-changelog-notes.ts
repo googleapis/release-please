@@ -20,6 +20,7 @@ import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Version} from '../../src/version';
 import {GitHubChangelogNotes} from '../../src/changelog-notes/github';
 import {GitHub} from '../../src/github';
+import {DEFAULT_CHANGELOG_SECTIONS} from '../../src/changelog-sections';
 const fetch = require('node-fetch');
 
 nock.disableNetConnect();
@@ -68,6 +69,7 @@ describe('GitHubChangelogNotes', () => {
       previousTag: 'v1.2.2',
       currentTag: 'v1.2.3',
       targetBranch: 'main',
+      changelogSections: DEFAULT_CHANGELOG_SECTIONS,
     };
     let github: GitHub;
     beforeEach(async () => {
@@ -100,6 +102,7 @@ describe('GitHubChangelogNotes', () => {
         previousTag: 'v1.2.2',
         currentTag: 'v1.2.3',
         targetBranch: 'main',
+        changelogSections: DEFAULT_CHANGELOG_SECTIONS,
       };
       const changelogNotes = new GitHubChangelogNotes(github);
       const notes = await changelogNotes.buildNotes(commits, notesOptions);
