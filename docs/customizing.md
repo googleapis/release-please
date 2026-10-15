@@ -14,6 +14,7 @@ Release Please automates releases for the following flavors of repositories:
 | `go`                | A repository with a CHANGELOG.md |
 | `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
 | `java`              | [A strategy that generates SNAPSHOT version after each release](java.md) |
+| `julia`            | [A Julia package repository with a Project.toml or JuliaProject.toml, and a CHANGELOG.md.](https://github.com/JuliaDocs/Documenter.jl) |
 | `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
 | `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](java.md) |
 | `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
