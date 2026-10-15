@@ -130,7 +130,15 @@ function extractMultipleReleases(notes: string, logger: Logger): ReleaseData[] {
     const match = summary.match(SUMMARY_PATTERN);
     if (match?.groups) {
       detail.removeChild(summaryNode);
-      const notes = detail.textContent.trim();
+      // Use innerHTML, not textContent: textContent decodes entities like
+      // `&lt;` back into `<`, and PullRequestBody.notes() re-serialises this
+      // value verbatim without re-escaping it. A decoded `<word>` then
+      // breaks the *next* HTML parse of the re-serialised body (e.g. the
+      // release-time re-parse in Strategy.buildRelease), silently dropping
+      // whichever `<details>` section contains it. innerHTML preserves the
+      // escaping release-please itself already applied, so it survives the
+      // round trip. See googleapis/release-please#2899.
+      const notes = detail.innerHTML.trim();
       data.push({
         component: match.groups.component,
         version: Version.parse(match.groups.version),
@@ -143,7 +151,7 @@ function extractMultipleReleases(notes: string, logger: Logger): ReleaseData[] {
         continue;
       }
       detail.removeChild(summaryNode);
-      const notes = detail.textContent.trim();
+      const notes = detail.innerHTML.trim();
       data.push({
         version: Version.parse(componentlessMatch.groups.version),
         notes,

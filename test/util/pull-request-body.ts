@@ -238,5 +238,42 @@ describe('PullRequestBody', () => {
       const pullRequestBody = new PullRequestBody(data);
       snapshot(pullRequestBody.toString());
     });
+
+    // https://github.com/googleapis/release-please/issues/2899
+    //
+    // Manifest.findMergedReleasePullRequests re-parses an already-merged PR
+    // body (pass 1), then calls .toString() on the result and hands that
+    // string to every Strategy.buildRelease, which parses it again (pass 2).
+    // A commit subject with an escaped `&lt;word&gt;` token (htmlEscape's
+    // normal output) must survive that full round trip so every affected
+    // package still gets a release out of pass 2, not just the first one.
+    it('preserves escaped angle brackets across a merged-PR double parse', () => {
+      const data = [
+        {
+          component: 'pkg-a',
+          version: Version.parse('1.0.1'),
+          notes: '* claim :v&lt;version&gt; only on main',
+        },
+        {
+          component: 'pkg-b',
+          version: Version.parse('2.0.1'),
+          notes: '* claim :v&lt;version&gt; only on main',
+        },
+        {
+          component: 'pkg-c',
+          version: Version.parse('3.0.1'),
+          notes: '* unrelated',
+        },
+      ];
+      // Pass 1, as done by Manifest.findMergedReleasePullRequests.
+      const pass1 = PullRequestBody.parse(new PullRequestBody(data).toString());
+      // Pass 2, as done by every Strategy.buildRelease.
+      const pass2 = PullRequestBody.parse(pass1!.toString());
+      expect(pass2?.releaseData.map(release => release.component)).to.eql([
+        'pkg-a',
+        'pkg-b',
+        'pkg-c',
+      ]);
+    });
   });
 });
