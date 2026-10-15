@@ -35,6 +35,7 @@ describe('Generic', () => {
         version: Version.parse('v2.3.4'),
         date: currentDate,
         dateFormat: '%d-%m-%Y',
+        component: 'an-app-called-major',
       });
       const newContent = pom.updateContent(oldContent);
       snapshot(newContent);
