@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {
+  CargoWorkspacePluginConfig,
   LinkedVersionPluginConfig,
   PluginType,
   RepositoryConfig,
@@ -75,9 +76,9 @@ const pluginFactories: Record<string, PluginBuilder> = {
       options.repositoryConfig,
       {
         ...options,
-        ...(options.type as WorkspacePluginOptions),
+        ...(options.type as CargoWorkspacePluginConfig),
         merge:
-          (options.type as WorkspacePluginOptions).merge ??
+          (options.type as CargoWorkspacePluginConfig).merge ??
           !options.separatePullRequests,
       }
     ),
