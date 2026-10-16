@@ -12,6 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+export type PullRequestAuthorAssociation =
+  | 'OWNER'
+  | 'MEMBER'
+  | 'COLLABORATOR'
+  | 'CONTRIBUTOR'
+  | 'FIRST_TIME_CONTRIBUTOR'
+  | 'FIRST_TIMER'
+  | 'MANNEQUIN'
+  | 'NONE';
+
 export interface PullRequest {
   readonly headBranchName: string;
   readonly baseBranchName: string;
@@ -22,4 +32,5 @@ export interface PullRequest {
   readonly labels: string[];
   readonly files: string[];
   readonly sha?: string;
+  readonly authorAssociation?: PullRequestAuthorAssociation;
 }
