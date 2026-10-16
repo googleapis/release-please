@@ -263,25 +263,108 @@ describe('parseConventionalCommits', () => {
     expect(commit.type).to.eql('chore');
   });
 
-  // it('ignores reverted commits', async () => {
-  //   const commits = [
-  //     {sha: 'sha1', message: 'feat: some feature', files: ['path1/file1.txt']},
-  //     {
-  //       sha: 'sha2',
-  //       message: 'revert: feat: some feature\nThe reverts commit sha1.\n',
-  //       files: ['path1/file1.rb'],
-  //     },
-  //     {
-  //       sha: 'sha3',
-  //       message: 'docs: some documentation',
-  //       files: ['path1/file1.java'],
-  //     },
-  //   ];
-  //   const conventionalCommits = parseConventionalCommits(commits);
-  //   expect(conventionalCommits).lengthOf(1);
-  //   expect(conventionalCommits[0].type).to.equal('docs');
-  //   expect(conventionalCommits[0].scope).is.null;
-  // });
+  describe('with reverted commits', () => {
+    it('ignores a commit and its standard Git revert', async () => {
+      const commits = [
+        {
+          sha: '1111111111111111111111111111111111111111',
+          message: 'feat: some feature',
+          files: ['path1/file1.txt'],
+        },
+        {
+          sha: '2222222222222222222222222222222222222222',
+          message:
+            'revert: feat: some feature\n\nThis reverts commit 1111111111111111111111111111111111111111.\n',
+          files: ['path1/file1.txt'],
+        },
+        {
+          sha: '3333333333333333333333333333333333333333',
+          message: 'docs: some documentation',
+          files: ['path1/file1.java'],
+        },
+      ];
+
+      const conventionalCommits = parseConventionalCommits(commits);
+
+      expect(conventionalCommits).lengthOf(1);
+      expect(conventionalCommits[0].type).to.equal('docs');
+      expect(conventionalCommits[0].scope).is.null;
+    });
+
+    it('supports an explicit Revert footer with an abbreviated SHA', async () => {
+      const commits = [
+        {
+          sha: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          message: 'fix: an unreleased fix',
+        },
+        {
+          sha: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          message: 'revert: undo the fix\n\nRevert: aaaaaaa',
+        },
+      ];
+
+      expect(parseConventionalCommits(commits)).to.be.empty;
+    });
+
+    it('keeps a revert when its target is outside the commit range', async () => {
+      const commits = [
+        {
+          sha: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          message:
+            'revert: undo a released feature\n\nThis reverts commit aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.',
+        },
+      ];
+
+      const conventionalCommits = parseConventionalCommits(commits);
+
+      expect(conventionalCommits).lengthOf(1);
+      expect(conventionalCommits[0].type).to.equal('revert');
+    });
+
+    it('does not match an ambiguous abbreviated SHA', async () => {
+      const commits = [
+        {
+          sha: 'abcdef0111111111111111111111111111111111',
+          message: 'feat: first feature',
+        },
+        {
+          sha: 'abcdef0222222222222222222222222222222222',
+          message: 'feat: second feature',
+        },
+        {
+          sha: '3333333333333333333333333333333333333333',
+          message: 'revert: unclear target\n\nRevert: abcdef0',
+        },
+      ];
+
+      expect(parseConventionalCommits(commits)).lengthOf(3);
+    });
+
+    it('restores a commit when its revert is itself reverted', async () => {
+      const commits = [
+        {
+          sha: '1111111111111111111111111111111111111111',
+          message: 'feat: some feature',
+        },
+        {
+          sha: '2222222222222222222222222222222222222222',
+          message:
+            'revert: feat: some feature\n\nThis reverts commit 1111111111111111111111111111111111111111.',
+        },
+        {
+          sha: '3333333333333333333333333333333333333333',
+          message:
+            'revert: restore the feature\n\nThis reverts commit 2222222222222222222222222222222222222222.',
+        },
+      ];
+
+      const conventionalCommits = parseConventionalCommits(commits);
+
+      expect(conventionalCommits).lengthOf(1);
+      expect(conventionalCommits[0].type).to.equal('feat');
+      expect(conventionalCommits[0].bareMessage).to.equal('some feature');
+    });
+  });
 });
 
 function assertHasCommit(

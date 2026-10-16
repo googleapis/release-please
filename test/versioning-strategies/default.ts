@@ -15,10 +15,34 @@
 import {describe, it} from 'mocha';
 
 import {expect} from 'chai';
+import {parseConventionalCommits} from '../../src/commit';
 import {DefaultVersioningStrategy} from '../../src/versioning-strategies/default';
 import {Version} from '../../src/version';
 
 describe('DefaultVersioningStrategy', () => {
+  it('does not bump for an unreleased feature that was reverted', async () => {
+    const commits = parseConventionalCommits([
+      {
+        sha: '1111111111111111111111111111111111111111',
+        message: 'feat: some feature',
+      },
+      {
+        sha: '2222222222222222222222222222222222222222',
+        message:
+          'revert: feat: some feature\n\nThis reverts commit 1111111111111111111111111111111111111111.',
+      },
+      {
+        sha: '3333333333333333333333333333333333333333',
+        message: 'fix: some bugfix',
+      },
+    ]);
+    const strategy = new DefaultVersioningStrategy();
+
+    const newVersion = await strategy.bump(Version.parse('1.2.3'), commits);
+
+    expect(newVersion.toString()).to.equal('1.2.4');
+  });
+
   describe('with breaking change', () => {
     const commits = [
       {
