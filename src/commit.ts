@@ -369,9 +369,44 @@ function hasExtendedContext(line: string) {
 }
 
 function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
-  return conventionalCommitsFilter(
-    toConventionalChangelogFormat(parser.parser(message))
-  ).map(postProcessCommits);
+  let ast: parser.Message;
+  try {
+    ast = parser.parser(message);
+  } catch (err) {
+    const sanitizedMessage = sanitizeBodyScopes(message);
+    if (sanitizedMessage === message) {
+      throw err;
+    }
+    ast = parser.parser(sanitizedMessage);
+  }
+  return conventionalCommitsFilter(toConventionalChangelogFormat(ast)).map(
+    postProcessCommits
+  );
+}
+
+const UNTERMINATED_SCOPE_LINE_REGEX = /^[^\s:!()]+\([^()\r\n]*(?:\(|\r?$)/;
+
+/**
+ * `@conventional-commits/parser` attempts to parse the start of every body line
+ * as a Conventional Commit footer (`<type>(<scope>): <value>`). If a body line
+ * starts at column 0 with `token(` and encounters another `(` or end-of-line
+ * before a closing `)` (such as nested parentheses `Foo.Bar(baz(abc))` or a
+ * function call wrapped across lines), the parser's `scope()` rule throws an
+ * uncaught `Error: unexpected token ... valid tokens [)]`.
+ *
+ * Since a valid Conventional Commit `<scope>` can never contain `(` or span
+ * lines, prefixing a single space to matching body lines prevents `scope()`
+ * from throwing while preserving all valid footers (`BREAKING CHANGE`,
+ * `Release-As`, issue references, and footer commits).
+ */
+function sanitizeBodyScopes(message: string): string {
+  const lines = message.split('\n');
+  for (let i = 1; i < lines.length; i++) {
+    if (UNTERMINATED_SCOPE_LINE_REGEX.test(lines[i])) {
+      lines[i] = ` ${lines[i]}`;
+    }
+  }
+  return lines.join('\n');
 }
 
 /**

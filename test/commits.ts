@@ -237,6 +237,95 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[1].bareMessage).to.eql('another feature');
   });
 
+  it('handles commits with nested parentheses in body', async () => {
+    const commits = [
+      buildMockCommit(
+        'feat: something\n\nFoo.Bar(baz(abc)). Some trailing text.'
+      ),
+      buildMockCommit('fix(a(b)): invalid nested scope in header is ignored'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[0].bareMessage).to.equal('something');
+  });
+
+  it('handles wrapped function calls with unclosed parentheses in body', async () => {
+    const message = [
+      'feat(parser): handle wrapped function calls',
+      '',
+      'Body wraps a call:',
+      'computeValue(longArgumentName',
+      '= true)',
+      'so the upstream parser throws on the unmatched paren.',
+    ].join('\n');
+    const commits = [buildMockCommit(message)];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[0].scope).to.equal('parser');
+    expect(conventionalCommits[0].bareMessage).to.equal(
+      'handle wrapped function calls'
+    );
+    expect(conventionalCommits[0].breaking).to.be.false;
+  });
+
+  it('preserves footers and BREAKING CHANGE notes when body has nested parentheses', async () => {
+    const message = [
+      'fix(generator): use .jsdoc.json with build/esm/src in ESM template',
+      '',
+      'Reads the file as text and parses it with',
+      '`JSON.parse(stripJsonComments(...))`. Generating `.jsdoc.cjs` failed.',
+      '',
+      'BREAKING CHANGE: `.jsdoc.cjs` is no longer generated',
+      'Fixes #9523',
+    ].join('\n');
+    const commits = [buildMockCommit(message)];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('fix');
+    expect(conventionalCommits[0].scope).to.equal('generator');
+    expect(conventionalCommits[0].breaking).to.be.true;
+    expect(conventionalCommits[0].notes).lengthOf(1);
+    expect(conventionalCommits[0].notes[0].title).to.equal('BREAKING CHANGE');
+    expect(conventionalCommits[0].notes[0].text).to.equal(
+      '`.jsdoc.cjs` is no longer generated'
+    );
+    expect(conventionalCommits[0].references).lengthOf(1);
+    expect(conventionalCommits[0].references[0].issue).to.equal('9523');
+  });
+
+  it('handles a GitHub squash merge commit with nested parentheses inside squashed comments in the body', async () => {
+    const squashCommitMessage =
+      'feat(scope): some message (#123)\n\n' +
+      '* refactor(subscope): first squashed change\n\n' +
+      'Some details here.\n\n' +
+      '* refactor(subscope): second squashed change\n\n' +
+      'Foo.Bar(baz(abc)). More details.';
+
+    const commits = [buildMockCommit(squashCommitMessage)];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[0].scope).to.equal('scope');
+  });
+
+  it('handles a squash merge with split commits that contain a nested parenthesis commit', async () => {
+    const squashSplitMessage =
+      'feat(scope): some message (#123)\n\n' +
+      'refactor(subscope): first squashed change\n\n' +
+      'Some details here.\n\n' +
+      'refactor(subscope): second squashed change\n\n' +
+      'Foo.Bar(baz(abc)). More details.';
+
+    const commits = [buildMockCommit(squashSplitMessage)];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(3);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[1].type).to.equal('refactor');
+    expect(conventionalCommits[2].type).to.equal('refactor');
+  });
+
   it('handles a special commit separator', async () => {
     const commits = [buildCommitFromFixture('multiple-commits-with-separator')];
     const conventionalCommits = parseConventionalCommits(commits);
