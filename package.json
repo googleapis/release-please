@@ -52,7 +52,7 @@
     "@types/semver": "7.3.13",
     "@types/sinon": "17.0.3",
     "@types/xmldom": "0.1.31",
-    "@types/yargs": "17.0.20",
+    "@types/yargs": "17.0.35",
     "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
     "c8": "10.0.0",
