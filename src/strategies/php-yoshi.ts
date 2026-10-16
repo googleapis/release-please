@@ -73,7 +73,11 @@ export class PHPYoshi extends BaseStrategy {
     bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
-      parseConventionalCommits(commits, this.logger)
+      parseConventionalCommits(
+        commits,
+        new Set(this.changelogSections.map(c => c.type)),
+        this.logger
+      )
     );
     if (!bumpOnlyOptions && conventionalCommits.length === 0) {
       this.logger.info(`No commits for path: ${this.path}, skipping`);

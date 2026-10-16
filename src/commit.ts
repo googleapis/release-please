@@ -76,10 +76,18 @@ function getBlankConventionalCommit(): parser.ConventionalChangelogCommit {
     footer: null,
   };
 }
-// Converts conventional commit AST into conventional-changelog's
-// output format, see: https://www.npmjs.com/package/conventional-commits-parser
+
+/**
+ * Converts conventional commit AST into conventional-changelog's
+ * output format, see: https://www.npmjs.com/package/conventional-commits-parser
+ *
+ * @param ast {parser.Message} The conventional commit AST to convert
+ * @param conventionalTypes {Set<string>} The types of conventional commits to consider ("feat", "fix", "chore", ...)
+ * @returns {parser.ConventionalChangelogCommit[]} Array of conventional commits in conventional-changelog format
+ */
 function toConventionalChangelogFormat(
-  ast: parser.Message
+  ast: parser.Message,
+  conventionalTypes: Set<string>
 ): parser.ConventionalChangelogCommit[] {
   const commits: parser.ConventionalChangelogCommit[] = [];
   const headerCommit = getBlankConventionalCommit();
@@ -296,7 +304,8 @@ function toConventionalChangelogFormat(
         }
         try {
           for (const commit of toConventionalChangelogFormat(
-            parser.parser(footerText)
+            parser.parser(footerText),
+            conventionalTypes
           )) {
             commits.push(commit);
           }
@@ -306,7 +315,12 @@ function toConventionalChangelogFormat(
       }
     }
   );
-  commits.push(headerCommit);
+
+  // Keep only the conventional commit if its type matches one looked for
+  if (conventionalTypes.has(headerCommit.type)) {
+    commits.push(headerCommit);
+  }
+
   return commits;
 }
 
@@ -368,9 +382,12 @@ function hasExtendedContext(line: string) {
   return false;
 }
 
-function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
+function parseCommits(
+  message: string,
+  conventionalTypes: Set<string>
+): parser.ConventionalChangelogCommit[] {
   return conventionalCommitsFilter(
-    toConventionalChangelogFormat(parser.parser(message))
+    toConventionalChangelogFormat(parser.parser(message), conventionalTypes)
   ).map(postProcessCommits);
 }
 
@@ -383,46 +400,108 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
  * 4. Handling multiple nested commits and conventional commits in a single message.
  *
  * @param message The input commit message string
- * @returns An array of individual commit messages
+ * @param conventionalTypes {Set<string>} Types of conventional commits to consider ("feat", "fix", "chore", ...).
+ * @returns An array of individual conventional commit messages
  */
-function splitMessages(message: string): string[] {
-  const parts = message.split('BEGIN_NESTED_COMMIT');
-  const messages = [parts.shift()!];
-  for (const part of parts) {
-    const [newMessage, ...rest] = part.split('END_NESTED_COMMIT');
-    messages.push(newMessage);
-    messages[0] = messages[0] + rest.join('END_NESTED_COMMIT');
-  }
+function splitMessages(
+  message: string,
+  conventionalTypes: Set<string>
+): string[] {
+  const commits: string[] = [message.trim()];
 
-  const conventionalCommits = messages[0]
-    .split(
-      /\r?\n\r?\n(?=(?:feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(.*?\))?: )/
-    )
-    .filter(Boolean);
-  return [...conventionalCommits, ...messages.slice(1)];
+  // -----
+  // First step: extracting nested commits enclosed in `BEGIN_NESTED_COMMIT/END_NESTED_COMMIT` blocks
+  // - Each block is considered as if it is a git commit message on its own.
+  // - The input/initial commit message stays a commit itself, with its `BEGIN_NESTED_COMMIT/END_NESTED_COMMIT`
+  //   blocks removed.
+  // -----
+
+  // We use String.replace(...), which enables to both extract `BEGIN_NESTED_COMMIT/END_NESTED_COMMIT`
+  // blocks, and remove them from the input commit message.
+  commits[0] = commits[0].replace(
+    /(?:^|\n)BEGIN_NESTED_COMMIT\s*?\n([\s\S]+?)\nEND_NESTED_COMMIT\s*?(?=$|\n)/g,
+    (fullMatch: string, nestedCommit: string) => {
+      // Extracting the nested commit
+      commits.push(nestedCommit.trim());
+
+      // Removing the nested commit from the initial message
+      return '';
+    }
+  );
+
+  // At this point, the `commits` array contains all the git commit messages to be considered.
+
+  // -----
+  // Second step: from each commit message, extracting zero or many conventional commits:
+  // Each line matching a conventional commit header as `<type>(<optional scope>)[!]: <description>`,
+  // found either at the start of the commit message or after an empty line, is the start of a
+  // conventional commit.
+  // -----
+
+  // Constructing the regular expression to match the start of any conventional commit.
+  // The constructed RegExp is composed of the following parts:
+  //    '(?<=^|\r?\n\r?\n)'    => Start of string, or mandatory empty line
+  //    '(?:feat|fix|...|...)' => Types of conventional commits to consider (logical OR expression)
+  //    '(?:\(\S+\))?'         => Optional scope of the conventional commit (any non-whitespace characters)
+  //    '!?'                   => Optional '!' character
+  //    ': '                   => ': ' sequence which must precede the description
+  //    .*                     => Description of the conventional commit
+  //    (?=$|\r?\n)            => End of string, or end of line
+  const regExp = new RegExp(
+    `(?<=^|\\r?\\n\\r?\\n)(?:${createLogicalOr([
+      ...conventionalTypes,
+    ])})(?:\\(\\S+\\))?!?: .*(?=$|\\r?\\n)`,
+    'g'
+  );
+
+  const conventionalCommits: string[] = [];
+
+  commits.forEach(commit => {
+    // Matching each conventional commit header
+    const matches = [...commit.matchAll(regExp)];
+
+    // For each match, extracting the conventional commit
+    matches.forEach((match, index) => {
+      conventionalCommits.push(
+        commit
+          .slice(
+            match.index,
+            index === matches.length - 1 ? undefined : matches[index + 1].index
+          )
+          .trim()
+      );
+    });
+  });
+
+  return conventionalCommits;
 }
 
 /**
  * Given a list of raw commits, parse and expand into conventional commits.
  *
  * @param commits {Commit[]} The input commits
- *
+ * @param conventionalTypes {Set<string>} Types of conventional commits to consider ("feat", "fix", "chore", ...). Only conventional commits of those types will be extracted.
  * @returns {ConventionalCommit[]} Parsed and expanded commits. There may be
  *   more commits returned as a single raw commit may contain multiple release
  *   messages.
  */
 export function parseConventionalCommits(
   commits: Commit[],
+  conventionalTypes: Set<string>,
   logger: Logger = defaultLogger
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 
   for (const commit of commits) {
     for (const commitMessage of splitMessages(
-      preprocessCommitMessage(commit)
+      preprocessCommitMessage(commit),
+      conventionalTypes
     )) {
       try {
-        for (const parsedCommit of parseCommits(commitMessage)) {
+        for (const parsedCommit of parseCommits(
+          commitMessage,
+          conventionalTypes
+        )) {
           const breaking =
             parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
               .length > 0;
@@ -466,4 +545,19 @@ function preprocessCommitMessage(commit: Commit): string {
     }
   }
   return commit.message;
+}
+
+/**
+ * Given an array of strings, creates a logical OR expression matching those strings, that can be
+ * used as part of a regular expression. Special RegExp characters within each string are escaped,
+ * if present.
+ *
+ * Examples:
+ * Given an array containing ['feat','fix'], the method returns 'feat|fix'
+ *
+ * @param parts Array of strings.
+ * @returns Logical OR expression that can be used within a RegExp.
+ */
+export function createLogicalOr(parts: string[]): string {
+  return parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
 }
