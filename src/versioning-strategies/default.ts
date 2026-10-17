@@ -19,15 +19,25 @@ import {
   MajorVersionUpdate,
   PatchVersionUpdate,
   CustomVersionUpdate,
+  NoVersionUpdate,
 } from '../versioning-strategy';
 import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
 import {logger as defaultLogger, Logger} from '../util/logger';
+import {ChangelogSection} from '../changelog-notes';
 
 export interface DefaultVersioningStrategyOptions {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
   logger?: Logger;
+  /**
+   * The configured changelog sections, used to look up a per-type `bump`
+   * override (see `ChangelogSection.bump`). Optional: when a commit's type
+   * has no configured override (or this is unset entirely), that commit is
+   * classified exactly as before -- feat bumps minor, a breaking change
+   * bumps major, anything else bumps patch.
+   */
+  changelogSections?: ChangelogSection[];
 }
 
 /**
@@ -39,6 +49,7 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
   readonly bumpMinorPreMajor: boolean;
   readonly bumpPatchForMinorPreMajor: boolean;
   protected logger: Logger;
+  private changelogSections?: ChangelogSection[];
   /**
    * Create a new DefaultVersioningStrategy
    * @param {DefaultVersioningStrategyOptions} options Configuration options
@@ -46,11 +57,26 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
    *   then bump the minor version for breaking changes
    * @param {boolean} options.bumpPatchForMinorPreMajor If the current version is less than
    *   1.0.0, then bump the patch version for features
+   * @param {ChangelogSection[]} options.changelogSections Configured changelog sections,
+   *   consulted for a per-type `bump` override
    */
   constructor(options: DefaultVersioningStrategyOptions = {}) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
     this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
     this.logger = options.logger ?? defaultLogger;
+    this.changelogSections = options.changelogSections;
+  }
+
+  /**
+   * Look up the configured `bump` override for a commit type, if any.
+   *
+   * @param {string} type The commit's conventional-commit type, e.g. "ci"
+   * @returns {string|undefined} The configured override, or undefined when
+   *   this type has no `changelog-sections` entry, or that entry has no
+   *   `bump` field.
+   */
+  private bumpOverrideFor(type: string): ChangelogSection['bump'] | undefined {
+    return this.changelogSections?.find(section => section.type === type)?.bump;
   }
 
   /**
@@ -70,6 +96,8 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
     // iterate through list of commits and find biggest commit type
     let breaking = 0;
     let features = 0;
+    let patches = 0;
+    let excluded = 0;
     for (const commit of commits) {
       const releaseAs = commit.notes.find(note => note.title === 'RELEASE AS');
       if (releaseAs) {
@@ -81,10 +109,41 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
           Version.parse(releaseAs.text).toString()
         );
       }
-      if (commit.breaking) {
+
+      // A configured `bump` override on this commit's changelog-sections
+      // entry takes precedence over the default feat/breaking/patch
+      // classification below. Unset (the default for every built-in type,
+      // and for any type without a changelog-sections entry at all) falls
+      // straight through to that same default classification, so a repo
+      // that never sets `bump` sees no change in behavior.
+      const bumpOverride = this.bumpOverrideFor(commit.type);
+      if (bumpOverride === 'none') {
+        // Configured to never affect the version, e.g. a lone `ci:` commit
+        // under Conventional Commits, which reserves version bumps for
+        // feat/fix/breaking. Still eligible below for BREAKING CHANGE/! or a
+        // Release-As footer -- opting a type out of its default bump does
+        // not opt it out of an explicit breaking change it happens to carry.
+        if (commit.breaking) {
+          breaking++;
+        } else {
+          excluded++;
+        }
+        continue;
+      }
+      if (
+        commit.breaking ||
+        bumpOverride === 'major' ||
+        bumpOverride === 'breaking'
+      ) {
         breaking++;
-      } else if (commit.type === 'feat' || commit.type === 'feature') {
+      } else if (
+        commit.type === 'feat' ||
+        commit.type === 'feature' ||
+        bumpOverride === 'minor'
+      ) {
         features++;
+      } else {
+        patches++;
       }
     }
 
@@ -100,7 +159,21 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
       } else {
         return new MinorVersionUpdate();
       }
+    } else if (patches > 0) {
+      return new PatchVersionUpdate();
+    } else if (excluded > 0) {
+      // At least one commit was considered and explicitly excluded via
+      // `bump: "none"`, and nothing else present (no breaking change, no
+      // feat, no unconfigured/default-classified commit either) warrants a
+      // release -- unlike the empty-commits case below, this is a real,
+      // deliberate "nothing to release" rather than the absence of input.
+      return new NoVersionUpdate();
     }
+    // No commits were considered at all (e.g. a caller intentionally
+    // forcing a version bump with an empty commit list, such as a
+    // workspace/monorepo plugin propagating a dependency update). Preserve
+    // the historical unconditional patch bump here -- only an explicit
+    // `bump: "none"` (handled above) opts a *commit* out of this default.
     return new PatchVersionUpdate();
   }
 
