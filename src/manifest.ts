@@ -215,6 +215,7 @@ export interface ManifestOptions {
   draftPullRequest?: boolean;
   alwaysUpdate?: boolean;
   groupPullRequestTitlePattern?: string;
+  groupName?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   commitBatchSize?: number;
@@ -271,6 +272,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   plugins?: PluginType[];
   signoff?: string;
   'group-pull-request-title-pattern'?: string;
+  'group-name'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
   'commit-batch-size'?: number;
@@ -331,6 +333,7 @@ export class Manifest {
   private prerelease?: boolean;
   private draftPullRequest?: boolean;
   private groupPullRequestTitlePattern?: string;
+  private groupName?: string;
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
   readonly commitBatchSize: number;
@@ -399,6 +402,7 @@ export class Manifest {
     this.draftPullRequest = manifestOptions?.draftPullRequest;
     this.groupPullRequestTitlePattern =
       manifestOptions?.groupPullRequestTitlePattern;
+    this.groupName = manifestOptions?.groupName;
     this.releaseSearchDepth =
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =
@@ -805,6 +809,14 @@ export class Manifest {
       const mergeOptions: MergeOptions = {
         pullRequestTitlePattern: this.groupPullRequestTitlePattern,
       };
+      if (this.groupName) {
+        // Several manifests releasing from the same target branch would
+        // otherwise all claim `release-please--branches--<target-branch>`.
+        mergeOptions.headBranchName = BranchName.ofGroupTargetBranch(
+          this.groupName,
+          this.targetBranch
+        ).toString();
+      }
       // Find the first repositoryConfig item that has a set value
       // for the options that can be passed to the merge plugin
       for (const path in this.repositoryConfig) {
@@ -1472,6 +1484,7 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     alwaysUpdate: config['always-update'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
+    groupName: config['group-name'],
     plugins: config['plugins'],
     signoff: config['signoff'],
     labels: configLabel?.split(','),
