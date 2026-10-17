@@ -18,14 +18,16 @@ import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 import {VersioningStrategy} from './versioning-strategy';
 import {ChangelogNotes} from './changelog-notes';
-import {Version} from './version';
+import {Version, VersionsMap} from './version';
 
 export interface BuildReleaseOptions {
   groupPullRequestTitlePattern?: string;
 }
 
 export interface BumpReleaseOptions {
-  newVersion: Version;
+  newVersion?: Version;
+  versionsMap?: VersionsMap;
+  forceBump?: boolean; // If true, create PR even with no commits
 }
 
 /**
