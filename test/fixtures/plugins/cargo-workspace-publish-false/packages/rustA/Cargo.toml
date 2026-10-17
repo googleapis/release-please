@@ -1,0 +1,6 @@
+[package]
+name = "pkgA"
+version = "1.1.1"
+
+[dependencies]
+tracing = "1.0.0"
