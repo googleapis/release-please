@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {logger as defaultLogger, Logger} from './logger';
-import {parse} from 'node-html-parser';
 import {Version} from '../version';
 
 const DEFAULT_HEADER = ':robot: I have created a release *beep* *boop*';
@@ -116,41 +115,76 @@ function splitBody(
 
 const SUMMARY_PATTERN = /^(?<component>.*[^:]):? (?<version>\d+\.\d+\.\d+.*)$/;
 const COMPONENTLESS_SUMMARY_PATTERN = /^(?<version>\d+\.\d+\.\d+.*)$/;
+const SECTION_START_PATTERN =
+  /^<details>\s*<summary>(?<summary>[^\n]*?)<\/summary>/gm;
+const SECTION_END_MARKER = '</details>';
 export interface ReleaseData {
   component?: string;
   version?: Version;
   notes: string;
 }
-function extractMultipleReleases(notes: string, logger: Logger): ReleaseData[] {
-  const data: ReleaseData[] = [];
-  const root = parse(notes);
-  for (const detail of root.getElementsByTagName('details')) {
-    const summaryNode = detail.getElementsByTagName('summary')[0];
-    const summary = summaryNode?.textContent;
-    const match = summary.match(SUMMARY_PATTERN);
-    if (match?.groups) {
-      detail.removeChild(summaryNode);
-      const notes = detail.textContent.trim();
-      data.push({
-        component: match.groups.component,
-        version: Version.parse(match.groups.version),
-        notes,
-      });
-    } else {
-      const componentlessMatch = summary.match(COMPONENTLESS_SUMMARY_PATTERN);
-      if (!componentlessMatch?.groups) {
-        logger.warn(`Summary: ${summary} did not match the expected pattern`);
-        continue;
-      }
-      detail.removeChild(summaryNode);
-      const notes = detail.textContent.trim();
-      data.push({
-        version: Version.parse(componentlessMatch.groups.version),
-        notes,
-      });
+interface SectionStart {
+  index: number;
+  notesIndex: number;
+  summary: string;
+  component?: string;
+  version: Version;
+}
+function extractMultipleReleases(
+  content: string,
+  logger: Logger
+): ReleaseData[] {
+  const starts = findSectionStarts(content, logger);
+  return starts.map((start, i) => {
+    const limit = i + 1 < starts.length ? starts[i + 1].index : content.length;
+    const span = content.slice(start.notesIndex, limit);
+    const end = span.lastIndexOf(SECTION_END_MARKER);
+    if (end === -1) {
+      logger.warn(
+        `Missing closing ${SECTION_END_MARKER} for summary: ${start.summary}`
+      );
     }
+    const notes = (end === -1 ? span : span.slice(0, end)).trim();
+    return start.component
+      ? {component: start.component, version: start.version, notes}
+      : {version: start.version, notes};
+  });
+}
+function findSectionStarts(content: string, logger: Logger): SectionStart[] {
+  const starts: SectionStart[] = [];
+  const pattern = new RegExp(SECTION_START_PATTERN);
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(content)) !== null) {
+    const summary = match.groups!.summary;
+    const parsed = parseSummary(summary);
+    if (!parsed) {
+      logger.warn(`Summary: ${summary} did not match the expected pattern`);
+      continue;
+    }
+    starts.push({
+      index: match.index,
+      notesIndex: match.index + match[0].length,
+      summary,
+      ...parsed,
+    });
   }
-  return data;
+  return starts;
+}
+function parseSummary(
+  summary: string
+): {component?: string; version: Version} | undefined {
+  const match = summary.match(SUMMARY_PATTERN);
+  if (match?.groups) {
+    return {
+      component: match.groups.component,
+      version: Version.parse(match.groups.version),
+    };
+  }
+  const componentlessMatch = summary.match(COMPONENTLESS_SUMMARY_PATTERN);
+  if (componentlessMatch?.groups) {
+    return {version: Version.parse(componentlessMatch.groups.version)};
+  }
+  return undefined;
 }
 const COMPARE_REGEX = /^#{2,} \[?(?<version>\d+\.\d+\.\d+[^\]]*)\]?/;
 function extractSingleRelease(body: string, logger: Logger): ReleaseData[] {
