@@ -43,12 +43,15 @@ export function buildMockPackageUpdate(
 ): Update {
   const cachedFileContents = buildGitHubFileContent(fixturesPath, fixtureName);
   const manifest = parseCargoManifest(cachedFileContents.parsedContent);
+  const manifestVersion = manifest.package?.version;
   return {
     path,
     createIfMissing: false,
     cachedFileContents,
     updater: new CargoToml({
-      version: Version.parse(manifest.package?.version || 'FIXME'),
+      version: Version.parse(
+        typeof manifestVersion === 'string' ? manifestVersion : 'FIXME'
+      ),
     }),
   };
 }
