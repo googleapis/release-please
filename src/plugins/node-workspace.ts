@@ -275,9 +275,15 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     const latestRelease = this.releasesByPath[updatedPackage.path];
 
     const basePullRequest = strategy
-      ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
-          newVersion,
-        })
+      ? await strategy.buildReleasePullRequest(
+          [],
+          latestRelease,
+          false,
+          this.labels,
+          {
+            newVersion,
+          }
+        )
       : undefined;
 
     if (basePullRequest) {
@@ -339,7 +345,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           }),
         },
       ],
-      labels: [],
+      labels: this.labels,
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
       version: newVersion,
       draft: false,
