@@ -82,10 +82,10 @@ class TaggedTOMLParser extends TOMLParser {
 }
 
 /**
- * `@iarna/toml` implements TOML 1.0, but Cargo accepts TOML 1.1 inline tables:
- * newlines, comments and a trailing comma between `{` and `}`. Blank those out
- * with spaces so the text parses as TOML 1.0. The length is unchanged, so
- * value offsets still point into the original input.
+ * `@iarna/toml` implements TOML 1.0.0-rc.1, but Cargo accepts TOML 1.1 inline
+ * tables: newlines, comments and a trailing comma between `{` and `}`. Blank
+ * those out with spaces so the text parses as TOML 1.0.0-rc.1. The length is
+ * unchanged, so value offsets still point into the original input.
  * @param input TOML text
  */
 export function toToml10(input: string): string {
