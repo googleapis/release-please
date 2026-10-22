@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.11.3](https://github.com/googleapis/release-please/compare/v17.11.2...v17.11.3) (2026-10-22)
+
+
+### Bug Fixes
+
+* allow prerelease-type and other root options in config schema ([#2916](https://github.com/googleapis/release-please/issues/2916)) ([fa67225](https://github.com/googleapis/release-please/commit/fa67225b42d8133331a1b48e89640b60e9ca6a23)), refs [#2814](https://github.com/googleapis/release-please/issues/2814)
+* commit author missing when using `--include-commit-authors` ([#2911](https://github.com/googleapis/release-please/issues/2911)) ([c589293](https://github.com/googleapis/release-please/commit/c589293ca38aee267b329f9bf9b26c9d6516a687))
+
 ## [17.11.2](https://github.com/googleapis/release-please/compare/v17.11.1...v17.11.2) (2026-08-24)
 
 
