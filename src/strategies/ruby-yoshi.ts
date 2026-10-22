@@ -22,8 +22,7 @@ import {VersionRB} from '../updaters/ruby/version-rb';
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {ConventionalCommit, Commit} from '../commit';
 import {Update} from '../update';
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
+import {rubyYoshi as rubyYoshiTemplates} from '../changelog-notes/templates';
 import {Release} from '../release';
 import {TagName} from '../util/tag-name';
 import {Version} from '../version';
@@ -48,18 +47,9 @@ export class RubyYoshi extends BaseStrategy {
     super({
       ...options,
       changelogSections: CHANGELOG_SECTIONS,
-      commitPartial: readFileSync(
-        resolve(__dirname, '../../../templates/commit.hbs'),
-        'utf8'
-      ),
-      headerPartial: readFileSync(
-        resolve(__dirname, '../../../templates/header.hbs'),
-        'utf8'
-      ),
-      mainTemplate: readFileSync(
-        resolve(__dirname, '../../../templates/template.hbs'),
-        'utf8'
-      ),
+      commitPartial: rubyYoshiTemplates.commitPartial,
+      headerPartial: rubyYoshiTemplates.headerPartial,
+      mainTemplate: rubyYoshiTemplates.mainTemplate,
       tagSeparator: '/',
     });
     this.versionFile = options.versionFile ?? '';
