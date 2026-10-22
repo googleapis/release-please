@@ -44,7 +44,7 @@
     "@types/diff": "5.0.2",
     "@types/iarna__toml": "2.0.2",
     "@types/inquirer": "9.0.3",
-    "@types/js-yaml": "4.0.5",
+    "@types/js-yaml": "4.0.9",
     "@types/jsonpath": "0.2.0",
     "@types/mocha": "10.0.10",
     "@types/node": "22.19.21",
