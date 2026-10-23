@@ -564,6 +564,15 @@ workspace, and updates any packages that were directly bumped by release-please,
 or that should be patch-bumped because one of their transitive dependencies was
 bumped. The cargo lockfile is also updated.
 
+A workspace member whose manifest sets `publish = false` is still bumped so that
+its own dependents stay consistent, but it does not get a release of its own: no
+release pull request, tag, or `.release-please-manifest.json` entry is created
+for it when it is pulled in only as a dependent. A `publish = false` crate that
+is listed in your release-please config and has changes of its own is released
+as usual (its version is tracked and tagged); `publish = false` only suppresses
+the release of a crate that would otherwise be released solely because a
+dependency was bumped.
+
 Note: when the Rust releaser is used standalone (with the `release-pr` /
 `github-release` commands), it also tries to update monorepo dependencies, but
 it doesn't build a crate graph. When the Rust releaser is used in conjunction
