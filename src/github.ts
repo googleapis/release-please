@@ -806,24 +806,12 @@ export class GitHub implements Scm {
     )
       .toString()
       .slice(0, MAX_ISSUE_BODY_SIZE);
-    const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
-      upstreamOwner: this.repository.owner,
-      upstreamRepo: this.repository.repo,
-      title,
-      branch: releasePullRequest.headRefName,
-      description: body,
-      primary: targetBranch,
-      force: true,
-      fork: options?.fork === false ? false : true,
+    // Force-push the new tree onto the PR's head branch, then PATCH the PR's title/body.
+    await this.gitHubApi.commitAndPushChanges(
+      releasePullRequest.headRefName,
       message,
-      logger: this.logger,
-      draft: releasePullRequest.draft,
-    });
-    if (prNumber !== number) {
-      this.logger.warn(
-        `updated code for ${prNumber}, but update requested for ${number}`
-      );
-    }
+      changes
+    );
     return this.gitHubApi.updatePullRequest(number, title, body);
   }
 
