@@ -24,7 +24,11 @@ import * as sinon from 'sinon';
 import * as codeSuggester from '../src/util/code-suggester';
 
 import {GitHub, GitHubRelease} from '../src/github';
-import {GitHubApi, GH_API_URL} from '../src/github-api';
+import {
+  GitHubApi,
+  GH_API_URL,
+  isTransientGraphqlError,
+} from '../src/github-api';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
@@ -1263,6 +1267,175 @@ describe('GitHub', () => {
       });
       realClearInterval(tickInterval);
       req.done();
+    });
+
+    it('should retry a transient GraphQL error returned with HTTP 200', async () => {
+      let attempt = 0;
+      req = nock('https://api.github.com')
+        .post('/graphql')
+        .times(2)
+        .reply(() => {
+          attempt++;
+          if (attempt === 1) {
+            return [
+              200,
+              {
+                data: null,
+                errors: [
+                  {message: 'Something went wrong while executing your query.'},
+                ],
+              },
+            ];
+          }
+          return [
+            200,
+            {
+              data: {
+                repository: {
+                  ref: {
+                    target: {
+                      history: {
+                        nodes: [],
+                        pageInfo: {hasNextPage: false, endCursor: null},
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ];
+        });
+
+      const promise = github.commitsSince('main', () => false, {
+        batchSize: 100,
+      });
+      const tickInterval = realSetInterval(() => {
+        clock.tick(10000);
+      }, 10);
+      try {
+        await promise;
+      } finally {
+        realClearInterval(tickInterval);
+      }
+      expect(attempt).to.equal(2);
+      req.done();
+    });
+
+    for (const status of [500, 503, 504]) {
+      it(`should retry a transient HTTP ${status} GraphQL error`, async () => {
+        let attempt = 0;
+        req = nock('https://api.github.com')
+          .post('/graphql')
+          .times(2)
+          .reply(() => {
+            attempt++;
+            if (attempt === 1) {
+              return [status, {message: 'Server Error'}];
+            }
+            return [
+              200,
+              {
+                data: {
+                  repository: {
+                    ref: {
+                      target: {
+                        history: {
+                          nodes: [],
+                          pageInfo: {hasNextPage: false, endCursor: null},
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            ];
+          });
+
+        const promise = github.commitsSince('main', () => false, {
+          batchSize: 100,
+        });
+        const tickInterval = realSetInterval(() => {
+          clock.tick(10000);
+        }, 10);
+        try {
+          await promise;
+        } finally {
+          realClearInterval(tickInterval);
+        }
+        expect(attempt).to.equal(2);
+        req.done();
+      });
+    }
+
+    it('should not retry a GraphQL error that is not transient', async () => {
+      let attempt = 0;
+      req = nock('https://api.github.com')
+        .post('/graphql')
+        .reply(() => {
+          attempt++;
+          return [
+            200,
+            {
+              data: null,
+              errors: [{message: "Field 'foo' doesn't exist on type 'Query'"}],
+            },
+          ];
+        });
+
+      let thrown: unknown;
+      try {
+        await github.commitsSince('main', () => false, {batchSize: 100});
+      } catch (err) {
+        thrown = err;
+      }
+      expect(thrown).to.not.be.undefined;
+      expect(attempt).to.equal(1);
+      req.done();
+    });
+  });
+
+  describe('isTransientGraphqlError', () => {
+    for (const status of [500, 502, 503, 504]) {
+      it(`should treat HTTP ${status} as transient`, () => {
+        expect(isTransientGraphqlError({status})).to.be.true;
+      });
+    }
+
+    for (const status of [401, 403, 404, 422, 429]) {
+      it(`should not treat HTTP ${status} as transient`, () => {
+        expect(isTransientGraphqlError({status})).to.be.false;
+      });
+    }
+
+    it('should treat the known GraphQL error messages as transient', () => {
+      expect(
+        isTransientGraphqlError({
+          errors: [
+            {message: 'Something went wrong while executing your query.'},
+          ],
+        })
+      ).to.be.true;
+      expect(
+        isTransientGraphqlError({
+          errors: [{message: "We couldn't respond to your request in time."}],
+        })
+      ).to.be.true;
+    });
+
+    it('should not treat other GraphQL errors as transient', () => {
+      expect(
+        isTransientGraphqlError({
+          errors: [{message: "Field 'foo' doesn't exist on type 'Query'"}],
+        })
+      ).to.be.false;
+    });
+
+    it('should not treat empty or odd input as transient', () => {
+      expect(isTransientGraphqlError(undefined)).to.be.false;
+      expect(isTransientGraphqlError(null)).to.be.false;
+      expect(isTransientGraphqlError(new Error('boom'))).to.be.false;
+      expect(isTransientGraphqlError({errors: []})).to.be.false;
+      expect(isTransientGraphqlError({errors: [{}]})).to.be.false;
     });
   });
 });
