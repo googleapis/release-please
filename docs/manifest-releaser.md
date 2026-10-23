@@ -183,7 +183,31 @@ defaults (those are documented in comments)
 
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
-  "changelog-sections": [...],
+  //
+  // each entry may set:
+  //   type:    the conventional-commit type, e.g. "ci"
+  //   section: the changelog heading this type renders under
+  //   hidden:  when true, this type does not render in the changelog at all
+  //   bump:    override which SemVer bump this type causes, independent of
+  //            `hidden` -- "none" never bumps the version for this type
+  //            (an explicit breaking change or Release-As footer on the
+  //            commit still wins); "minor"/"major" force that bump, as if
+  //            this were feat/breaking; "breaking" is an alias for "major".
+  //            Unset (the default) leaves this type's classification
+  //            exactly as before: feat bumps minor, a breaking change bumps
+  //            major, anything else bumps patch.
+  "changelog-sections": [
+    {"type": "feat", "section": "Features"},
+    {"type": "fix", "section": "Bug Fixes"},
+    // under Conventional Commits, ci/chore/docs/refactor are not meant to
+    // bump the version on their own -- "bump": "none" keeps them out of the
+    // release-worthy set while still rendering when a real release happens
+    // to also carry one of them.
+    {"type": "ci", "section": "CI/CD", "bump": "none"},
+    {"type": "chore", "section": "Miscellaneous Chores", "bump": "none"},
+    {"type": "docs", "section": "Documentation", "bump": "none"},
+    {"type": "refactor", "section": "Code Refactoring", "bump": "none"}
+  ],
 
   // set default github host in changelog
   // absence defaults to https://github.com

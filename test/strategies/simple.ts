@@ -81,6 +81,46 @@ describe('Simple', () => {
       );
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
+    it('skips the release entirely for a lone commit excluded via changelog-sections bump: "none"', async () => {
+      const strategy = new Simple({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        changelogSections: [{type: 'ci', section: 'CI/CD', bump: 'none'}],
+      });
+      const latestRelease = {
+        tag: new TagName(Version.parse('1.2.3'), 'google-cloud-automl'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const release = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('ci: update workflow'),
+        latestRelease
+      );
+      expect(release).to.be.undefined;
+    });
+    it('still releases when a bump: "none" commit is mixed with a real fix', async () => {
+      const expectedVersion = '1.2.4';
+      const strategy = new Simple({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        changelogSections: [{type: 'ci', section: 'CI/CD', bump: 'none'}],
+      });
+      const latestRelease = {
+        tag: new TagName(Version.parse('1.2.3'), 'google-cloud-automl'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const release = await strategy.buildReleasePullRequest(
+        [
+          ...buildMockConventionalCommit('ci: update workflow'),
+          ...buildMockConventionalCommit('fix: some bugfix'),
+        ],
+        latestRelease
+      );
+      expect(release!.version?.toString()).to.eql(expectedVersion);
+    });
   });
   describe('buildUpdates', () => {
     it('builds common files', async () => {
