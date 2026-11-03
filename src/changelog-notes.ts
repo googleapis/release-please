@@ -38,6 +38,19 @@ export interface ChangelogSection {
   type: string;
   section: string;
   hidden?: boolean;
+  /**
+   * Override which SemVer bump this commit type causes, independent of
+   * whether it is `hidden`:
+   *  - "none": never bump the version for this type (still overridden by an
+   *    explicit breaking change or a `Release-As` footer on the commit).
+   *  - "minor" / "major": force that bump, as if this were feat / breaking.
+   *  - "breaking": alias for "major".
+   *
+   * Unset (the default) leaves this type's classification exactly as
+   * before: feat bumps minor, a breaking change bumps major, anything else
+   * bumps patch.
+   */
+  bump?: 'none' | 'minor' | 'major' | 'breaking';
 }
 
 const DEFAULT_HEADINGS: Record<string, string> = {

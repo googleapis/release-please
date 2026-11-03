@@ -137,7 +137,10 @@ export abstract class BaseStrategy implements Strategy {
       options.component || this.normalizeComponent(this.packageName);
     this.versioningStrategy =
       options.versioningStrategy ||
-      new DefaultVersioningStrategy({logger: this.logger});
+      new DefaultVersioningStrategy({
+        logger: this.logger,
+        changelogSections: options.changelogSections,
+      });
     this.targetBranch = options.targetBranch;
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
@@ -291,6 +294,20 @@ export abstract class BaseStrategy implements Strategy {
     const newVersion =
       bumpOnlyOptions?.newVersion ??
       (await this.buildNewVersion(conventionalCommits, latestRelease));
+    if (
+      !bumpOnlyOptions &&
+      latestRelease &&
+      newVersion.compare(latestRelease.tag.version) === 0
+    ) {
+      // Every commit considered had a `changelog-sections` `bump: "none"`
+      // override (see DefaultVersioningStrategy) and none of them carried a
+      // breaking change or a Release-As footer either, so the versioning
+      // strategy left the version unchanged -- nothing to release.
+      this.logger.info(
+        `No version bump required for path: ${this.path} - skipping`
+      );
+      return undefined;
+    }
     const versionsMap = await this.updateVersionsMap(
       await this.buildVersionsMap(conventionalCommits),
       conventionalCommits,
