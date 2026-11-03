@@ -53,6 +53,31 @@ describe('CargoToml', () => {
       }).to.throw();
     });
 
+    it('updates manifests with TOML 1.1 multi-line inline tables', async () => {
+      const oldContent = [
+        '[package]',
+        'name = "x"',
+        'version = "0.1.0"',
+        '',
+        '[dependencies]',
+        'foo = {',
+        '  git = "https://example.com/x#}", # comment, with } and {',
+        '  features = ["a", "b"],',
+        '}',
+        'dep = { path = "../dep", version = "0.1.0", }',
+        '',
+      ].join('\n');
+      const cargoToml = new CargoToml({
+        version: FAKE_VERSION,
+        versionsMap: new Map([['dep', Version.parse('2.0.0')]]),
+      });
+      expect(cargoToml.updateContent(oldContent)).to.equal(
+        oldContent
+          .replace('version = "0.1.0"\n', 'version = "1.2.3"\n')
+          .replace('version = "0.1.0", }', 'version = "2.0.0", }')
+      );
+    });
+
     it('updates the crate version while preserving formatting', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),
