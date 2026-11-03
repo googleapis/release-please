@@ -30,6 +30,7 @@ import {DEFAULT_LABELS, DEFAULT_SNAPSHOT_LABELS} from '../../src/manifest';
 import {CompositeUpdater} from '../../src/updaters/composite';
 import {Generic} from '../../src/updaters/generic';
 import {JavaReleased} from '../../src/updaters/java/java-released';
+import {PullRequestBody} from '../../src/util/pull-request-body';
 
 const sandbox = sinon.createSandbox();
 
@@ -46,6 +47,117 @@ describe('Java', () => {
     sandbox.restore();
   });
   describe('buildReleasePullRequest', () => {
+    describe('for grouped snapshot PRs', () => {
+      function snapshotCommit(
+        component: string,
+        version: string,
+        labels: string[] = DEFAULT_SNAPSHOT_LABELS
+      ) {
+        const message = `chore(main): release ${version}`;
+        const [commit] = buildMockConventionalCommit(message);
+        commit.pullRequest = {
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          number: 1,
+          title: message,
+          body: new PullRequestBody(
+            [
+              {
+                component,
+                version: Version.parse(version),
+                notes: 'Snapshot release',
+              },
+            ],
+            {useComponents: true}
+          ).toString(),
+          labels,
+          files: [],
+        };
+        return commit;
+      }
+
+      it('uses the component snapshot from a labeled grouped PR body', async () => {
+        const strategy = new Java({
+          targetBranch: 'main',
+          github,
+          component: 'alpha',
+        });
+        const latestRelease = {
+          tag: new TagName(Version.parse('2.3.3')),
+          sha: 'abc123',
+          notes: 'some notes',
+        };
+
+        const release = await strategy.buildReleasePullRequest(
+          [
+            ...buildMockConventionalCommit('fix(alpha): repair issue'),
+            snapshotCommit('alpha', '2.3.4-SNAPSHOT'),
+          ],
+          latestRelease,
+          false,
+          DEFAULT_LABELS
+        );
+
+        expect(release?.version?.toString()).to.eql('2.3.4');
+        expect(release?.labels).to.eql(DEFAULT_LABELS);
+      });
+
+      it('does not use other-component or published body records', async () => {
+        const latestRelease = {
+          tag: new TagName(Version.parse('2.3.3')),
+          sha: 'abc123',
+          notes: 'some notes',
+        };
+
+        for (const commit of [
+          snapshotCommit('beta', '2.3.4-SNAPSHOT'),
+          snapshotCommit('alpha', '2.3.4'),
+        ]) {
+          const strategy = new Java({
+            targetBranch: 'main',
+            github,
+            component: 'alpha',
+          });
+          const release = await strategy.buildReleasePullRequest(
+            [
+              ...buildMockConventionalCommit('fix(alpha): repair issue'),
+              commit,
+            ],
+            latestRelease
+          );
+
+          expect(release?.version?.toString()).to.eql('2.3.4-SNAPSHOT');
+          expect(release?.labels).to.eql(DEFAULT_SNAPSHOT_LABELS);
+        }
+      });
+
+      it('uses component snapshot bodies without snapshot labels', async () => {
+        const latestRelease = {
+          tag: new TagName(Version.parse('2.3.3')),
+          sha: 'abc123',
+          notes: 'some notes',
+        };
+
+        for (const options of [{}, {snapshotLabels: []}]) {
+          const strategy = new Java({
+            targetBranch: 'main',
+            github,
+            component: 'alpha',
+            ...options,
+          });
+          const release = await strategy.buildReleasePullRequest(
+            [
+              ...buildMockConventionalCommit('fix(alpha): repair issue'),
+              snapshotCommit('alpha', '2.3.4-SNAPSHOT', []),
+            ],
+            latestRelease
+          );
+
+          expect(release?.version?.toString()).to.eql('2.3.4');
+        }
+      });
+    });
+
     describe('for default component', () => {
       const COMMITS_NO_SNAPSHOT = [
         ...buildMockConventionalCommit('fix(deps): update dependency'),
