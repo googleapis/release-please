@@ -40,11 +40,30 @@ export interface TargetDependencies {
 
 export interface CargoWorkspace {
   members?: string[];
+  package?: CargoWorkspacePackage;
+}
+
+export interface CargoWorkspacePackage {
+  version?: string;
+}
+
+export interface CargoWorkspaceInheritedValue {
+  workspace?: boolean;
 }
 
 export interface CargoPackage {
   name?: string;
-  version?: string;
+  version?: string | CargoWorkspaceInheritedValue;
+}
+
+export function isWorkspaceInheritedValue(
+  value: unknown
+): value is CargoWorkspaceInheritedValue {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as CargoWorkspaceInheritedValue).workspace === true
+  );
 }
 
 export interface CargoDependencies {
