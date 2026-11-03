@@ -49,11 +49,17 @@ export class CommitExclude {
     excludePaths: string[],
     packagePath: string
   ): boolean {
-    return (
-      !commit.files ||
-      !commit.files
-        .filter(file => this.isRelevant(file, packagePath))
-        .every(file => excludePaths.some(path => this.isRelevant(file, path)))
+    if (!commit.files || commit.files.length === 0) {
+      return true;
+    }
+    const relevantFiles = commit.files.filter(file =>
+      this.isRelevant(file, packagePath)
+    );
+    if (relevantFiles.length === 0) {
+      return true;
+    }
+    return !relevantFiles.every(file =>
+      excludePaths.some(path => this.isRelevant(file, path))
     );
   }
 
