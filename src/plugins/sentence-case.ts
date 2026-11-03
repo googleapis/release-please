@@ -50,6 +50,12 @@ export class SentenceCase extends ManifestPlugin {
       console.info(commit.bareMessage);
       commit.bareMessage = this.toUpperCase(commit.bareMessage);
 
+      for (const note of commit.notes) {
+        if (note.title === 'BREAKING CHANGE') {
+          note.text = note.text.replace(/^\S+/, word => this.toUpperCase(word));
+        }
+      }
+
       // Check whether commit is in conventional commit format, if it is
       // we'll split the string by type and description:
       if (commit.message.includes(':')) {
