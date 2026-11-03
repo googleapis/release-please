@@ -181,6 +181,13 @@ defaults (those are documented in comments)
   // setting the type of prerelease in case of prerelease strategy
   "prerelease-type": "beta",
 
+  // starting number appended to the first generated prerelease when using
+  // the "prerelease" versioning strategy. For example, setting this to `1`
+  // results in a first prerelease of `1.0.0-beta.1` instead of `1.0.0-beta`.
+  // Must be a non-negative integer. Absence preserves the current behavior of
+  // omitting a number from the first prerelease.
+  "prerelease-initial-number": 1,
+
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...],

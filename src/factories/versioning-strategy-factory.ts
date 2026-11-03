@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {VersioningStrategy} from '../versioning-strategy';
-import {DefaultVersioningStrategy} from '../versioning-strategies/default';
-import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
-import {AlwaysBumpMinor} from '../versioning-strategies/always-bump-minor';
-import {AlwaysBumpMajor} from '../versioning-strategies/always-bump-major';
-import {ServicePackVersioningStrategy} from '../versioning-strategies/service-pack';
-import {Scm} from '../scm';
 import {ConfigurationError} from '../errors';
+import {Scm} from '../scm';
+import {AlwaysBumpMajor} from '../versioning-strategies/always-bump-major';
+import {AlwaysBumpMinor} from '../versioning-strategies/always-bump-minor';
+import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
+import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {PrereleaseVersioningStrategy} from '../versioning-strategies/prerelease';
+import {ServicePackVersioningStrategy} from '../versioning-strategies/service-pack';
+import {VersioningStrategy} from '../versioning-strategy';
 
 export type VersioningStrategyType = string;
 
@@ -30,6 +30,7 @@ export interface VersioningStrategyFactoryOptions {
   bumpPatchForMinorPreMajor?: boolean;
   prereleaseType?: string;
   prerelease?: boolean;
+  prereleaseInitialNumber?: number;
   github: Scm;
 }
 
@@ -49,6 +50,17 @@ const versioningTypes: Record<string, VersioningStrategyBuilder> = {
 export function buildVersioningStrategy(
   options: VersioningStrategyFactoryOptions
 ): VersioningStrategy {
+  if (
+    options.prereleaseInitialNumber !== undefined &&
+    (!Number.isInteger(options.prereleaseInitialNumber) ||
+      options.prereleaseInitialNumber < 0)
+  ) {
+    throw new ConfigurationError(
+      `Invalid prerelease-initial-number: ${options.prereleaseInitialNumber}. Must be a non-negative integer.`,
+      'core',
+      `${options.github.repository.owner}/${options.github.repository.repo}`
+    );
+  }
   const builder = versioningTypes[options.type || 'default'];
   if (builder) {
     return builder(options);

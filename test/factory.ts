@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {expect} from 'chai';
 import {beforeEach, describe, it} from 'mocha';
+import {DefaultChangelogNotes} from '../src/changelog-notes/default';
+import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {
   buildStrategy,
   getReleaserTypes,
@@ -20,19 +23,16 @@ import {
   unregisterReleaseType,
 } from '../src/factory';
 import {GitHub} from '../src/github';
-import {expect} from 'chai';
-import {Simple} from '../src/strategies/simple';
-import {DefaultVersioningStrategy} from '../src/versioning-strategies/default';
-import {AlwaysBumpPatch} from '../src/versioning-strategies/always-bump-patch';
-import {Ruby} from '../src/strategies/ruby';
-import {JavaYoshi} from '../src/strategies/java-yoshi';
-import {JavaSnapshot} from '../src/versioning-strategies/java-snapshot';
-import {ServicePackVersioningStrategy} from '../src/versioning-strategies/service-pack';
-import {DependencyManifest} from '../src/versioning-strategies/dependency-manifest';
-import {GitHubChangelogNotes} from '../src/changelog-notes/github';
-import {DefaultChangelogNotes} from '../src/changelog-notes/default';
 import {Java} from '../src/strategies/java';
+import {JavaYoshi} from '../src/strategies/java-yoshi';
+import {Ruby} from '../src/strategies/ruby';
+import {Simple} from '../src/strategies/simple';
+import {AlwaysBumpPatch} from '../src/versioning-strategies/always-bump-patch';
+import {DefaultVersioningStrategy} from '../src/versioning-strategies/default';
+import {DependencyManifest} from '../src/versioning-strategies/dependency-manifest';
+import {JavaSnapshot} from '../src/versioning-strategies/java-snapshot';
 import {PrereleaseVersioningStrategy} from '../src/versioning-strategies/prerelease';
+import {ServicePackVersioningStrategy} from '../src/versioning-strategies/service-pack';
 
 describe('factory', () => {
   let github: GitHub;
@@ -93,6 +93,22 @@ describe('factory', () => {
       expect(versioningStrategy.bumpMinorPreMajor).to.be.true;
       expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
       expect(versioningStrategy.prereleaseType).to.eql('alpha');
+    });
+    it('should build with prerelease initial number', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'simple',
+        versioning: 'prerelease',
+        prereleaseType: 'alpha',
+        prereleaseInitialNumber: 5,
+      });
+      expect(strategy).instanceof(Simple);
+      expect(strategy.versioningStrategy).instanceof(
+        PrereleaseVersioningStrategy
+      );
+      const versioningStrategy =
+        strategy.versioningStrategy as PrereleaseVersioningStrategy;
+      expect(versioningStrategy.prereleaseInitialNumber).to.eql(5);
     });
     it('should throw for unknown type', async () => {
       try {

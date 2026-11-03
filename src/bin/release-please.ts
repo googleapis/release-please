@@ -14,25 +14,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {coerceOption} from '../util/coerce-option';
+import {createPatch} from 'diff';
 import * as yargs from 'yargs';
-import {GitHub} from '../github';
-import {GH_API_URL, GH_GRAPHQL_URL} from '../github-api';
-import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
+import {Bootstrapper} from '../bootstrapper';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
-import {logger, setLogger, CheckpointLogger} from '../util/logger';
 import {
-  getReleaserTypes,
+  ChangelogNotesType,
   ReleaseType,
   VersioningStrategyType,
-  getVersioningStrategyTypes,
-  ChangelogNotesType,
   getChangelogTypes,
+  getReleaserTypes,
+  getVersioningStrategyTypes,
 } from '../factory';
-import {Bootstrapper} from '../bootstrapper';
-import {createPatch} from 'diff';
-import {Scm} from '../scm';
+import {GitHub} from '../github';
+import {GH_API_URL, GH_GRAPHQL_URL} from '../github-api';
 import {LocalGitHub} from '../local-github';
+import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
+import {Scm} from '../scm';
+import {coerceOption} from '../util/coerce-option';
+import {CheckpointLogger, logger, setLogger} from '../util/logger';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -70,6 +70,7 @@ interface VersioningArgs {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
   prereleaseType?: string;
+  prereleaseInitialNumber?: number;
   releaseAs?: string;
 
   // only for Ruby: TODO replace with generic bootstrap option
@@ -308,6 +309,12 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'type of the prerelease, e.g., alpha',
       type: 'string',
     })
+    .option('prerelease-initial-number', {
+      describe:
+        'starting number to append to the first generated prerelease, ' +
+        'e.g., 1 results in a first prerelease of 1.0.0-alpha.1',
+      type: 'number',
+    })
     .option('extra-files', {
       describe: 'extra files for the strategy to consider',
       type: 'string',
@@ -495,6 +502,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           bumpMinorPreMajor: argv.bumpMinorPreMajor,
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
           prereleaseType: argv.prereleaseType,
+          prereleaseInitialNumber: argv.prereleaseInitialNumber,
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
           changelogHost: argv.changelogHost,
@@ -764,6 +772,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       bumpMinorPreMajor: argv.bumpMinorPreMajor,
       bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
       prereleaseType: argv.prereleaseType,
+      prereleaseInitialNumber: argv.prereleaseInitialNumber,
       changelogPath: argv.changelogPath,
       changelogHost: argv.changelogHost,
       changelogSections: argv.changelogSections,
