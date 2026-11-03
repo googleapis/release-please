@@ -33,9 +33,14 @@ import {Strategy} from '../strategy';
 import {Commit} from '../commit';
 import {Release} from '../release';
 import {CompositeUpdater} from '../updaters/composite';
-import {PackageJson, newVersionWithRange} from '../updaters/node/package-json';
+import {
+  PackageJson,
+  newVersionWithRange,
+  NPM_PROTOCOL_REGEXP,
+} from '../updaters/node/package-json';
 import {Logger} from '../util/logger';
 import {PatchVersionUpdate} from '../versioning-strategy';
+import * as semver from 'semver';
 
 interface ParsedPackageJson {
   name: string;
@@ -55,7 +60,15 @@ interface Package {
   peerDependencies: Record<string, string>;
   optionalDependencies: Record<string, string>;
   jsonContent: string;
+  // The version a candidate pull request already releases this package at.
+  releaseVersion?: Version;
 }
+
+type DependencyKind =
+  | 'dependencies'
+  | 'devDependencies'
+  | 'peerDependencies'
+  | 'optionalDependencies';
 
 interface NodeWorkspaceOptions extends WorkspacePluginOptions {
   alwaysLinkLocal?: boolean;
@@ -132,6 +145,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           peerDependencies: packageJson.peerDependencies || {},
           optionalDependencies: packageJson.optionalDependencies || {},
           jsonContent: contents.parsedContent,
+          releaseVersion: candidate.pullRequest.version,
         };
         packagesByPath.set(candidate.path, pkg);
         candidatesByPackage[pkg.name] = candidate;
@@ -400,10 +414,16 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     const workspacePackageNames = new Set(
       allPackages.map(packageJson => packageJson.name)
     );
+    const packagesByName = new Map(
+      allPackages.map(packageJson => [packageJson.name, packageJson])
+    );
     for (const packageJson of allPackages) {
       const allDeps = Object.keys(this.combineDeps(packageJson));
-      const workspaceDeps = allDeps.filter(dep =>
-        workspacePackageNames.has(dep)
+      const workspaceDeps = allDeps.filter(
+        dep =>
+          workspacePackageNames.has(dep) &&
+          (this.alwaysLinkLocal ||
+            !this.rangesAdmitRelease(packageJson, packagesByName.get(dep)!))
       );
       graph.set(packageJson.name, {
         deps: workspaceDeps,
@@ -424,6 +444,32 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
   protected pathFromPackage(pkg: Package): string {
     return pkg.path;
+  }
+
+  /**
+   * Whether every range `dependent` declares on `dependency` already admits
+   * the version `dependency` is about to be released at, in which case
+   * releasing `dependency` does not require releasing `dependent`.
+   * @param {Package} dependent The package declaring the dependency
+   * @param {Package} dependency The workspace package it depends on
+   */
+  private rangesAdmitRelease(dependent: Package, dependency: Package): boolean {
+    const releaseVersion = (
+      dependency.releaseVersion ?? this.bumpVersion(dependency)
+    ).toString();
+    const kinds: DependencyKind[] = [
+      'dependencies',
+      'devDependencies',
+      'optionalDependencies',
+      ...(this.updatePeerDependencies ? ['peerDependencies' as const] : []),
+    ];
+    return kinds.every(kind => {
+      const spec = dependent[kind][dependency.name];
+      return (
+        spec === undefined ||
+        rangeAdmits(spec, kind, dependency.version, releaseVersion)
+      );
+    });
   }
 
   private combineDeps(packageJson: Package): Record<string, string> {
@@ -448,6 +494,41 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
     return strategiesByPath;
   }
+}
+
+/**
+ * Whether a declared dependency range admits a new version of a workspace
+ * package.
+ * @param {string} spec The declared range, possibly using the workspace protocol
+ * @param {DependencyKind} kind The field the range is declared in
+ * @param {string} currentVersion The workspace package's current version
+ * @param {string} newVersion The version it is about to be released at
+ */
+function rangeAdmits(
+  spec: string,
+  kind: DependencyKind,
+  currentVersion: string,
+  newVersion: string
+): boolean {
+  let range = spec;
+  if (spec.startsWith('workspace:')) {
+    // A workspace devDependency always resolves to the local copy and is
+    // never published.
+    if (kind === 'devDependencies') {
+      return true;
+    }
+    // Anything else is published with the protocol replaced by the version it
+    // resolved to, as pnpm, yarn and bun do.
+    range = spec.slice('workspace:'.length);
+    if (range === '*') {
+      range = currentVersion;
+    } else if (range === '^' || range === '~') {
+      range = `${range}${currentVersion}`;
+    }
+  } else if (NPM_PROTOCOL_REGEXP.test(spec)) {
+    return false;
+  }
+  return semver.satisfies(newVersion, range);
 }
 
 function getChangelogDepsNotes(
