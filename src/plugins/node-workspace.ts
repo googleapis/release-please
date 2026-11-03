@@ -200,7 +200,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       pkg,
       updatedPackage,
       updatedVersions,
-      this.logger
+      this.logger,
+      this.updatePeerDependencies
     );
 
     existingCandidate.pullRequest.updates =
@@ -268,7 +269,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       pkg,
       updatedPackage,
       updatedVersions,
-      this.logger
+      this.logger,
+      this.updatePeerDependencies
     );
 
     const strategy = this.strategiesByPath[updatedPackage.path];
@@ -454,7 +456,8 @@ function getChangelogDepsNotes(
   original: Package,
   updated: Package,
   updateVersions: VersionsMap,
-  logger: Logger
+  logger: Logger,
+  updatePeerDependencies = true
 ): string {
   let depUpdateNotes = '';
   type DT =
@@ -465,7 +468,7 @@ function getChangelogDepsNotes(
   const depTypes: DT[] = [
     'dependencies',
     'devDependencies',
-    'peerDependencies',
+    ...(updatePeerDependencies ? (['peerDependencies'] as const) : []),
     'optionalDependencies',
   ];
   const updates: Map<DT, string[]> = new Map();
