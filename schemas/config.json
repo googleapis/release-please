@@ -214,6 +214,25 @@
                 "required": ["type", "path"]
               },
               {
+                "description": "An extra Dart pubspec.yaml file. Bumps the version and increments the build number (e.g. `1.2.3+4`).",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["dart"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  }
+                },
+                "required": ["type", "path"]
+              },
+              {
                 "description": "An extra arbitrary file that includes release-please generic updater's annotation.",
                 "type": "object",
                 "properties": {

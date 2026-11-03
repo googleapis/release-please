@@ -42,6 +42,7 @@ import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
 import {GenericToml} from '../updaters/generic-toml';
+import {PubspecYaml} from '../updaters/dart/pubspec-yaml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -464,6 +465,13 @@ export abstract class BaseStrategy implements Strategy {
                 path: this.addPath(path),
                 createIfMissing: false,
                 updater: new PomXml(version),
+              });
+              break;
+            case 'dart':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new PubspecYaml({version}),
               });
               break;
             default:
