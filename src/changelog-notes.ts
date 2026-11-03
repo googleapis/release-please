@@ -22,7 +22,7 @@ export interface BuildNotesOptions {
   previousTag?: string;
   currentTag: string;
   targetBranch: string;
-  changelogSections?: ChangelogSection[];
+  changelogSections: ChangelogSection[];
   commits?: Commit[];
   includeCommitAuthors?: boolean;
 }

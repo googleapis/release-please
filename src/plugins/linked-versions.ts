@@ -88,7 +88,11 @@ export class LinkedVersions extends ManifestPlugin {
       const strategy = groupStrategies[path];
       const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
-        parseConventionalCommits(commitsByPath[path], this.logger),
+        parseConventionalCommits(
+          commitsByPath[path],
+          new Set(strategy.changelogSections.map(c => c.type)),
+          this.logger
+        ),
         latestRelease
       );
       if (releasePullRequest?.version) {

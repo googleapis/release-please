@@ -23,6 +23,7 @@ import {DefaultChangelogNotes} from '../../src/changelog-notes/default';
 import {parseConventionalCommits} from '../../src/commit';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Version} from '../../src/version';
+import {DEFAULT_CHANGELOG_SECTIONS} from '../../src/changelog-sections';
 
 describe('DefaultChangelogNotes', () => {
   const commits = [
@@ -68,6 +69,7 @@ describe('DefaultChangelogNotes', () => {
       previousTag: 'v1.2.2',
       currentTag: 'v1.2.3',
       targetBranch: 'main',
+      changelogSections: DEFAULT_CHANGELOG_SECTIONS,
     };
     it('should build default release notes', async () => {
       const changelogNotes = new DefaultChangelogNotes();
@@ -131,7 +133,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildMockCommit('fix!: some bugfix')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -141,7 +146,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildMockCommit('fix!: some bugfix (#1234)')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -151,7 +159,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildCommitFromFixture('multiple-messages')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -161,7 +172,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildCommitFromFixture('breaking-body')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -171,7 +185,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildCommitFromFixture('bug-link')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -181,7 +198,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildMockCommit('fix: some bugfix (#1234)')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -191,7 +211,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildCommitFromFixture('git-trailers-with-breaking')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -201,7 +224,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildCommitFromFixture('meta')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -211,7 +237,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildCommitFromFixture('multi-line-breaking-body')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -223,7 +252,10 @@ describe('DefaultChangelogNotes', () => {
         ];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -233,7 +265,10 @@ describe('DefaultChangelogNotes', () => {
         const commits = [buildCommitFromFixture('breaking-body-content-after')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -242,23 +277,39 @@ describe('DefaultChangelogNotes', () => {
       it('handles Release-As footers', async () => {
         const commits = [buildCommitFromFixture('release-as')];
         const changelogNotes = new DefaultChangelogNotes();
+
+        // Using note options with a custom 'meta' conventional commit type added
+        const options = {...notesOptions};
+        options.changelogSections = [
+          ...options.changelogSections, // Default conventional types
+          {type: 'meta', section: 'meta'}, // with the the custom 'meta' type added
+        ];
+
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
-          notesOptions
+          parseConventionalCommits(
+            commits,
+            new Set(options.changelogSections.map(c => c.type))
+          ),
+          options
         );
         expect(notes).to.is.string;
         safeSnapshot(notes);
       });
       it('should allow customizing sections', async () => {
+        const customChangelogSections = [
+          {type: 'chore', section: 'Miscellaneous Chores'},
+        ];
+
         const commits = [buildMockCommit('chore: some chore')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(customChangelogSections.map(c => c.type))
+          ),
           {
             ...notesOptions,
-            changelogSections: [
-              {type: 'chore', section: 'Miscellaneous Chores'},
-            ],
+            changelogSections: customChangelogSections,
           }
         );
         expect(notes).to.is.string;
@@ -270,7 +321,10 @@ describe('DefaultChangelogNotes', () => {
         ];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -284,7 +338,10 @@ describe('DefaultChangelogNotes', () => {
         ];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
-          parseConventionalCommits(commits),
+          parseConventionalCommits(
+            commits,
+            new Set(notesOptions.changelogSections.map(c => c.type))
+          ),
           notesOptions
         );
         expect(notes).to.is.string;
@@ -392,6 +449,7 @@ describe('DefaultChangelogNotes', () => {
         previousTag: 'v1.2.2',
         currentTag: 'v1.2.3',
         targetBranch: 'main',
+        changelogSections: DEFAULT_CHANGELOG_SECTIONS,
       };
       const changelogNotes = new DefaultChangelogNotes();
       const notes = await changelogNotes.buildNotes(commits, notesOptions);
