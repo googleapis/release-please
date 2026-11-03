@@ -312,6 +312,59 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustE/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
+    it('does not open a release pull request for a publish = false dependent', async () => {
+      const publishFalsePath =
+        './test/fixtures/plugins/cargo-workspace-publish-false';
+      // Only pkgA has a release candidate; pkgUnpub (publish = false) depends
+      // on it and is pulled into the graph only as a dependent.
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: 'pkgA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustA/Cargo.toml',
+              'packages/rustA/Cargo.toml'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: publishFalsePath,
+        files: [
+          'Cargo.toml',
+          'packages/rustA/Cargo.toml',
+          'packages/rustUnpub/Cargo.toml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/rustA', 'main')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustUnpub', 'main')
+        .resolves(['packages/rustUnpub']);
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        {
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+        },
+        {
+          merge: false,
+        }
+      );
+      const newCandidates = await plugin.run(candidates);
+      // Only pkgA is released — no standalone candidate for the publish = false
+      // crate.
+      expect(newCandidates).lengthOf(1);
+      expect(newCandidates.find(c => c.path === 'packages/rustUnpub')).to.be
+        .undefined;
+    });
     it('can skip merging rust packages', async () => {
       // This is the same setup as 'walks dependency tree and updates previously untouched packages'
       const candidates: CandidateReleasePullRequest[] = [
