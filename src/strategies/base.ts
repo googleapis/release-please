@@ -18,6 +18,11 @@ import {VersioningStrategy} from '../versioning-strategy';
 import {Repository} from '../repository';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
 import {
+  CommitPartial,
+  HeaderPartial,
+  MainTemplate,
+} from '../changelog-notes/templates';
+import {
   ROOT_PROJECT_PATH,
   MANIFEST_PULL_REQUEST_TITLE_PATTERN,
   ExtraFile,
@@ -65,9 +70,9 @@ export interface BaseStrategyOptions {
   changelogPath?: string;
   changelogHost?: string;
   changelogSections?: ChangelogSection[];
-  commitPartial?: string;
-  headerPartial?: string;
-  mainTemplate?: string;
+  commitPartial?: CommitPartial;
+  headerPartial?: HeaderPartial;
+  mainTemplate?: MainTemplate;
   tagSeparator?: string;
   skipGitHubRelease?: boolean;
   skipChangelog?: boolean;

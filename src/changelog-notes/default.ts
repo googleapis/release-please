@@ -18,17 +18,32 @@ import {
   BuildNotesOptions,
 } from '../changelog-notes';
 import {ConventionalCommit} from '../commit';
+import {importEsm} from '../util/import-esm';
+import {
+  CommitPartial,
+  HeaderPartial,
+  MainTemplate,
+  TemplateCommit,
+  TemplateContext,
+  commitPartial as defaultCommitPartial,
+  commitUrl,
+  headerPartial as defaultHeaderPartial,
+  issueUrl,
+  mainTemplate as defaultMainTemplate,
+  userUrl,
+} from './templates';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const conventionalChangelogWriter = require('conventional-changelog-writer');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const presetFactory = require('conventional-changelog-conventionalcommits');
 const DEFAULT_HOST = 'https://github.com';
 
+// The conventionalcommits preset used to match numeric issue references only;
+// keep that behavior rather than its current default of matching any
+// alphanumeric reference.
+const ISSUE_PATTERN = /[0-9]+/;
+
 interface DefaultChangelogNotesOptions {
-  commitPartial?: string;
-  headerPartial?: string;
-  mainTemplate?: string;
+  commitPartial?: CommitPartial;
+  headerPartial?: HeaderPartial;
+  mainTemplate?: MainTemplate;
 }
 
 interface Note {
@@ -36,11 +51,27 @@ interface Note {
   text: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type WriterOptions = Record<string, any>;
+
+interface ConventionalChangelogWriter {
+  writeChangelogString(
+    commits: TemplateCommit[],
+    context: Partial<TemplateContext>,
+    options: WriterOptions
+  ): Promise<string>;
+}
+
+interface ConventionalCommitsPreset {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default(config?: Record<string, any>): {writer: WriterOptions};
+}
+
 export class DefaultChangelogNotes implements ChangelogNotes {
   // allow for customized commit template.
-  private commitPartial?: string;
-  private headerPartial?: string;
-  private mainTemplate?: string;
+  private commitPartial?: CommitPartial;
+  private headerPartial?: HeaderPartial;
+  private mainTemplate?: MainTemplate;
 
   constructor(options: DefaultChangelogNotesOptions = {}) {
     this.commitPartial = options.commitPartial;
@@ -62,20 +93,39 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       linkCompare: !!options.previousTag,
     };
 
-    const config: {[key: string]: ChangelogSection[]} = {};
+    // `conventional-changelog-writer` and the conventionalcommits preset are
+    // ESM-only, this package is published as CommonJS.
+    const [writer, preset] = await Promise.all([
+      importEsm<ConventionalChangelogWriter>('conventional-changelog-writer'),
+      importEsm<ConventionalCommitsPreset>(
+        'conventional-changelog-conventionalcommits'
+      ),
+    ]);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config: Record<string, any> = {
+      issuePattern: ISSUE_PATTERN,
+      // release-please renders the links itself, so that the generated
+      // changelog does not depend on the preset's URL formatting.
+      formatCommitUrl: commitUrl,
+      formatIssueUrl: issueUrl,
+      formatUserUrl: userUrl,
+    };
     if (options.changelogSections) {
-      config.types = options.changelogSections;
+      config.types = options.changelogSections.map(toPresetCommitType);
     }
-    const preset = await presetFactory(config);
-    // Replace the default ", closes" keyword with ", refs" to prevent GitHub from
-    // automatically closing referenced issues when the release PR is merged.
-    preset.writerOpts.commitPartial =
-      this.commitPartial ||
-      preset.writerOpts.commitPartial?.replace(/,\s*closes/g, ', refs');
-    preset.writerOpts.headerPartial =
-      this.headerPartial || preset.writerOpts.headerPartial;
-    preset.writerOpts.mainTemplate =
-      this.mainTemplate || preset.writerOpts.mainTemplate;
+
+    const writerOptions: WriterOptions = {
+      ...preset.default(config).writer,
+      template: this.mainTemplate || defaultMainTemplate,
+      headerPartial: this.headerPartial || defaultHeaderPartial,
+      commitPartial: this.commitPartial || defaultCommitPartial,
+      preamblePartial: () => '',
+      footerPartial: () => '',
+      // notes are rendered in the order they were parsed in.
+      notesSort: undefined,
+    };
+
     const changelogCommits = commits.map(commit => {
       const notes = commit.notes
         .filter(note => note.title === 'BREAKING CHANGE')
@@ -114,10 +164,26 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       };
     });
 
-    return conventionalChangelogWriter
-      .parseArray(changelogCommits, context, preset.writerOpts)
-      .trim();
+    return (
+      await writer.writeChangelogString(
+        changelogCommits,
+        context,
+        writerOptions
+      )
+    ).trim();
   }
+}
+
+/**
+ * Translates a release-please changelog section into a commit type of the
+ * conventionalcommits preset, which expresses hidden sections as an effect.
+ */
+function toPresetCommitType(section: ChangelogSection) {
+  return {
+    type: section.type,
+    section: section.section,
+    effect: section.hidden ? 'hidden' : 'bump',
+  };
 }
 
 function replaceIssueLink(
