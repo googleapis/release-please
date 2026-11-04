@@ -13,7 +13,8 @@
 // limitations under the License.
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
-import {Manifest} from '../src/manifest';
+import {Manifest, CandidateReleasePullRequest} from '../src/manifest';
+import {Merge} from '../src/plugins/merge';
 import {GitHub, ReleaseOptions} from '../src/github';
 import * as githubModule from '../src/github';
 import * as sinon from 'sinon';
@@ -314,6 +315,33 @@ describe('Manifest', () => {
       expect(
         manifest.repositoryConfig['packages/cron-utils'].pullRequestTitlePattern
       ).to.eql('chore${scope}: send it v${version}');
+    });
+
+    it('should read branch-suffix from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/branch-suffix.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['branchSuffix']).to.eql('core');
     });
 
     it('should read custom tag separator from manifest', async () => {
@@ -1927,6 +1955,117 @@ describe('Manifest', () => {
         const pullRequest = pullRequests[0];
         expect(pullRequest.body.header.toString()).to.eql('Header from pkg1');
         expect(pullRequest.body.footer.toString()).to.eql('Footer from pkg2');
+      });
+      describe('with branch-suffix', () => {
+        const buildManifest = (
+          options: Record<string, unknown>,
+          pathBConfig: Record<string, unknown> = {}
+        ) =>
+          new Manifest(
+            github,
+            'main',
+            {
+              'path/a': {
+                releaseType: 'simple',
+                component: 'pkg1',
+              },
+              'path/b': {
+                releaseType: 'simple',
+                component: 'pkg2',
+                ...pathBConfig,
+              },
+            },
+            {
+              'path/a': Version.parse('1.0.0'),
+              'path/b': Version.parse('0.2.3'),
+            },
+            options
+          );
+
+        it('uses the default branch without branch-suffix', async () => {
+          const pullRequests = await buildManifest({}).buildPullRequests();
+          expect(pullRequests).lengthOf(1);
+          expect(pullRequests[0].headRefName).to.eql(
+            'release-please--branches--main'
+          );
+        });
+
+        it('uses the suffixed branch with branch-suffix', async () => {
+          const pullRequests = await buildManifest({
+            branchSuffix: 'core',
+          }).buildPullRequests();
+          expect(pullRequests).lengthOf(1);
+          expect(pullRequests[0].headRefName).to.eql(
+            'release-please--branches--main--suffix--core'
+          );
+        });
+
+        it('cleans an unsafe branch-suffix', async () => {
+          const pullRequests = await buildManifest({
+            branchSuffix: 'my group/a--b',
+          }).buildPullRequests();
+          expect(pullRequests).lengthOf(1);
+          expect(pullRequests[0].headRefName).to.eql(
+            'release-please--branches--main--suffix--my-group-a-b'
+          );
+        });
+
+        it('ignores an empty branch-suffix', async () => {
+          const pullRequests = await buildManifest({
+            branchSuffix: '',
+          }).buildPullRequests();
+          expect(pullRequests).lengthOf(1);
+          expect(pullRequests[0].headRefName).to.eql(
+            'release-please--branches--main'
+          );
+        });
+
+        it('ignores branch-suffix with separate-pull-requests', async () => {
+          const pullRequests = await buildManifest({
+            branchSuffix: 'core',
+            separatePullRequests: true,
+          }).buildPullRequests();
+          expect(pullRequests).lengthOf(2);
+          for (const pullRequest of pullRequests) {
+            expect(pullRequest.headRefName).to.not.include('--suffix--');
+          }
+        });
+
+        it('keeps a component branch for a package with its own separate-pull-requests', async () => {
+          const pullRequests = await buildManifest(
+            {branchSuffix: 'core'},
+            {separatePullRequests: true}
+          ).buildPullRequests();
+          expect(pullRequests.map(pr => pr.headRefName).sort()).to.eql([
+            'release-please--branches--main--components--pkg2',
+            'release-please--branches--main--suffix--core',
+          ]);
+        });
+
+        it('uses the suffixed branch with a workspace plugin', async () => {
+          // Workspace plugins merge with their own Merge and no branch name
+          // (src/plugins/workspace.ts); the manifest's Merge runs last.
+          const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
+          mockPlugin.preconfigure.returnsArg(0);
+          mockPlugin.processCommits.returnsArg(0);
+          mockPlugin.run.callsFake(
+            (candidates: CandidateReleasePullRequest[]) =>
+              new Merge(github, 'main', {}).run(candidates)
+          );
+          sandbox
+            .stub(pluginFactory, 'buildPlugin')
+            .withArgs(sinon.match.has('type', 'node-workspace'))
+            .returns(mockPlugin);
+          const pullRequests = await buildManifest({
+            branchSuffix: 'core',
+            plugins: ['node-workspace'],
+          }).buildPullRequests();
+          sinon.assert.calledOnce(mockPlugin.run);
+          expect(pullRequests).lengthOf(1);
+          expect(pullRequests[0].headRefName).to.eql(
+            'release-please--branches--main--suffix--core'
+          );
+        });
       });
     });
 

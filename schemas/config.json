@@ -427,6 +427,10 @@
           "description": "When grouping multiple release pull requests use this pattern for the title.",
           "type": "string"
         },
+        "branch-suffix": {
+          "description": "Puts the combined release pull request on its own branch, release-please--branches--<target>--suffix--<suffix>, so several manifests can each have one in the same repository. Only used when separate-pull-requests is false. Give each manifest its own label too. Before setting this on an existing manifest, close any open release pull request on the default branch, and tag or un-label any merged one.",
+          "type": "string"
+        },
         "release-search-depth": {
           "description": "When considering previously releases, only look this deep.",
           "type": "number"
@@ -468,6 +472,7 @@
     "plugins": true,
     "signoff": true,
     "group-pull-request-title-pattern": true,
+    "branch-suffix": true,
     "release-search-depth": true,
     "commit-search-depth": true,
     "commit-batch-size": true,
