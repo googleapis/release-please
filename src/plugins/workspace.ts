@@ -262,6 +262,9 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         const version = existingCandidate.pullRequest.version!;
         this.logger.debug(`version: ${version} from release-please`);
         updatedVersions.set(packageName, version);
+        if (this.isReleaseVersion(version)) {
+          updatedPathVersions.set(this.pathFromPackage(pkg), version);
+        }
       } else {
         const version = this.bumpVersion(pkg);
         this.logger.debug(`version: ${version} forced bump`);
