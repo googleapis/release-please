@@ -215,6 +215,7 @@ export interface ManifestOptions {
   draftPullRequest?: boolean;
   alwaysUpdate?: boolean;
   groupPullRequestTitlePattern?: string;
+  branchSuffix?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   commitBatchSize?: number;
@@ -271,6 +272,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   plugins?: PluginType[];
   signoff?: string;
   'group-pull-request-title-pattern'?: string;
+  'branch-suffix'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
   'commit-batch-size'?: number;
@@ -331,6 +333,7 @@ export class Manifest {
   private prerelease?: boolean;
   private draftPullRequest?: boolean;
   private groupPullRequestTitlePattern?: string;
+  private branchSuffix?: string;
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
   readonly commitBatchSize: number;
@@ -354,6 +357,8 @@ export class Manifest {
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
+   * @param {string} manifestOptions.branchSuffix If set, put the single manifest
+   *   release pull request on its own branch with this suffix
    * @param {boolean} manifestOptions.alwaysUpdate If true, always updates pull requests instead of
    *   only when the release notes change
    * @param {PluginType[]} manifestOptions.plugins Any plugins to use for this repository
@@ -399,6 +404,7 @@ export class Manifest {
     this.draftPullRequest = manifestOptions?.draftPullRequest;
     this.groupPullRequestTitlePattern =
       manifestOptions?.groupPullRequestTitlePattern;
+    this.branchSuffix = manifestOptions?.branchSuffix?.trim();
     this.releaseSearchDepth =
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =
@@ -806,6 +812,12 @@ export class Manifest {
       const mergeOptions: MergeOptions = {
         pullRequestTitlePattern: this.groupPullRequestTitlePattern,
       };
+      if (this.branchSuffix) {
+        mergeOptions.headBranchName = BranchName.ofSuffixTargetBranch(
+          this.branchSuffix,
+          this.targetBranch
+        ).toString();
+      }
       // Find the first repositoryConfig item that has a set value
       // for the options that can be passed to the merge plugin
       for (const path in this.repositoryConfig) {
@@ -1473,6 +1485,7 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     alwaysUpdate: config['always-update'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
+    branchSuffix: config['branch-suffix'],
     plugins: config['plugins'],
     signoff: config['signoff'],
     labels: configLabel?.split(','),
