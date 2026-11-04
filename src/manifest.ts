@@ -404,7 +404,7 @@ export class Manifest {
     this.draftPullRequest = manifestOptions?.draftPullRequest;
     this.groupPullRequestTitlePattern =
       manifestOptions?.groupPullRequestTitlePattern;
-    this.branchSuffix = manifestOptions?.branchSuffix;
+    this.branchSuffix = manifestOptions?.branchSuffix?.trim();
     this.releaseSearchDepth =
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =

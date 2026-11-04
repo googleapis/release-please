@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
-import {Manifest, CandidateReleasePullRequest} from '../src/manifest';
+import {
+  Manifest,
+  CandidateReleasePullRequest,
+  ManifestOptions,
+} from '../src/manifest';
 import {Merge} from '../src/plugins/merge';
 import {GitHub, ReleaseOptions} from '../src/github';
 import * as githubModule from '../src/github';
@@ -150,6 +154,70 @@ function pullRequestBody(path: string): string {
   return readFileSync(resolve(fixturesPath, path), 'utf8').replace(
     /\r\n/g,
     '\n'
+  );
+}
+
+const MULTIPLE_RELEASE_TAGS = [
+  'bot-config-utils-v3.2.0',
+  'label-utils-v1.1.0',
+  'object-selector-v1.1.0',
+  'datastore-lock-v2.1.0',
+];
+
+// A merged release PR (#1234) carrying release-notes/multiple.txt on
+// headBranchName, and a manifest for the four node packages it releases.
+function setUpMultipleNodeRelease(
+  github: GitHub,
+  headBranchName: string,
+  manifestOptions: ManifestOptions
+): Manifest {
+  mockPullRequests(
+    github,
+    [],
+    [
+      {
+        headBranchName,
+        baseBranchName: 'main',
+        number: 1234,
+        title: 'chore: release main',
+        body: pullRequestBody('release-notes/multiple.txt'),
+        labels: ['autorelease: pending'],
+        files: [],
+        sha: 'abc123',
+      },
+    ]
+  );
+  const getFileContentsStub = sandbox.stub(github, 'getFileContentsOnBranch');
+  for (const name of [
+    'bot-config-utils',
+    'label-utils',
+    'object-selector',
+    'datastore-lock',
+  ]) {
+    getFileContentsStub
+      .withArgs(`packages/${name}/package.json`, 'main')
+      .resolves(
+        buildGitHubFileRaw(
+          JSON.stringify({name: `@google-automations/${name}`})
+        )
+      );
+  }
+  return new Manifest(
+    github,
+    'main',
+    {
+      'packages/bot-config-utils': {releaseType: 'node'},
+      'packages/label-utils': {releaseType: 'node'},
+      'packages/object-selector': {releaseType: 'node'},
+      'packages/datastore-lock': {releaseType: 'node'},
+    },
+    {
+      'packages/bot-config-utils': Version.parse('3.1.4'),
+      'packages/label-utils': Version.parse('1.0.1'),
+      'packages/object-selector': Version.parse('1.0.2'),
+      'packages/datastore-lock': Version.parse('2.0.0'),
+    },
+    manifestOptions
   );
 }
 
@@ -2020,15 +2088,25 @@ describe('Manifest', () => {
           );
         });
 
+        it('ignores a whitespace-only branch-suffix', async () => {
+          const pullRequests = await buildManifest({
+            branchSuffix: '  ',
+          }).buildPullRequests();
+          expect(pullRequests).lengthOf(1);
+          expect(pullRequests[0].headRefName).to.eql(
+            'release-please--branches--main'
+          );
+        });
+
         it('ignores branch-suffix with separate-pull-requests', async () => {
           const pullRequests = await buildManifest({
             branchSuffix: 'core',
             separatePullRequests: true,
           }).buildPullRequests();
-          expect(pullRequests).lengthOf(2);
-          for (const pullRequest of pullRequests) {
-            expect(pullRequest.headRefName).to.not.include('--suffix--');
-          }
+          expect(pullRequests.map(pr => pr.headRefName).sort()).to.eql([
+            'release-please--branches--main--components--pkg1',
+            'release-please--branches--main--components--pkg2',
+          ]);
         });
 
         it('keeps a component branch for a package with its own separate-pull-requests', async () => {
@@ -2043,8 +2121,10 @@ describe('Manifest', () => {
         });
 
         it('uses the suffixed branch with a workspace plugin', async () => {
-          // Workspace plugins merge with their own Merge and no branch name
-          // (src/plugins/workspace.ts); the manifest's Merge runs last.
+          // Stands in for a workspace plugin, which merges with its own Merge
+          // and no branch name (src/plugins/workspace.ts). This checks that the
+          // manifest's Merge runs after the plugin and sets the final branch;
+          // it does not exercise the real plugin's output.
           const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
           mockPlugin.preconfigure.returnsArg(0);
           mockPlugin.processCommits.returnsArg(0);
@@ -5475,74 +5555,32 @@ describe('Manifest', () => {
       expect(releases[0].prerelease).to.be.undefined;
     });
 
-    it('builds releases from a merged pull request on the suffixed branch', async () => {
-      mockPullRequests(
-        github,
-        [],
-        [
-          {
-            headBranchName: 'release-please--branches--main--suffix--core',
-            baseBranchName: 'main',
-            number: 1234,
-            title: 'chore: release main',
-            body: pullRequestBody('release-notes/multiple.txt'),
-            labels: ['autorelease: pending'],
-            files: [],
-            sha: 'abc123',
-          },
-        ]
-      );
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
-      for (const name of [
-        'bot-config-utils',
-        'label-utils',
-        'object-selector',
-        'datastore-lock',
-      ]) {
-        getFileContentsStub
-          .withArgs(`packages/${name}/package.json`, 'main')
-          .resolves(
-            buildGitHubFileRaw(
-              JSON.stringify({name: `@google-automations/${name}`})
-            )
-          );
-      }
-      const manifest = new Manifest(
-        github,
-        'main',
-        {
-          'packages/bot-config-utils': {
-            releaseType: 'node',
-          },
-          'packages/label-utils': {
-            releaseType: 'node',
-          },
-          'packages/object-selector': {
-            releaseType: 'node',
-          },
-          'packages/datastore-lock': {
-            releaseType: 'node',
-          },
-        },
-        {
-          'packages/bot-config-utils': Version.parse('3.1.4'),
-          'packages/label-utils': Version.parse('1.0.1'),
-          'packages/object-selector': Version.parse('1.0.2'),
-          'packages/datastore-lock': Version.parse('2.0.0'),
-        },
-        {branchSuffix: 'core'}
-      );
-      const releases = await manifest.buildReleases();
-      expect(releases.map(release => release.tag.toString())).to.eql([
-        'bot-config-utils-v3.2.0',
-        'label-utils-v1.1.0',
-        'object-selector-v1.1.0',
-        'datastore-lock-v2.1.0',
-      ]);
-    });
+    for (const {title, headBranchName, manifestOptions} of [
+      {
+        title:
+          'builds releases from a merged pull request on the suffixed branch',
+        headBranchName: 'release-please--branches--main--suffix--core',
+        manifestOptions: {branchSuffix: 'core'},
+      },
+      {
+        title:
+          'still processes a suffixed merged pull request without branch-suffix',
+        headBranchName: 'release-please--branches--main--suffix--other',
+        manifestOptions: {},
+      },
+    ]) {
+      it(title, async () => {
+        const manifest = setUpMultipleNodeRelease(
+          github,
+          headBranchName,
+          manifestOptions
+        );
+        const releases = await manifest.buildReleases();
+        expect(releases.map(release => release.tag.toString())).to.eql(
+          MULTIPLE_RELEASE_TAGS
+        );
+      });
+    }
 
     it('builds a release for a root-only manifest from a suffixed branch', async () => {
       mockPullRequests(
@@ -5580,75 +5618,6 @@ describe('Manifest', () => {
       expect(releases).lengthOf(1);
       expect(releases[0].tag.toString()).to.eql('v3.2.7');
       expect(releases[0].path).to.eql('.');
-    });
-
-    it('still processes a suffixed merged pull request without branch-suffix', async () => {
-      mockPullRequests(
-        github,
-        [],
-        [
-          {
-            headBranchName: 'release-please--branches--main--suffix--other',
-            baseBranchName: 'main',
-            number: 1234,
-            title: 'chore: release main',
-            body: pullRequestBody('release-notes/multiple.txt'),
-            labels: ['autorelease: pending'],
-            files: [],
-            sha: 'abc123',
-          },
-        ]
-      );
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
-      for (const name of [
-        'bot-config-utils',
-        'label-utils',
-        'object-selector',
-        'datastore-lock',
-      ]) {
-        getFileContentsStub
-          .withArgs(`packages/${name}/package.json`, 'main')
-          .resolves(
-            buildGitHubFileRaw(
-              JSON.stringify({name: `@google-automations/${name}`})
-            )
-          );
-      }
-      const manifest = new Manifest(
-        github,
-        'main',
-        {
-          'packages/bot-config-utils': {
-            releaseType: 'node',
-          },
-          'packages/label-utils': {
-            releaseType: 'node',
-          },
-          'packages/object-selector': {
-            releaseType: 'node',
-          },
-          'packages/datastore-lock': {
-            releaseType: 'node',
-          },
-        },
-        {
-          'packages/bot-config-utils': Version.parse('3.1.4'),
-          'packages/label-utils': Version.parse('1.0.1'),
-          'packages/object-selector': Version.parse('1.0.2'),
-          'packages/datastore-lock': Version.parse('2.0.0'),
-        },
-        {}
-      );
-      const releases = await manifest.buildReleases();
-      expect(releases.map(release => release.tag.toString())).to.eql([
-        'bot-config-utils-v3.2.0',
-        'label-utils-v1.1.0',
-        'object-selector-v1.1.0',
-        'datastore-lock-v2.1.0',
-      ]);
     });
 
     it('should handle a single component release', async () => {
@@ -6630,171 +6599,43 @@ describe('Manifest', () => {
       );
     });
 
-    it('tags a merged pull request on the suffixed branch', async () => {
-      mockPullRequests(
-        github,
-        [],
-        [
-          {
-            headBranchName: 'release-please--branches--main--suffix--core',
-            baseBranchName: 'main',
-            number: 1234,
-            title: 'chore: release main',
-            body: pullRequestBody('release-notes/multiple.txt'),
-            labels: ['autorelease: pending'],
-            files: [],
+    for (const {title, headBranchName} of [
+      {
+        title: 'tags a merged pull request on the suffixed branch',
+        headBranchName: 'release-please--branches--main--suffix--core',
+      },
+      {
+        title:
+          'still tags a merged pull request on the default branch after switching to branch-suffix',
+        headBranchName: 'release-please--branches--main',
+      },
+    ]) {
+      it(title, async () => {
+        const manifest = setUpMultipleNodeRelease(github, headBranchName, {
+          branchSuffix: 'core',
+        });
+        mockCreateRelease(
+          github,
+          MULTIPLE_RELEASE_TAGS.map((tagName, index) => ({
+            id: index + 1,
             sha: 'abc123',
-          },
-        ]
-      );
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
-      for (const name of [
-        'bot-config-utils',
-        'label-utils',
-        'object-selector',
-        'datastore-lock',
-      ]) {
-        getFileContentsStub
-          .withArgs(`packages/${name}/package.json`, 'main')
-          .resolves(
-            buildGitHubFileRaw(
-              JSON.stringify({name: `@google-automations/${name}`})
-            )
-          );
-      }
-      mockCreateRelease(github, [
-        {id: 1, sha: 'abc123', tagName: 'bot-config-utils-v3.2.0'},
-        {id: 2, sha: 'abc123', tagName: 'label-utils-v1.1.0'},
-        {id: 3, sha: 'abc123', tagName: 'object-selector-v1.1.0'},
-        {id: 4, sha: 'abc123', tagName: 'datastore-lock-v2.1.0'},
-      ]);
-      sandbox.stub(github, 'commentOnIssue').resolves();
-      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
-      sandbox.stub(github, 'removeIssueLabels').resolves();
-      const manifest = new Manifest(
-        github,
-        'main',
-        {
-          'packages/bot-config-utils': {
-            releaseType: 'node',
-          },
-          'packages/label-utils': {
-            releaseType: 'node',
-          },
-          'packages/object-selector': {
-            releaseType: 'node',
-          },
-          'packages/datastore-lock': {
-            releaseType: 'node',
-          },
-        },
-        {
-          'packages/bot-config-utils': Version.parse('3.1.4'),
-          'packages/label-utils': Version.parse('1.0.1'),
-          'packages/object-selector': Version.parse('1.0.2'),
-          'packages/datastore-lock': Version.parse('2.0.0'),
-        },
-        {branchSuffix: 'core'}
-      );
-      const releases = await manifest.createReleases();
-      expect(releases.map(release => release!.tagName)).to.eql([
-        'bot-config-utils-v3.2.0',
-        'label-utils-v1.1.0',
-        'object-selector-v1.1.0',
-        'datastore-lock-v2.1.0',
-      ]);
-      sinon.assert.calledOnceWithExactly(
-        addLabelsStub,
-        ['autorelease: tagged'],
-        1234
-      );
-    });
-
-    it('still tags a merged pull request on the default branch after switching to branch-suffix', async () => {
-      mockPullRequests(
-        github,
-        [],
-        [
-          {
-            headBranchName: 'release-please--branches--main',
-            baseBranchName: 'main',
-            number: 1234,
-            title: 'chore: release main',
-            body: pullRequestBody('release-notes/multiple.txt'),
-            labels: ['autorelease: pending'],
-            files: [],
-            sha: 'abc123',
-          },
-        ]
-      );
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
-      for (const name of [
-        'bot-config-utils',
-        'label-utils',
-        'object-selector',
-        'datastore-lock',
-      ]) {
-        getFileContentsStub
-          .withArgs(`packages/${name}/package.json`, 'main')
-          .resolves(
-            buildGitHubFileRaw(
-              JSON.stringify({name: `@google-automations/${name}`})
-            )
-          );
-      }
-      mockCreateRelease(github, [
-        {id: 1, sha: 'abc123', tagName: 'bot-config-utils-v3.2.0'},
-        {id: 2, sha: 'abc123', tagName: 'label-utils-v1.1.0'},
-        {id: 3, sha: 'abc123', tagName: 'object-selector-v1.1.0'},
-        {id: 4, sha: 'abc123', tagName: 'datastore-lock-v2.1.0'},
-      ]);
-      sandbox.stub(github, 'commentOnIssue').resolves();
-      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
-      sandbox.stub(github, 'removeIssueLabels').resolves();
-      const manifest = new Manifest(
-        github,
-        'main',
-        {
-          'packages/bot-config-utils': {
-            releaseType: 'node',
-          },
-          'packages/label-utils': {
-            releaseType: 'node',
-          },
-          'packages/object-selector': {
-            releaseType: 'node',
-          },
-          'packages/datastore-lock': {
-            releaseType: 'node',
-          },
-        },
-        {
-          'packages/bot-config-utils': Version.parse('3.1.4'),
-          'packages/label-utils': Version.parse('1.0.1'),
-          'packages/object-selector': Version.parse('1.0.2'),
-          'packages/datastore-lock': Version.parse('2.0.0'),
-        },
-        {branchSuffix: 'core'}
-      );
-      const releases = await manifest.createReleases();
-      expect(releases.map(release => release!.tagName)).to.eql([
-        'bot-config-utils-v3.2.0',
-        'label-utils-v1.1.0',
-        'object-selector-v1.1.0',
-        'datastore-lock-v2.1.0',
-      ]);
-      sinon.assert.calledOnceWithExactly(
-        addLabelsStub,
-        ['autorelease: tagged'],
-        1234
-      );
-    });
+            tagName,
+          }))
+        );
+        sandbox.stub(github, 'commentOnIssue').resolves();
+        const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+        sandbox.stub(github, 'removeIssueLabels').resolves();
+        const releases = await manifest.createReleases();
+        expect(releases.map(release => release!.tagName)).to.eql(
+          MULTIPLE_RELEASE_TAGS
+        );
+        sinon.assert.calledOnceWithExactly(
+          addLabelsStub,
+          ['autorelease: tagged'],
+          1234
+        );
+      });
+    }
 
     it('two manifests each tag only their own merged pull request', async () => {
       const mergedPullRequests: PullRequest[] = [
