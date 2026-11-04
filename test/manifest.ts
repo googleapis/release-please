@@ -6713,6 +6713,89 @@ describe('Manifest', () => {
       );
     });
 
+    it('still tags a merged pull request on the default branch after switching to branch-suffix', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/multiple.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      for (const name of [
+        'bot-config-utils',
+        'label-utils',
+        'object-selector',
+        'datastore-lock',
+      ]) {
+        getFileContentsStub
+          .withArgs(`packages/${name}/package.json`, 'main')
+          .resolves(
+            buildGitHubFileRaw(
+              JSON.stringify({name: `@google-automations/${name}`})
+            )
+          );
+      }
+      mockCreateRelease(github, [
+        {id: 1, sha: 'abc123', tagName: 'bot-config-utils-v3.2.0'},
+        {id: 2, sha: 'abc123', tagName: 'label-utils-v1.1.0'},
+        {id: 3, sha: 'abc123', tagName: 'object-selector-v1.1.0'},
+        {id: 4, sha: 'abc123', tagName: 'datastore-lock-v2.1.0'},
+      ]);
+      sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      sandbox.stub(github, 'removeIssueLabels').resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
+          },
+        },
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        },
+        {branchSuffix: 'core'}
+      );
+      const releases = await manifest.createReleases();
+      expect(releases.map(release => release!.tagName)).to.eql([
+        'bot-config-utils-v3.2.0',
+        'label-utils-v1.1.0',
+        'object-selector-v1.1.0',
+        'datastore-lock-v2.1.0',
+      ]);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+    });
+
     it('two manifests each tag only their own merged pull request', async () => {
       const mergedPullRequests: PullRequest[] = [
         {

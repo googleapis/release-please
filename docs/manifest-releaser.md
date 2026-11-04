@@ -494,6 +494,8 @@ The label matters because release-please finds its release pull requests by
 label. A config that uses only the default `autorelease: pending` label also
 finds the other configs' release pull requests. While one of those is merged
 but not yet tagged, that config does not open or update its own pull request.
+It can also create releases from another config's pull request, for example
+when both configs release the root package (`"."`).
 
 ```json
 {
@@ -508,17 +510,14 @@ but not yet tagged, that config does not open or update its own pull request.
 ```
 
 If you add `branch-suffix` to a config that is already in use, release-please
-stops looking at the old `release-please--branches--<target>` branch. Before you
-switch:
+no longer updates an open release pull request on the old
+`release-please--branches--<target>` branch, so close it before you switch.
 
-* close any open release pull request on the old branch, because it will not be
-  updated again;
-* if a release pull request on the old branch is merged but not tagged yet, run
-  release-please once more without the option so it is tagged, or remove its
-  `autorelease: pending` label.
-
-If you change the config's labels at the same time, do the same for any release
-pull request that carries only the old labels.
+A release pull request on the old branch that is merged but not yet tagged is
+still found by its labels, and the next run tags it as usual. If you also change
+the config's labels when you switch, release-please no longer finds a pull
+request that carries only the old labels. Let it be tagged before you change
+the labels.
 
 ## Plugins
 
