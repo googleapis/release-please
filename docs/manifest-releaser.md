@@ -475,7 +475,7 @@ codebase.
 
 ### Multiple manifests in one repository
 
-By default, the manifest pull request for every package uses the branch
+By default, the combined release pull request for all packages uses the branch
 `release-please--branches--<target>`. If you run release-please with two config
 files against the same target branch, both runs write to that branch, and each
 one overwrites the other's pull request.
@@ -516,8 +516,10 @@ no longer updates an open release pull request on the old
 A release pull request on the old branch that is merged but not yet tagged is
 still found by its labels, and the next run tags it as usual. If you also change
 the config's labels when you switch, release-please no longer finds a pull
-request that carries only the old labels. Let it be tagged before you change
-the labels.
+request that carries only the old labels. That pull request is then never
+tagged and keeps its pending label, and any config that still uses only the
+default label stays blocked by it. Let it be tagged before you change the
+labels.
 
 ## Plugins
 
