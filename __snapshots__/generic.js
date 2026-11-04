@@ -51,6 +51,12 @@ public final class Version {
   public static String INLINE_MINOR = "3"; // {x-release-please-minor}
   public static String INLINE_PATCH = "4"; // {x-release-please-patch}
 
+  public static String INLINE_COMPONENT_VERSION = "2.3.4"; // {x-release-please-an-app-called-major-version}
+  public static String INLINE_COMPONENT_MAJOR = "2"; // {x-release-please-an-app-called-major-major}
+  public static String INLINE_COMPONENT_MAJOR_V = "v2"; // {x-release-please-an-app-called-major-major}
+  public static String INLINE_COMPONENT_MINOR = "3"; // {x-release-please-an-app-called-major-minor}
+  public static String INLINE_COMPONENT_PATCH = "4"; // {x-release-please-an-app-called-major-patch}
+
   public static String RELEASE_DATE = "01-12-2023"; // {x-release-please-date}
   public static String RELEASE_INFO = "v2.3.4 01-12-2023"; // {x-release-please-version-date}
 }
