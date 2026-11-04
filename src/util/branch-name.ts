@@ -29,6 +29,7 @@ function getAllResourceNames(): BranchNameType[] {
     AutoreleaseBranchName,
     ComponentBranchName,
     GroupBranchName,
+    SuffixBranchName,
     DefaultBranchName,
     V12ComponentBranchName,
     V12DefaultBranchName,
@@ -83,6 +84,16 @@ export class BranchName {
     return new GroupBranchName(
       `${RELEASE_PLEASE}--branches--${targetBranch}--groups--${safeBranchName(
         group
+      )}`
+    );
+  }
+  static ofSuffixTargetBranch(
+    suffix: string,
+    targetBranch: string
+  ): BranchName {
+    return new SuffixBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}--suffix--${safeBranchName(
+        suffix
       )}`
     );
   }
@@ -244,6 +255,25 @@ class GroupBranchName extends BranchName {
   }
   toString(): string {
     return `${RELEASE_PLEASE}--branches--${this.targetBranch}--groups--${this.component}`;
+  }
+}
+
+const SUFFIX_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--suffix--(?<suffix>.+)$`;
+class SuffixBranchName extends BranchName {
+  private suffix?: string;
+  static matches(branchName: string): boolean {
+    return !!branchName.match(SUFFIX_PATTERN);
+  }
+  constructor(branchName: string) {
+    super(branchName);
+    const match = branchName.match(SUFFIX_PATTERN);
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+      this.suffix = match.groups['suffix'];
+    }
+  }
+  toString(): string {
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--suffix--${this.suffix}`;
   }
 }
 
