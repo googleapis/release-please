@@ -24,7 +24,7 @@ import * as sinon from 'sinon';
 import * as codeSuggester from '../src/util/code-suggester';
 
 import {GitHub, GitHubRelease} from '../src/github';
-import {GitHubApi, GH_API_URL} from '../src/github-api';
+import {GitHubApi} from '../src/github-api';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
@@ -38,8 +38,6 @@ import {fail} from 'assert';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {HttpProxyAgent} from 'http-proxy-agent';
 import {Commit} from '../src/commit';
 import {mockReleaseData, MockPullRequestOverflowHandler} from './helpers';
 const fetch = require('node-fetch');
@@ -101,35 +99,16 @@ describe('GitHub', () => {
       expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
     });
 
-    it('default agent is undefined when no proxy option passed ', () => {
-      expect(GitHubApi.createDefaultAgent('test_url')).eq(undefined);
+    it('proxy fetch is undefined when no proxy option passed', () => {
+      expect(GitHubApi.createProxyFetch()).eq(undefined);
     });
 
-    it('should return a https agent', () => {
-      expect(
-        GitHubApi.createDefaultAgent(GH_API_URL, {
-          host: 'http://proxy.com',
-          port: 3000,
-        })
-      ).instanceof(HttpsProxyAgent);
-    });
-
-    it('should throw error when baseUrl is an invalid url', () => {
-      expect(() => {
-        GitHubApi.createDefaultAgent('invalid_url', {
-          host: 'http://proxy.com',
-          port: 3000,
-        });
-      }).to.throw('Invalid URL');
-    });
-
-    it('should return a http agent', () => {
-      expect(
-        GitHubApi.createDefaultAgent('http://www.github.com', {
-          host: 'http://proxy.com',
-          port: 3000,
-        })
-      ).instanceof(HttpProxyAgent);
+    it('should return a proxy fetch function', () => {
+      const proxyFetch = GitHubApi.createProxyFetch({
+        host: 'proxy.com',
+        port: 3000,
+      });
+      expect(proxyFetch).to.be.a('function');
     });
   });
 
