@@ -277,6 +277,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     const basePullRequest = strategy
       ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
           newVersion,
+          forceBump: true,
         })
       : undefined;
 
