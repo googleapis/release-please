@@ -506,6 +506,38 @@ describe('Manifest', () => {
         'lang: nodejs',
       ]);
     });
+    it('should read snapshot labels from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/snapshot-labels.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['snapshotLabels']).to.deep.equal(['global-snapshot']);
+      expect(manifest.repositoryConfig['.'].snapshotLabels).to.deep.equal([
+        'global-snapshot',
+      ]);
+      expect(
+        manifest.repositoryConfig['node-lib'].snapshotLabels
+      ).to.deep.equal(['per-package-snapshot']);
+    });
     it('should read exclude paths from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
