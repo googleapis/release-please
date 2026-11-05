@@ -151,6 +151,49 @@ export type ReleaseIteratorOptions = ScmReleaseIteratorOptions;
 
 export const MAX_SLEEP_SECONDS = 20;
 export const MAX_ISSUE_BODY_SIZE = 65536;
+const LABEL_ISSUE_NOT_FOUND_MAX_RETRIES = 3;
+const LABEL_ISSUE_NOT_FOUND_INITIAL_DELAY_MS = 1000;
+
+/**
+ * True when GitHub returns 422 because a newly-created issue/PR is not yet
+ * indexed for label mutations (eventual consistency).
+ */
+export function isIssueNotFoundLabelError(err: unknown): boolean {
+  return (
+    err instanceof RequestError &&
+    err.status === 422 &&
+    err.message.includes('Issue not found')
+  );
+}
+
+async function withRetryOnIssueNotFound<T>(
+  fn: () => Promise<T>,
+  logger: Logger,
+  operation: string
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt < LABEL_ISSUE_NOT_FOUND_MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (
+        !isIssueNotFoundLabelError(e) ||
+        attempt === LABEL_ISSUE_NOT_FOUND_MAX_RETRIES - 1
+      ) {
+        throw e;
+      }
+      lastError = e as Error;
+      const delayMs = LABEL_ISSUE_NOT_FOUND_INITIAL_DELAY_MS * (attempt + 1);
+      logger.warn(
+        `${operation} failed with 422 Issue not found (attempt ${
+          attempt + 1
+        }/${LABEL_ISSUE_NOT_FOUND_MAX_RETRIES}), retrying in ${delayMs}ms...`
+      );
+      await sleepInMs(delayMs);
+    }
+  }
+  throw lastError!;
+}
 
 export class GitHubApi {
   readonly repository: Repository;
@@ -795,12 +838,17 @@ export class GitHubApi {
         return;
       }
       this.logger.debug(`adding labels: ${labels} from issue/pull ${number}`);
-      await this.octokit.issues.addLabels({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        issue_number: number,
-        labels,
-      });
+      await withRetryOnIssueNotFound(
+        () =>
+          this.octokit.issues.addLabels({
+            owner: this.repository.owner,
+            repo: this.repository.repo,
+            issue_number: number,
+            labels,
+          }),
+        this.logger,
+        `addIssueLabels(${number})`
+      );
     }
   );
 
