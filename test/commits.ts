@@ -326,6 +326,24 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[2].type).to.equal('refactor');
   });
 
+  it('handles nested parentheses after a non-ASCII space in the commit body', async () => {
+    // The parser treats only U+FEFF, tab, VT, FF, space and NBSP as
+    // whitespace, so an em space does not end the footer token.
+    const commits = [
+      buildMockCommit('fix: some fix\n\nfoo\u2003bar(baz(qux))'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('fix');
+  });
+
+  it('handles an unterminated scope ended by a bare CR in the commit body', async () => {
+    const commits = [buildMockCommit('fix: some fix\n\nfoo(bar\rbaz')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].bareMessage).to.equal('some fix');
+  });
+
   it('handles a special commit separator', async () => {
     const commits = [buildCommitFromFixture('multiple-commits-with-separator')];
     const conventionalCommits = parseConventionalCommits(commits);

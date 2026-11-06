@@ -384,7 +384,11 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
   );
 }
 
-const UNTERMINATED_SCOPE_LINE_REGEX = /^[^\s:!()]+\([^()\r\n]*(?:\(|\r?$)/;
+// The excluded whitespace is the parser's own set (`isWhitespace` in
+// @conventional-commits/parser), not JavaScript's `\s`. The parser also ends
+// a line at a bare `\r`, so that closes an unterminated scope too.
+const UNTERMINATED_SCOPE_LINE_REGEX =
+  /^[^\uFEFF\t\v\f \u00A0\r\n:!()]+\([^()\r\n]*(?:\(|\r|$)/;
 
 /**
  * `@conventional-commits/parser` attempts to parse the start of every body line
