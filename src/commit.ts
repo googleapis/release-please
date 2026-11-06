@@ -296,7 +296,7 @@ function toConventionalChangelogFormat(
         }
         try {
           for (const commit of toConventionalChangelogFormat(
-            parser.parser(footerText)
+            parseMessage(footerText)
           )) {
             commits.push(commit);
           }
@@ -368,10 +368,14 @@ function hasExtendedContext(line: string) {
   return false;
 }
 
-function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
-  let ast: parser.Message;
+/**
+ * Parse a message, retrying once with `sanitizeBodyScopes` applied when the
+ * parser throws. Footer commits are re-parsed through this too, so they get
+ * the same recovery as the message they came from.
+ */
+function parseMessage(message: string): parser.Message {
   try {
-    ast = parser.parser(message);
+    return parser.parser(message);
   } catch (err) {
     const sanitizedMessage = sanitizeBodyScopes(message);
     if (sanitizedMessage === message) {
@@ -380,14 +384,17 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
     // Report the original failure: the retry's error describes the
     // rewritten message, not the commit.
     try {
-      ast = parser.parser(sanitizedMessage);
+      return parser.parser(sanitizedMessage);
     } catch {
       throw err;
     }
   }
-  return conventionalCommitsFilter(toConventionalChangelogFormat(ast)).map(
-    postProcessCommits
-  );
+}
+
+function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
+  return conventionalCommitsFilter(
+    toConventionalChangelogFormat(parseMessage(message))
+  ).map(postProcessCommits);
 }
 
 // The excluded whitespace is the parser's own set (`isWhitespace` in

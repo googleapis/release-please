@@ -394,6 +394,20 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].bareMessage).to.equal('some fix');
   });
 
+  it('keeps a breaking footer commit when a sanitized line follows it', async () => {
+    const commits = [
+      buildMockCommit(
+        'chore: merge\n\nfix(core)!: breaking fix\nFoo.Bar(baz(abc))'
+      ),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    const fix = conventionalCommits.find(commit => commit.type === 'fix');
+    expect(fix, 'footer commit').to.not.be.undefined;
+    expect(fix!.scope).to.equal('core');
+    expect(fix!.breaking).to.be.true;
+    expect(fix!.bareMessage).to.equal('breaking fix');
+  });
+
   it('handles a special commit separator', async () => {
     const commits = [buildCommitFromFixture('multiple-commits-with-separator')];
     const conventionalCommits = parseConventionalCommits(commits);
