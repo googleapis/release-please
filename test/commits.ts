@@ -352,6 +352,50 @@ describe('parseConventionalCommits', () => {
     );
   });
 
+  it('keeps the Release-As version when a continuation line follows it', async () => {
+    const commits = [
+      buildMockCommit('fix: some fix\n\nRelease-As: 2.0.0\n continued'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    const releaseAs = conventionalCommits
+      .flatMap(commit => commit.notes)
+      .filter(note => note.title === 'RELEASE AS');
+    expect(releaseAs).to.eql([{title: 'RELEASE AS', text: '2.0.0'}]);
+  });
+
+  it('keeps the Release-As version when a sanitized body line follows it', async () => {
+    const commits = [
+      buildMockCommit('fix: some fix\n\nRelease-As: 2.0.0\nFoo.Bar(baz(abc))'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    const releaseAs = conventionalCommits
+      .flatMap(commit => commit.notes)
+      .filter(note => note.title === 'RELEASE AS');
+    expect(releaseAs).to.eql([{title: 'RELEASE AS', text: '2.0.0'}]);
+  });
+
+  it('keeps the issue reference when a continuation line follows the footer', async () => {
+    const commits = [
+      buildMockCommit('fix: some fix\n\nFixes #9523\n continued'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].references.map(ref => ref.issue)).to.eql([
+      '9523',
+    ]);
+  });
+
+  it('keeps the issue reference when a sanitized line follows the footer', async () => {
+    const commits = [
+      buildMockCommit('fix: some fix\n\nFixes #9523\nFoo.Bar(baz(abc))'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].references.map(ref => ref.issue)).to.eql([
+      '9523',
+    ]);
+  });
+
   it('handles a special commit separator', async () => {
     const commits = [buildCommitFromFixture('multiple-commits-with-separator')];
     const conventionalCommits = parseConventionalCommits(commits);
