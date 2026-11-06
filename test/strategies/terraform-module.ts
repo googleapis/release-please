@@ -28,6 +28,7 @@ import {Changelog} from '../../src/updaters/changelog';
 import {ReadMe} from '../../src/updaters/terraform/readme';
 import {ModuleVersion} from '../../src/updaters/terraform/module-version';
 import {MetadataVersion} from '../../src/updaters/terraform/metadata-version';
+import {ExampleVersion} from '../../src/updaters/terraform/example-version';
 
 const sandbox = sinon.createSandbox();
 
@@ -62,6 +63,7 @@ describe('TerraformModule', () => {
         component: 'google-cloud-automl',
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -77,6 +79,7 @@ describe('TerraformModule', () => {
         component: 'google-cloud-automl',
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
         sha: 'abc123',
@@ -97,6 +100,7 @@ describe('TerraformModule', () => {
         component: 'google-cloud-automl',
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -114,6 +118,7 @@ describe('TerraformModule', () => {
         skipChangelog: true,
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -130,6 +135,7 @@ describe('TerraformModule', () => {
         component: 'google-cloud-automl',
       });
       const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       findFilesStub
         .withArgs('readme.md', 'main', '.')
         .resolves(['path1/readme.md', 'path2/readme.md']);
@@ -161,6 +167,57 @@ describe('TerraformModule', () => {
       assertHasUpdate(updates, 'path2/versions.tf.tmpl', ModuleVersion);
       assertHasUpdate(updates, 'path1/metadata.yaml', MetadataVersion);
       assertHasUpdate(updates, 'path2/metadata.yaml', MetadataVersion);
+    });
+
+    it('finds and updates example files', async () => {
+      const strategy = new TerraformModule({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const findFilesStub = sandbox.stub(github, 'findFilesByExtensionAndRef');
+      findFilesStub
+        .withArgs('tf', 'main', 'examples')
+        .resolves(['simple/main.tf', 'advanced/main.tf']);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'examples/simple/main.tf', ExampleVersion);
+      assertHasUpdate(updates, 'examples/advanced/main.tf', ExampleVersion);
+    });
+
+    it('finds and updates example files in subpath', async () => {
+      const strategy = new TerraformModule({
+        targetBranch: 'main',
+        github,
+        path: 'packages/my-module',
+        component: 'terraform-google-my-module',
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const findFilesStub = sandbox.stub(github, 'findFilesByExtensionAndRef');
+      findFilesStub
+        .withArgs('tf', 'main', 'packages/my-module/examples')
+        .resolves(['simple/main.tf', 'advanced/main.tf']);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(
+        updates,
+        'packages/my-module/examples/simple/main.tf',
+        ExampleVersion
+      );
+      assertHasUpdate(
+        updates,
+        'packages/my-module/examples/advanced/main.tf',
+        ExampleVersion
+      );
     });
   });
 });
