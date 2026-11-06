@@ -378,6 +378,22 @@ describe('parseConventionalCommits', () => {
     });
   });
 
+  it('handles nested parentheses on a line that starts after a bare CR', async () => {
+    const commits = [buildMockCommit('fix: some fix\n\nok\rFoo.Bar(baz(abc))')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].bareMessage).to.equal('some fix');
+  });
+
+  it('handles nested parentheses in a message with CR-only line endings', async () => {
+    const commits = [
+      buildMockCommit('fix: some fix\r\rFoo.Bar(baz(abc))\rMore details.'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].bareMessage).to.equal('some fix');
+  });
+
   it('handles a special commit separator', async () => {
     const commits = [buildCommitFromFixture('multiple-commits-with-separator')];
     const conventionalCommits = parseConventionalCommits(commits);
