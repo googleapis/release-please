@@ -169,8 +169,11 @@ function toConventionalChangelogFormat(
           // will be identified when the footer is parsed as a commit:
           if (!node.value.includes('BREAKING')) return;
           parent = ancestors.pop();
+          // Append rather than assign, so continuation lines of the footer
+          // do not replace the description.
+          breaking.text = '';
           visit(parent, ['text', 'newline'], (node: parser.Text) => {
-            breaking.text = node.value;
+            breaking.text += node.value;
           });
           break;
       }
@@ -222,6 +225,9 @@ function toConventionalChangelogFormat(
             if (node.value.includes('#')) hasRefSepartor = true;
             break;
           case 'text':
+            // The reference is the footer's first text node; any
+            // continuation lines after it are not part of it.
+            if (reference.issue !== '') break;
             // Footer of the form "Refs: #99"
             if (node.value.charAt(0) === '#') {
               hasRefSepartor = true;
@@ -282,9 +288,11 @@ function toConventionalChangelogFormat(
         // Any footers that carry semantic meaning, e.g., Release-As, should
         // be added to the footer field, for the benefits of post-processing:
         if (semanticFooter) {
+          // The version is the footer's first text node; any continuation
+          // lines after it are not part of the version.
           let releaseAs = '';
           visit(parent, ['text'], (node: parser.Text) => {
-            releaseAs = node.value;
+            if (releaseAs === '') releaseAs = node.value;
           });
           // record Release-As footer as a note
           headerCommit.notes.push({
