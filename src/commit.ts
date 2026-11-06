@@ -169,8 +169,11 @@ function toConventionalChangelogFormat(
           // will be identified when the footer is parsed as a commit:
           if (!node.value.includes('BREAKING')) return;
           parent = ancestors.pop();
+          // Append rather than assign, so continuation lines of the footer
+          // do not replace the description.
+          breaking.text = '';
           visit(parent, ['text', 'newline'], (node: parser.Text) => {
-            breaking.text = node.value;
+            breaking.text += node.value;
           });
           break;
       }

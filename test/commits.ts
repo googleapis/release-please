@@ -326,6 +326,32 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[2].type).to.equal('refactor');
   });
 
+  it('keeps the whole BREAKING CHANGE footer when a continuation line follows', async () => {
+    const commits = [
+      buildMockCommit(
+        'feat: some feature\n\nBREAKING CHANGE: the old API is gone\n continued here'
+      ),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].notes).to.eql([
+      {title: 'BREAKING CHANGE', text: 'the old API is gone continued here'},
+    ]);
+  });
+
+  it('keeps the BREAKING CHANGE footer when a sanitized body line follows', async () => {
+    const commits = [
+      buildMockCommit(
+        'feat: some feature\n\nBREAKING CHANGE: the old API is gone\nFoo.Bar(baz(abc))'
+      ),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].notes[0].text).to.match(
+      /^the old API is gone/
+    );
+  });
+
   it('handles a special commit separator', async () => {
     const commits = [buildCommitFromFixture('multiple-commits-with-separator')];
     const conventionalCommits = parseConventionalCommits(commits);
