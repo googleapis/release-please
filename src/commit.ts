@@ -377,7 +377,13 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
     if (sanitizedMessage === message) {
       throw err;
     }
-    ast = parser.parser(sanitizedMessage);
+    // Report the original failure: the retry's error describes the
+    // rewritten message, not the commit.
+    try {
+      ast = parser.parser(sanitizedMessage);
+    } catch {
+      throw err;
+    }
   }
   return conventionalCommitsFilter(toConventionalChangelogFormat(ast)).map(
     postProcessCommits
