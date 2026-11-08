@@ -454,7 +454,7 @@ export function parseConventionalCommits(
 
   for (const commit of commits) {
     for (const commitMessage of splitMessages(
-      preprocessCommitMessage(commit)
+      preprocessCommitMessage(commit, logger)
     )) {
       try {
         for (const parsedCommit of parseCommits(commitMessage)) {
@@ -489,7 +489,7 @@ export function parseConventionalCommits(
   return conventionalCommits;
 }
 
-function preprocessCommitMessage(commit: Commit): string {
+function preprocessCommitMessage(commit: Commit, logger: Logger): string {
   // look for 'BEGIN_COMMIT_OVERRIDE' section of pull request body
   if (commit.pullRequest) {
     const overrideMessage = (
@@ -498,7 +498,12 @@ function preprocessCommitMessage(commit: Commit): string {
       .split('END_COMMIT_OVERRIDE')[0]
       .trim();
     if (overrideMessage) {
-      return overrideMessage;
+      if (commit.pullRequest.commitOverrideTrusted !== false) {
+        return overrideMessage;
+      }
+      logger.warn(
+        `Ignoring BEGIN_COMMIT_OVERRIDE in PR #${commit.pullRequest.number}: the pull request is not merged or its body was edited after merge by a user without write access`
+      );
     }
   }
   return commit.message;

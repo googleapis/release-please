@@ -40,7 +40,7 @@ import {PullRequestTitle} from '../src/util/pull-request-title';
 import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
-import {Commit} from '../src/commit';
+import {Commit, parseConventionalCommits} from '../src/commit';
 import {mockReleaseData, MockPullRequestOverflowHandler} from './helpers';
 const fetch = require('node-fetch');
 
@@ -604,6 +604,118 @@ describe('GitHub', () => {
       }
       expect(commits).lengthOf(2);
       snapshot(commits!);
+      req.done();
+    });
+  });
+
+  describe('commit override', () => {
+    function edits(
+      edits: [string, string | null][],
+      hasNextPage = false
+    ): object {
+      const nodes = edits.map(([editedAt, login]) => ({
+        editedAt,
+        editor: login ? {login} : null,
+      }));
+      return {
+        data: {
+          repository: {
+            pullRequest: {userContentEdits: {nodes, pageInfo: {hasNextPage}}},
+          },
+        },
+      };
+    }
+
+    it('only trusts BEGIN_COMMIT_OVERRIDE when every edit after merge has write access', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-since-commit-override.json'),
+          'utf8'
+        )
+      );
+      const created = '2025-12-01T00:00:00Z';
+      const merged = '2026-01-01T00:00:00Z';
+      const historyOf = (number: number) => (body: {variables?: object}) =>
+        (body.variables as {number?: number})?.number === number;
+      req
+        .post('/graphql', (body: {query: string}) =>
+          body.query.includes('pullRequestsSince')
+        )
+        .reply(200, {data: graphql})
+        .post('/graphql', historyOf(1))
+        .reply(
+          200,
+          edits([
+            ['2026-02-01T00:00:00Z', 'maintainer'],
+            [created, 'contributor'],
+          ])
+        )
+        .post('/graphql', historyOf(2))
+        .reply(
+          200,
+          edits([
+            ['2026-02-01T00:00:00Z', 'contributor'],
+            [created, 'contributor'],
+          ])
+        )
+        .post('/graphql', historyOf(3))
+        .reply(
+          200,
+          edits([
+            ['2026-02-01T00:00:00Z', 'some-app'],
+            [created, 'contributor'],
+          ])
+        )
+        .post('/graphql', historyOf(4))
+        .reply(
+          200,
+          edits([
+            ['2026-02-01T00:00:00Z', null],
+            [created, 'contributor'],
+          ])
+        )
+        .post('/graphql', historyOf(8))
+        .reply(
+          200,
+          edits([
+            [merged, 'contributor'],
+            [created, 'contributor'],
+          ])
+        )
+        .post('/graphql', historyOf(9))
+        .reply(
+          200,
+          edits([
+            ['2026-03-01T00:00:00Z', 'maintainer'],
+            ['2026-02-01T00:00:00Z', 'contributor'],
+            [created, 'contributor'],
+          ])
+        )
+        .post('/graphql', historyOf(10))
+        .reply(200, edits([['2026-02-01T00:00:00Z', 'maintainer']], true))
+        .get('/repos/fake/fake/collaborators/maintainer/permission')
+        .reply(200, {permission: 'write'})
+        .get('/repos/fake/fake/collaborators/contributor/permission')
+        .reply(200, {permission: 'read'})
+        .get('/repos/fake/fake/collaborators/some-app/permission')
+        .reply(404);
+      const commits: Commit[] = [];
+      for await (const commit of github.mergeCommitIterator('main')) {
+        commits.push(commit);
+      }
+      const types = parseConventionalCommits(commits).map(c => c.type);
+      expect(types).to.eql([
+        'feat', // edited after merge by a user with write access
+        'fix', // edited after merge by a user with read access
+        'fix', // edited after merge by an app
+        'fix', // edited after merge by a deleted user
+        'feat', // never edited
+        'feat', // edited before merge
+        'fix', // open pull request
+        'fix', // edited in the same second as the merge
+        'fix', // edited after merge by a contributor and then a maintainer
+        'fix', // edit history too long to read
+      ]);
       req.done();
     });
   });

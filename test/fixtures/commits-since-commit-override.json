@@ -1,0 +1,327 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "nodes": [
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1,
+                    "title": "fix: edited after merge by a user with write access",
+                    "baseRefName": "main",
+                    "headRefName": "branch-1",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2026-02-01T00:00:00Z",
+                    "editor": {
+                      "login": "maintainer"
+                    },
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000001"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000001",
+              "message": "fix: edited after merge by a user with write access (#1)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 2,
+                    "title": "fix: edited after merge by a user with read access",
+                    "baseRefName": "main",
+                    "headRefName": "branch-2",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2026-02-01T00:00:00Z",
+                    "editor": {
+                      "login": "contributor"
+                    },
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000002"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000002",
+              "message": "fix: edited after merge by a user with read access (#2)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 3,
+                    "title": "fix: edited after merge by an app",
+                    "baseRefName": "main",
+                    "headRefName": "branch-3",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2026-02-01T00:00:00Z",
+                    "editor": {
+                      "login": "some-app"
+                    },
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000003"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000003",
+              "message": "fix: edited after merge by an app (#3)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 4,
+                    "title": "fix: edited after merge by a deleted user",
+                    "baseRefName": "main",
+                    "headRefName": "branch-4",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2026-02-01T00:00:00Z",
+                    "editor": null,
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000004"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000004",
+              "message": "fix: edited after merge by a deleted user (#4)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 5,
+                    "title": "fix: never edited",
+                    "baseRefName": "main",
+                    "headRefName": "branch-5",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": null,
+                    "editor": null,
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000005"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000005",
+              "message": "fix: never edited (#5)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 6,
+                    "title": "fix: edited before merge",
+                    "baseRefName": "main",
+                    "headRefName": "branch-6",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2025-12-31T00:00:00Z",
+                    "editor": {
+                      "login": "contributor"
+                    },
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000006"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000006",
+              "message": "fix: edited before merge (#6)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 7,
+                    "title": "fix: open pull request",
+                    "baseRefName": "main",
+                    "headRefName": "branch-7",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": null,
+                    "lastEditedAt": null,
+                    "editor": null,
+                    "mergeCommit": null,
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000007",
+              "message": "fix: open pull request (#7)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 8,
+                    "title": "fix: edited in the same second as the merge",
+                    "baseRefName": "main",
+                    "headRefName": "branch-8",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2026-01-01T00:00:00Z",
+                    "editor": {
+                      "login": "contributor"
+                    },
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000008"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000008",
+              "message": "fix: edited in the same second as the merge (#8)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 9,
+                    "title": "fix: edited after merge by a contributor and then a maintainer",
+                    "baseRefName": "main",
+                    "headRefName": "branch-9",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2026-03-01T00:00:00Z",
+                    "editor": {
+                      "login": "maintainer"
+                    },
+                    "mergeCommit": {
+                      "oid": "0000000000000000000000000000000000000009"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "0000000000000000000000000000000000000009",
+              "message": "fix: edited after merge by a contributor and then a maintainer (#9)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 10,
+                    "title": "fix: edit history too long to read",
+                    "baseRefName": "main",
+                    "headRefName": "branch-10",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "BEGIN_COMMIT_OVERRIDE\nfeat!: overridden\n\nBREAKING CHANGE: overridden\nEND_COMMIT_OVERRIDE",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                    "lastEditedAt": "2026-02-01T00:00:00Z",
+                    "editor": {
+                      "login": "maintainer"
+                    },
+                    "mergeCommit": {
+                      "oid": "000000000000000000000000000000000000000a"
+                    },
+                    "files": {
+                      "nodes": [],
+                      "pageInfo": {
+                        "hasNextPage": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "sha": "000000000000000000000000000000000000000a",
+              "message": "fix: edit history too long to read (#10)"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      }
+    }
+  }
+}

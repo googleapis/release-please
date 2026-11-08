@@ -22,4 +22,8 @@ export interface PullRequest {
   readonly labels: string[];
   readonly files: string[];
   readonly sha?: string;
+  // Set to false when a BEGIN_COMMIT_OVERRIDE section in the body must not be
+  // used, because the pull request is not merged or its body was edited after
+  // the merge by a user without write access.
+  readonly commitOverrideTrusted?: boolean;
 }
