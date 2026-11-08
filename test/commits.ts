@@ -237,6 +237,26 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[1].bareMessage).to.eql('another feature');
   });
 
+  it('ignores BEGIN_COMMIT_OVERRIDE from an untrusted pull request body', async () => {
+    const commit = buildMockCommit('chore: some commit');
+    commit.pullRequest = {
+      headBranchName: 'fix-something',
+      baseBranchName: 'main',
+      number: 123,
+      title: 'chore: some commit',
+      labels: [],
+      files: [],
+      body: 'BEGIN_COMMIT_OVERRIDE\nfeat!: forged\nEND_COMMIT_OVERRIDE',
+      commitOverrideTrusted: false,
+    };
+
+    const conventionalCommits = parseConventionalCommits([commit]);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.eql('chore');
+    expect(conventionalCommits[0].bareMessage).to.eql('some commit');
+    expect(conventionalCommits[0].breaking).to.be.false;
+  });
+
   it('handles commits with nested parentheses in body', async () => {
     const commits = [
       buildMockCommit(
