@@ -24,6 +24,7 @@ import {VersionsMap, Version} from '../version';
 import {Merge} from './merge';
 import {Scm} from '../scm';
 import {ReleasePleaseManifest} from '../updaters/release-please-manifest';
+import {componentManifestPath} from '../util/component-manifest';
 
 export type DependencyGraph<T> = Map<string, DependencyNode<T>>;
 export interface DependencyNode<T> {
@@ -33,6 +34,7 @@ export interface DependencyNode<T> {
 
 export interface WorkspacePluginOptions {
   manifestPath?: string;
+  componentManifests?: boolean;
   updateAllPackages?: boolean;
   merge?: boolean;
   logger?: Logger;
@@ -57,6 +59,7 @@ export interface AllPackages<T> {
 export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
   private manifestPath: string;
+  private componentManifests: boolean;
   private merge: boolean;
   constructor(
     github: Scm,
@@ -66,6 +69,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   ) {
     super(github, targetBranch, repositoryConfig, options.logger);
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
+    this.componentManifests = options.componentManifests ?? false;
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;
   }
@@ -176,15 +180,32 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       newCandidates = await mergePlugin.run(newCandidates);
     }
 
-    const newUpdates = newCandidates[0].pullRequest.updates;
-    newUpdates.push({
-      path: this.manifestPath,
-      createIfMissing: false,
-      updater: new ReleasePleaseManifest({
-        version: newCandidates[0].pullRequest.version!,
-        versionsMap: updatedPathVersions,
-      }),
-    });
+    if (this.componentManifests) {
+      // Write each path's version to its own manifest, on its own candidate
+      // when unmerged, so separate pull requests do not share a file.
+      for (const [path, version] of updatedPathVersions) {
+        const candidate =
+          newCandidates.find(c => c.path === path) ?? newCandidates[0];
+        candidate.pullRequest.updates.push({
+          path: componentManifestPath(path),
+          createIfMissing: true,
+          updater: new ReleasePleaseManifest({
+            version,
+            versionsMap: new Map([[path, version]]),
+          }),
+        });
+      }
+    } else {
+      const newUpdates = newCandidates[0].pullRequest.updates;
+      newUpdates.push({
+        path: this.manifestPath,
+        createIfMissing: false,
+        updater: new ReleasePleaseManifest({
+          version: newCandidates[0].pullRequest.version!,
+          versionsMap: updatedPathVersions,
+        }),
+      });
+    }
 
     this.logger.info(
       `Post-processing ${newCandidates.length} in-scope candidates`

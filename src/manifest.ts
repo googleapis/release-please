@@ -36,6 +36,10 @@ import {Strategy} from './strategy';
 import {MergeOptions, Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
+  componentManifestPath,
+  parseComponentReleasedVersions,
+} from './util/component-manifest';
+import {
   DuplicateReleaseError,
   FileNotFoundError,
   ConfigurationError,
@@ -205,6 +209,7 @@ export interface ManifestOptions {
   fork?: boolean;
   signoff?: string;
   manifestPath?: string;
+  componentManifests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
   snapshotLabels?: string[];
@@ -276,6 +281,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'commit-batch-size'?: number;
   'sequential-calls'?: boolean;
   'always-update'?: boolean;
+  'component-manifests'?: boolean;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -325,6 +331,7 @@ export class Manifest {
   private _strategiesByPath?: Record<string, Strategy>;
   private _pathsByComponent?: Record<string, string[]>;
   private manifestPath: string;
+  private componentManifests: boolean;
   private bootstrapSha?: string;
   private lastReleaseSha?: string;
   private draft?: boolean;
@@ -380,6 +387,7 @@ export class Manifest {
     this.releasedVersions = releasedVersions;
     this.manifestPath =
       manifestOptions?.manifestPath || DEFAULT_RELEASE_PLEASE_MANIFEST;
+    this.componentManifests = manifestOptions?.componentManifests || false;
     this.separatePullRequests =
       manifestOptions?.separatePullRequests ??
       Object.keys(repositoryConfig).length === 1;
@@ -413,6 +421,7 @@ export class Manifest {
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
+        componentManifests: this.componentManifests,
         separatePullRequests: this.separatePullRequests,
       })
     );
@@ -441,13 +450,18 @@ export class Manifest {
     path?: string,
     releaseAs?: string
   ): Promise<Manifest> {
-    const [
-      {config: repositoryConfig, options: manifestOptions},
-      releasedVersions,
-    ] = await Promise.all([
-      parseConfig(github, configFile, targetBranch, path, releaseAs),
-      parseReleasedVersions(github, manifestFile, targetBranch),
-    ]);
+    const {config: repositoryConfig, options: manifestOptions} =
+      await parseConfig(github, configFile, targetBranch, path, releaseAs);
+    const releasedVersions =
+      manifestOptionOverrides.componentManifests ??
+      manifestOptions.componentManifests
+        ? await parseComponentReleasedVersions(
+            github,
+            Object.keys(repositoryConfig),
+            targetBranch,
+            manifestOptionOverrides.logger ?? defaultLogger
+          )
+        : await parseReleasedVersions(github, manifestFile, targetBranch);
     return new Manifest(
       github,
       targetBranch,
@@ -784,8 +798,10 @@ export class Manifest {
           const versionsMap: VersionsMap = new Map();
           versionsMap.set(path, releasePullRequest.version);
           releasePullRequest.updates.push({
-            path: this.manifestPath,
-            createIfMissing: false,
+            path: this.componentManifests
+              ? componentManifestPath(path)
+              : this.manifestPath,
+            createIfMissing: this.componentManifests,
             updater: new ReleasePleaseManifest({
               version: releasePullRequest.version,
               versionsMap,
@@ -1483,6 +1499,7 @@ async function parseConfig(
     commitSearchDepth: config['commit-search-depth'],
     commitBatchSize: config['commit-batch-size'],
     sequentialCalls: config['sequential-calls'],
+    componentManifests: config['component-manifests'],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }

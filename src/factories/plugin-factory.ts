@@ -38,6 +38,7 @@ export interface PluginFactoryOptions {
   targetBranch: string;
   repositoryConfig: RepositoryConfig;
   manifestPath: string;
+  componentManifests?: boolean;
   separatePullRequests?: boolean;
 
   // node options

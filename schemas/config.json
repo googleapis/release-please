@@ -443,6 +443,10 @@
           "description": "Whether to open pull requests/releases sequentially rather than concurrently. If you have many components, you may want to set this to avoid secondary rate limits.",
           "type": "boolean"
         },
+        "component-manifests": {
+          "description": "Store each component's version in a `.release-please-manifest.json` at the root of that component instead of a single root manifest. Avoids merge conflicts between separate release pull requests.",
+          "type": "boolean"
+        },
         "label": {
           "description": "Comma-separated list of labels to add to newly opened pull request. These are used to identify release pull requests.",
           "type": "string"
@@ -472,6 +476,7 @@
     "commit-search-depth": true,
     "commit-batch-size": true,
     "sequential-calls": true,
+    "component-manifests": true,
     "release-type": true,
     "bump-minor-pre-major": true,
     "bump-patch-for-minor-pre-major": true,
