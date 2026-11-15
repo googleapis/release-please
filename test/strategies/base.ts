@@ -19,6 +19,8 @@ import {expect} from 'chai';
 import {BaseStrategy} from '../../src/strategies/base';
 import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
+import {Forgejo} from '../../src/forgejo';
+import {request} from '@octokit/request';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Version} from '../../src/version';
 import snapshot = require('snap-shot-it');
@@ -324,6 +326,48 @@ describe('Strategy', () => {
         'https://example.com'
       );
       snapshot(dateSafe(pullRequest!.body.toString()));
+    });
+    it('falls back to the scm web url as changelogHost', async () => {
+      const forgejo = new Forgejo({
+        repository: github.repository,
+        request: request.defaults({}),
+        webUrl: 'https://git.example.com',
+      });
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github: forgejo,
+        component: 'google-cloud-automl',
+      });
+      const commits = buildMockConventionalCommit('fix: a bugfix');
+      const pullRequest = await strategy.buildReleasePullRequest(commits);
+      expect(pullRequest).to.exist;
+      expect(pullRequest?.body.toString()).to.have.string(
+        'https://git.example.com/googleapis/base-test-repo/'
+      );
+      expect(pullRequest?.body.toString()).to.not.have.string(
+        'https://github.com/googleapis/base-test-repo'
+      );
+    });
+    it('prefers a configured changelogHost over the scm web url', async () => {
+      const forgejo = new Forgejo({
+        repository: github.repository,
+        request: request.defaults({}),
+        webUrl: 'https://git.example.com',
+      });
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github: forgejo,
+        component: 'google-cloud-automl',
+        changelogHost: 'https://example.com',
+      });
+      const commits = buildMockConventionalCommit('fix: a bugfix');
+      const pullRequest = await strategy.buildReleasePullRequest(commits);
+      expect(pullRequest?.body.toString()).to.have.string(
+        'https://example.com'
+      );
+      expect(pullRequest?.body.toString()).to.not.have.string(
+        'https://git.example.com'
+      );
     });
     it('rejects relative extra files', async () => {
       const extraFiles = [

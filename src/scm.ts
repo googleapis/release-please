@@ -78,6 +78,11 @@ export interface ScmTag {
 
 export interface Scm {
   readonly repository: Repository;
+  /**
+   * Base web URL of the SCM host (e.g. `https://git.example.com`). Used as
+   * the default changelog host when none is configured.
+   */
+  readonly webUrl?: string;
 
   getFileContents(path: string): Promise<GitHubFileContents>;
   getFileContentsOnBranch(

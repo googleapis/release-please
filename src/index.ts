@@ -59,6 +59,8 @@ export {
 } from './changelog-notes';
 export {Logger, setLogger} from './util/logger';
 export {GitHub} from './github';
+export {Forgejo, ForgejoCreateOptions} from './forgejo';
+export {Scm, ScmRelease, ScmTag} from './scm';
 export const configSchema = require('../../schemas/config.json');
 export const manifestSchema = require('../../schemas/manifest.json');
 

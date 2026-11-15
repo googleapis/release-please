@@ -112,6 +112,35 @@ describe('FilePullRequestOverflowHandler', () => {
       expect(pullRequestBody).to.not.be.undefined;
       snapshot(pullRequestBody!.toString());
     });
+    it('parses overflow body with a Forgejo file url', async () => {
+      const body =
+        'This release is too large to preview in the pull request body. View the full release notes here: ' +
+        'https://git.example.com/test-owner/test-repo/src/branch/release-please--branches--main--release-notes/release-notes.md';
+      const overflowBody = readFileSync(
+        resolve(fixturesPath, './multiple.txt'),
+        'utf8'
+      );
+      const getFileStub = sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs(
+          'release-notes.md',
+          'release-please--branches--main--release-notes'
+        )
+        .resolves(buildGitHubFileRaw(overflowBody));
+      const pullRequestBody = await overflowHandler.parseOverflow({
+        title: 'chore: release main',
+        body,
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 123,
+        labels: [],
+        files: [],
+      });
+      sinon.assert.calledOnce(getFileStub);
+      expect(pullRequestBody!.toString()).to.eql(
+        PullRequestBody.parse(overflowBody)!.toString()
+      );
+    });
     it('ignores small pull request body contents', async () => {
       const body = readFileSync(
         resolve(fixturesPath, './multiple.txt'),
