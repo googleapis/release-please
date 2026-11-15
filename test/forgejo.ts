@@ -13,11 +13,13 @@
 // limitations under the License.
 
 import * as nock from 'nock';
+import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 nock.disableNetConnect();
 
 import {request} from '@octokit/request';
+import {RequestError} from '@octokit/request-error';
 import {Forgejo} from '../src/forgejo';
 import {Commit} from '../src/commit';
 import {Update} from '../src/update';
@@ -29,7 +31,9 @@ import {
   ConfigurationError,
   DuplicateReleaseError,
   FileNotFoundError,
+  GitHubAPIError,
 } from '../src/errors';
+import {PullRequestOverflowHandler} from '../src/util/pull-request-overflow-handler';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fetch = require('node-fetch');
 
@@ -68,8 +72,39 @@ function staticUpdate(path: string, content: string, createIfMissing = true) {
   } as Update;
 }
 
+function spyLogger() {
+  return {
+    error: sinon.stub(),
+    warn: sinon.stub(),
+    info: sinon.stub(),
+    debug: sinon.stub(),
+    trace: sinon.stub(),
+  };
+}
+
+async function errorOf(fn: () => Promise<unknown>): Promise<unknown> {
+  try {
+    await fn();
+  } catch (e) {
+    return e;
+  }
+  return undefined;
+}
+
 describe('Forgejo', () => {
   let forgejo: Forgejo;
+
+  function createForgejo(logger: ReturnType<typeof spyLogger>) {
+    return Forgejo.create({
+      owner: 'fake',
+      repo: 'fake',
+      apiUrl: `${HOST}/api/v1`,
+      token: 'secret',
+      defaultBranch: 'main',
+      logger,
+      fetch,
+    });
+  }
 
   beforeEach(async () => {
     forgejo = await Forgejo.create({
@@ -122,6 +157,24 @@ describe('Forgejo', () => {
         tags.push(tag);
       }
       expect(tags).to.eql([]);
+      scope.done();
+    });
+
+    it('stops without a next link and uses 50 items without a limit', async () => {
+      nock.cleanAll();
+      const scope = nock(HOST)
+        .get('/api/v1/settings/api')
+        .reply(200, {max_response_items: 0})
+        .get(`${API}/tags`)
+        .query({page: '1', limit: '50'})
+        .reply(200, [{name: 'v1.0.0', commit: {sha: 'a'}}], {
+          link: `<${HOST}${API}/tags?page=1>; rel="first"`,
+        });
+      const tags = [];
+      for await (const tag of forgejo.tagIterator()) {
+        tags.push(tag);
+      }
+      expect(tags).to.have.lengthOf(1);
       scope.done();
     });
   });
@@ -452,6 +505,78 @@ describe('Forgejo', () => {
       expect(commits).to.eql([]);
       scope.done();
     });
+
+    it('wraps other API errors', async () => {
+      const scope = nock(HOST)
+        .get(`${API}/commits`)
+        .query(true)
+        .reply(500, {message: 'boom'});
+      const error = await errorOf(() =>
+        forgejo.commitsSince('main', () => false)
+      );
+      expect(error).to.be.instanceOf(GitHubAPIError);
+      scope.done();
+    });
+
+    it('wraps errors looking up the pull request of a commit', async () => {
+      const scope = nock(HOST)
+        .get(`${API}/commits`)
+        .query(true)
+        .reply(200, [{sha: 'sha3', commit: {message: 'feat: x'}}], {
+          'x-hasmore': 'false',
+        })
+        .get(`${API}/commits/sha3/pull`)
+        .reply(500, {message: 'boom'});
+      const error = await errorOf(() =>
+        forgejo.commitsSince('main', () => false)
+      );
+      expect(error).to.be.instanceOf(GitHubAPIError);
+      scope.done();
+    });
+
+    it('handles missing author names and pull request details', async () => {
+      const scope = nock(HOST)
+        .get(`${API}/commits`)
+        .query(true)
+        .reply(
+          200,
+          [
+            {
+              sha: 'sha3',
+              commit: {message: 'feat: x', author: {email: 'a@example.com'}},
+            },
+          ],
+          {'x-hasmore': 'false'}
+        )
+        .get(`${API}/commits/sha3/pull`)
+        .reply(
+          200,
+          pullRequestResponse(13, {
+            body: null,
+            labels: null,
+            merged: true,
+            merge_commit_sha: null,
+          })
+        );
+      const commits = await forgejo.commitsSince('main', () => false);
+      expect(commits[0].author).to.eql({
+        name: 'Unknown',
+        email: 'a@example.com',
+        username: undefined,
+      });
+      expect(commits[0].pullRequest).to.eql({
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 13,
+        title: 'chore: release 13',
+        body: '',
+        labels: [],
+        files: [],
+        sha: 'sha3',
+        mergeCommitOid: undefined,
+      });
+      scope.done();
+    });
   });
 
   describe('pullRequestIterator', () => {
@@ -559,6 +684,27 @@ describe('Forgejo', () => {
       expect(pullRequests[0].files).to.eql(['x.txt']);
       scope.done();
     });
+
+    it('stops after maxResults', async () => {
+      const scope = nock(HOST)
+        .get(`${API}/pulls`)
+        .query(true)
+        .reply(200, [
+          pullRequestResponse(1, {merged: true}),
+          pullRequestResponse(2, {merged: true}),
+        ]);
+      const numbers = [];
+      for await (const pullRequest of forgejo.pullRequestIterator(
+        'main',
+        'MERGED',
+        1,
+        false
+      )) {
+        numbers.push(pullRequest.number);
+      }
+      expect(numbers).to.eql([1]);
+      scope.done();
+    });
   });
 
   describe('releaseIterator', () => {
@@ -620,6 +766,80 @@ describe('Forgejo', () => {
         tags.push(tag);
       }
       expect(tags).to.eql([{name: 'v1.0.0', sha: 'a'}]);
+      scope.done();
+    });
+
+    it('reuses tag commits from tagIterator and stops after maxResults', async () => {
+      const releaseResponse = (id: number, tagName: string) => ({
+        id,
+        name: null,
+        tag_name: tagName,
+        target_commitish: 'main',
+        body: null,
+        html_url: `${HOST}/fake/fake/releases/tag/${tagName}`,
+        draft: false,
+      });
+      const scope = nock(HOST)
+        .get(`${API}/tags`)
+        .query(true)
+        .reply(200, [{name: 'v1.0.0', commit: {sha: 'a'}}], {
+          'x-hasmore': 'false',
+        })
+        .get(`${API}/releases`)
+        .query(true)
+        .reply(200, [
+          releaseResponse(1, 'v1.0.0'),
+          releaseResponse(2, 'v0.9.0'),
+        ]);
+      const tags = [];
+      for await (const tag of forgejo.tagIterator()) {
+        tags.push(tag);
+      }
+      const releases = [];
+      for await (const release of forgejo.releaseIterator({maxResults: 1})) {
+        releases.push(release);
+      }
+      expect(releases).to.eql([
+        {
+          id: 1,
+          name: undefined,
+          tagName: 'v1.0.0',
+          sha: 'a',
+          notes: undefined,
+          url: `${HOST}/fake/fake/releases/tag/v1.0.0`,
+          draft: false,
+          uploadUrl: undefined,
+        },
+      ]);
+      scope.done();
+    });
+
+    it('throws on tag lookup errors other than 404', async () => {
+      const scope = nock(HOST)
+        .get(`${API}/releases`)
+        .query(true)
+        .reply(
+          200,
+          [
+            {
+              id: 1,
+              tag_name: 'v1.0.0',
+              target_commitish: 'main',
+              html_url: `${HOST}/fake/fake/releases/tag/v1.0.0`,
+              draft: false,
+            },
+          ],
+          {'x-hasmore': 'false'}
+        )
+        .get(`${API}/tags/v1.0.0`)
+        .reply(500, {message: 'boom'});
+      const error = await errorOf(async () => {
+        for await (const release of forgejo.releaseIterator()) {
+          expect(release).to.be.undefined;
+        }
+      });
+      expect(error).to.be.instanceOf(RequestError);
+      expect((error as RequestError).status).to.eql(500);
       scope.done();
     });
   });
@@ -849,6 +1069,59 @@ describe('Forgejo', () => {
       expect((error as Error).message).to.include('v16');
       scope.done();
     });
+
+    it('warns about forks and instances that do not mark drafts', async () => {
+      const logger = spyLogger();
+      const github = await createForgejo(logger);
+      const scope = nock(HOST)
+        .get(`${API}/contents/package.json`)
+        .query({ref: 'main'})
+        .reply(200, contentsResponse('old', 'pkgsha'))
+        .post(`${API}/contents`)
+        .reply(201, {files: []})
+        .get(`${API}/pulls`)
+        .query({state: 'open', base: 'main', page: '1', limit: '50'})
+        .reply(200, [])
+        .post(`${API}/pulls`)
+        .reply(201, pullRequestResponse(25, {draft: false}))
+        .get(`${API}/pulls/25`)
+        .reply(200, pullRequestResponse(25));
+      await github.createPullRequest(
+        {...pullRequest, labels: []},
+        'main',
+        'chore: release 1.0.0',
+        [staticUpdate('package.json', 'new')],
+        {draft: true, fork: true}
+      );
+      sinon.assert.calledWithMatch(
+        logger.warn,
+        'opening pull requests from forks is not supported'
+      );
+      sinon.assert.calledWithMatch(
+        logger.warn,
+        'did not mark pull request 25 as draft'
+      );
+      scope.done();
+    });
+
+    it('rethrows 422 errors if the version is not below v16', async () => {
+      const scope = nock(HOST)
+        .get(`${API}/contents/package.json`)
+        .query({ref: 'main'})
+        .reply(200, contentsResponse('old'))
+        .post(`${API}/contents`)
+        .reply(422, {message: 'invalid'})
+        .get('/api/v1/version')
+        .reply(200, {version: 'development'});
+      const error = await errorOf(() =>
+        forgejo.createPullRequest(pullRequest, 'main', 'chore: release 1.0.0', [
+          staticUpdate('package.json', 'new'),
+        ])
+      );
+      expect(error).to.be.instanceOf(GitHubAPIError);
+      expect((error as GitHubAPIError).status).to.eql(422);
+      scope.done();
+    });
   });
 
   describe('updatePullRequest', () => {
@@ -934,6 +1207,50 @@ describe('Forgejo', () => {
       expect(updated.number).to.eql(22);
       scope.done();
     });
+
+    it('only edits the pull request without code changes', async () => {
+      const logger = spyLogger();
+      const github = await createForgejo(logger);
+      const handleOverflow = sinon.stub().resolves('overflow body');
+      const scope = nock(HOST)
+        .get(`${API}/contents/package.json`)
+        .query({ref: 'main'})
+        .reply(200, contentsResponse('new'))
+        .get(`${API}/pulls/22`)
+        .reply(
+          200,
+          pullRequestResponse(22, {
+            title: 'WIP: chore(main): release 0.9.0',
+            draft: true,
+          })
+        )
+        .patch(`${API}/pulls/22`, body => {
+          expect(body).to.eql({
+            title: 'WIP: chore(main): release 1.0.0',
+            body: 'overflow body',
+            state: 'open',
+          });
+          return true;
+        })
+        .reply(200, pullRequestResponse(22, {draft: false}));
+      await github.updatePullRequest(22, releasePullRequest(true), 'main', {
+        fork: true,
+        pullRequestOverflowHandler: {
+          handleOverflow,
+        } as unknown as PullRequestOverflowHandler,
+      });
+      sinon.assert.calledOnce(handleOverflow);
+      sinon.assert.calledWithMatch(
+        logger.warn,
+        'opening pull requests from forks is not supported'
+      );
+      sinon.assert.calledWithMatch(logger.warn, 'no code changes detected');
+      sinon.assert.calledWithMatch(
+        logger.warn,
+        'Pull request 22 is no longer a draft'
+      );
+      scope.done();
+    });
   });
 
   describe('createRelease', () => {
@@ -995,6 +1312,22 @@ describe('Forgejo', () => {
       }
       expect(error).to.be.instanceOf(DuplicateReleaseError);
       expect((error as DuplicateReleaseError).tag).to.eql('v1.2.3');
+      scope.done();
+    });
+
+    it('rethrows errors creating the tag or the release', async () => {
+      const scope = nock(HOST)
+        .post(`${API}/tags`)
+        .reply(500, {message: 'boom'})
+        .post(`${API}/releases`)
+        .reply(500, {message: 'boom'});
+      const tagError = await errorOf(() =>
+        forgejo.createRelease(release, {forceTag: true})
+      );
+      expect(tagError).to.be.instanceOf(GitHubAPIError);
+      const releaseError = await errorOf(() => forgejo.createRelease(release));
+      expect(releaseError).to.be.instanceOf(GitHubAPIError);
+      expect(releaseError).to.not.be.instanceOf(DuplicateReleaseError);
       scope.done();
     });
   });
@@ -1068,6 +1401,35 @@ describe('Forgejo', () => {
       );
       expect(url).to.eql(
         `${HOST}/fake/fake/src/branch/my-branch--release-notes/release-notes.md`
+      );
+      scope.done();
+    });
+
+    it('updates an existing file and builds the URL itself', async () => {
+      const scope = nock(HOST)
+        .get(`${API}/contents/release-notes.md`)
+        .query({ref: 'main'})
+        .reply(200, contentsResponse('old notes', 'notessha'))
+        .post(`${API}/contents`, body => {
+          expect(body.files).to.eql([
+            {
+              operation: 'update',
+              path: 'release-notes.md',
+              content: b64('notes'),
+              sha: 'notessha',
+            },
+          ]);
+          return true;
+        })
+        .reply(201, {files: [null]});
+      const url = await forgejo.createFileOnNewBranch(
+        'release-notes.md',
+        'notes',
+        'my-branch',
+        'main'
+      );
+      expect(url).to.eql(
+        `${HOST}/fake/fake/src/branch/my-branch/release-notes.md`
       );
       scope.done();
     });
