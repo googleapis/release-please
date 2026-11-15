@@ -3362,6 +3362,7 @@ describe('Manifest', () => {
             notes: [],
             references: [],
             breaking: false,
+            author: undefined,
           },
           {
             sha: 'aaaaaa',
@@ -3374,9 +3375,101 @@ describe('Manifest', () => {
             notes: [],
             references: [],
             breaking: false,
+            author: undefined,
           },
         ]);
       });
+    });
+
+    it('should include commit author info', async () => {
+      const spyPlugin = sinon.spy(new SentenceCase(github, 'main', {}));
+      sandbox
+        .stub(pluginFactory, 'buildPlugin')
+        .withArgs(sinon.match.has('type', 'sentence-case'))
+        // TS compiler is having issues with sinon.spy.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .returns(spyPlugin as any as InstanceType<typeof SentenceCase>);
+      mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, [
+        {
+          name: 'v1.0.0',
+          sha: 'abc123',
+        },
+      ]);
+      const commitsStub = mockCommits(sandbox, github, [
+        {
+          sha: 'def456',
+          message: 'fix: some bugfix',
+          files: [],
+          author: {
+            name: 'Foo',
+            email: 'foo@example.com',
+            username: 'foo',
+          },
+        },
+        {
+          sha: 'deadbeef',
+          message: 'feat: added thing',
+          files: [],
+          author: {
+            name: 'Bar',
+            email: 'bar@example.com',
+            username: 'bar',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            includeCommitAuthors: true,
+          },
+        },
+        {
+          '.': Version.parse('1.0.0'),
+        },
+        {
+          commitSearchDepth: 2,
+          plugins: ['sentence-case'],
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).not.empty;
+      sinon.assert.calledOnceWithMatch(
+        commitsStub,
+        'main',
+        sinon.match.has('maxResults', 2)
+      );
+      sinon.assert.calledWith(spyPlugin.processCommits, [
+        {
+          sha: 'def456',
+          message: 'fix: Some bugfix',
+          files: [],
+          pullRequest: undefined,
+          type: 'fix',
+          scope: null,
+          bareMessage: 'Some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+          author: {name: 'Foo', email: 'foo@example.com', username: 'foo'},
+        },
+        {
+          sha: 'deadbeef',
+          message: 'feat: Added thing',
+          files: [],
+          pullRequest: undefined,
+          type: 'feat',
+          scope: null,
+          bareMessage: 'Added thing',
+          notes: [],
+          references: [],
+          breaking: false,
+          author: {name: 'Bar', email: 'bar@example.com', username: 'bar'},
+        },
+      ]);
     });
 
     it('should fallback to tagged version', async () => {

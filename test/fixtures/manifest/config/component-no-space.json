@@ -1,0 +1,11 @@
+{
+  "component-no-space": true,
+  "packages": {
+    ".": {
+      "package-name": "foo"
+    },
+    "node-package": {
+      "component-no-space": false
+    }
+  }
+}
