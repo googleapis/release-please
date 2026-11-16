@@ -16,6 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
+import {expect} from 'chai';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {Version} from '../../src/version';
 
@@ -44,6 +45,21 @@ describe('setup.cfg', () => {
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
+    });
+    it('updates dot-separated prerelease versions in setup.cfg', async () => {
+      const oldContent = '[metadata]\nname = my-pkg\nversion = 1.1.0-alpha.1\n';
+      const prerelease = new SetupCfg({
+        version: Version.parse('1.1.0-alpha.2'),
+      });
+      expect(prerelease.updateContent(oldContent)).to.equal(
+        '[metadata]\nname = my-pkg\nversion = 1.1.0-alpha.2\n'
+      );
+      const release = new SetupCfg({
+        version: Version.parse('1.1.0'),
+      });
+      expect(release.updateContent(oldContent)).to.equal(
+        '[metadata]\nname = my-pkg\nversion = 1.1.0\n'
+      );
     });
   });
 });

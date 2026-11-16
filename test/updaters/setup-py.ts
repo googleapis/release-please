@@ -16,6 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
+import {expect} from 'chai';
 import {SetupPy} from '../../src/updaters/python/setup-py';
 import {Version} from '../../src/version';
 
@@ -33,6 +34,16 @@ describe('setup.py', () => {
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
+    });
+    it('updates dot-separated prerelease versions in setup.py', async () => {
+      const oldContent =
+        'setup(\n    name="my-pkg",\n    version="1.0.0-rc.3",\n)\n';
+      const version = new SetupPy({
+        version: Version.parse('1.0.0'),
+      });
+      expect(version.updateContent(oldContent)).to.equal(
+        'setup(\n    name="my-pkg",\n    version="1.0.0",\n)\n'
+      );
     });
   });
 });
