@@ -587,6 +587,39 @@ describe('GitHub', () => {
   });
 
   describe('mergeCommitIterator', () => {
+    it('reports parents only when the query returned all of them', async () => {
+      const node = (sha: string, totalCount: number, oids: string[]) => ({
+        associatedPullRequests: {nodes: []},
+        sha,
+        message: `fix: ${sha}`,
+        parents: {totalCount, nodes: oids.map(oid => ({oid}))},
+      });
+      const tenOids = [...Array(10).keys()].map(i => `p${i}`);
+      req.post('/graphql').reply(200, {
+        data: {
+          repository: {
+            ref: {
+              target: {
+                history: {
+                  nodes: [
+                    node('whole', 2, ['p0', 'p1']),
+                    node('octopus', 11, tenOids),
+                  ],
+                  pageInfo: {hasNextPage: false, endCursor: null},
+                },
+              },
+            },
+          },
+        },
+      });
+      const commits: Commit[] = [];
+      for await (const commit of github.mergeCommitIterator('main')) {
+        commits.push(commit);
+      }
+      expect(commits.map(c => c.parents)).to.eql([['p0', 'p1'], undefined]);
+      req.done();
+    });
+
     it('handles merged pull requests without files', async () => {
       const graphql = JSON.parse(
         readFileSync(
