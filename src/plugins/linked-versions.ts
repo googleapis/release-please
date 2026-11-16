@@ -88,7 +88,10 @@ export class LinkedVersions extends ManifestPlugin {
       const strategy = groupStrategies[path];
       const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
-        parseConventionalCommits(commitsByPath[path], this.logger),
+        parseConventionalCommits(commitsByPath[path], this.logger, {
+          skipGitHubMergeCommits:
+            this.repositoryConfig[path].skipGitHubMergeCommits,
+        }),
         latestRelease
       );
       if (releasePullRequest?.version) {

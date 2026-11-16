@@ -133,6 +133,7 @@ export interface ReleaserConfig {
   changelogType?: ChangelogNotesType;
   changelogHost?: string;
   includeCommitAuthors?: boolean;
+  skipGitHubMergeCommits?: boolean;
 
   // Ruby-only
   versionFile?: string;
@@ -170,6 +171,7 @@ interface ReleaserConfigJson {
   'skip-changelog'?: boolean;
   draft?: boolean;
   'force-tag-creation'?: boolean;
+  'skip-github-merge-commits'?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
@@ -752,7 +754,8 @@ export class Manifest {
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
       let pathCommits = parseConventionalCommits(
         commitsPerPath[path],
-        this.logger
+        this.logger,
+        {skipGitHubMergeCommits: config.skipGitHubMergeCommits}
       );
       // The processCommits hook can be implemented by plugins to
       // post-process commits. This can be used to perform cleanup, e.g,, sentence
@@ -1401,6 +1404,7 @@ function extractReleaserConfig(
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
     includeCommitAuthors: config['include-commit-authors'],
+    skipGitHubMergeCommits: config['skip-github-merge-commits'],
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
     skipChangelog: config['skip-changelog'],
@@ -1760,6 +1764,8 @@ function mergeReleaserConfig(
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
     includeCommitAuthors:
       pathConfig.includeCommitAuthors ?? defaultConfig.includeCommitAuthors,
+    skipGitHubMergeCommits:
+      pathConfig.skipGitHubMergeCommits ?? defaultConfig.skipGitHubMergeCommits,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,

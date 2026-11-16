@@ -103,6 +103,10 @@
           "description": "Generate changelog links to this GitHub host. Useful for running against GitHub Enterprise.",
           "type": "string"
         },
+        "skip-github-merge-commits": {
+          "description": "Ignore GitHub's default merge commits (`Merge pull request #N from owner/branch`) so each merged pull request is listed once, from its branch commits. Defaults to `false`.",
+          "type": "boolean"
+        },
         "changelog-path": {
           "description": "Path to the file that tracks release note changes. Defaults to `CHANGELOG.md`.",
           "type": "string"
@@ -483,6 +487,7 @@
     "skip-changelog": true,
     "draft": true,
     "force-tag-creation": true,
+    "skip-github-merge-commits": true,
     "prerelease": true,
     "draft-pull-request": true,
     "label": true,

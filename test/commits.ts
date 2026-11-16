@@ -369,6 +369,99 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].author?.username).to.eql('foo');
   });
 
+  describe('skipGitHubMergeCommits', () => {
+    const branchCommit = buildMockCommit('fix: x');
+    const mergeCommit = buildMockCommit(
+      'Merge pull request #12 from owner/branch\n\nfix: x'
+    );
+
+    it('parses the merge commit body by default', async () => {
+      const conventionalCommits = parseConventionalCommits([
+        mergeCommit,
+        branchCommit,
+      ]);
+      expect(conventionalCommits).lengthOf(2);
+      expect(conventionalCommits.map(c => c.sha)).to.eql([
+        mergeCommit.sha,
+        branchCommit.sha,
+      ]);
+    });
+
+    it('skips the merge commit and keeps its branch commits', async () => {
+      const conventionalCommits = parseConventionalCommits(
+        [mergeCommit, branchCommit],
+        undefined,
+        {skipGitHubMergeCommits: true}
+      );
+      expect(conventionalCommits).lengthOf(1);
+      expect(conventionalCommits[0].sha).to.equal(branchCommit.sha);
+      expect(conventionalCommits[0].bareMessage).to.equal('x');
+    });
+
+    it('skips a merge commit whose body has several messages', async () => {
+      const conventionalCommits = parseConventionalCommits(
+        [
+          buildMockCommit(
+            'Merge pull request #7 from owner/branch\n\nfeat: a\n\nfix: b'
+          ),
+        ],
+        undefined,
+        {skipGitHubMergeCommits: true}
+      );
+      expect(conventionalCommits).lengthOf(0);
+    });
+
+    it('skips a merge commit whose pull request overrides the message', async () => {
+      const conventionalCommits = parseConventionalCommits(
+        [
+          {
+            ...mergeCommit,
+            pullRequest: {
+              headBranchName: 'branch',
+              baseBranchName: 'main',
+              number: 12,
+              title: 'fix: x',
+              body: 'BEGIN_COMMIT_OVERRIDE\nfix: y\nEND_COMMIT_OVERRIDE',
+              labels: [],
+              files: [],
+            },
+          },
+        ],
+        undefined,
+        {skipGitHubMergeCommits: true}
+      );
+      expect(conventionalCommits).lengthOf(0);
+    });
+
+    it('still splits a squash commit with several messages', async () => {
+      const conventionalCommits = parseConventionalCommits(
+        [buildCommitFromFixture('multiple-messages')],
+        undefined,
+        {skipGitHubMergeCommits: true}
+      );
+      expect(conventionalCommits).lengthOf(2);
+      expect(conventionalCommits[0].type).to.equal('feat');
+      expect(conventionalCommits[1].type).to.equal('fix');
+    });
+
+    it('keeps commits that only resemble a GitHub merge commit', async () => {
+      const conventionalCommits = parseConventionalCommits(
+        [
+          buildMockCommit("Merge branch 'main' into feature\n\nfix: a"),
+          buildMockCommit('fix: b\n\nMerge pull request #3 from owner/branch'),
+          buildMockCommit('Merge pull request #4\n\nfix: c'),
+        ],
+        undefined,
+        {skipGitHubMergeCommits: true}
+      );
+      expect(conventionalCommits.map(c => c.bareMessage)).to.eql([
+        'a',
+        'b',
+        'c',
+      ]);
+    });
+  });
+
   // it('ignores reverted commits', async () => {
   //   const commits = [
   //     {sha: 'sha1', message: 'feat: some feature', files: ['path1/file1.txt']},
