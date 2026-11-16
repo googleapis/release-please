@@ -47,6 +47,7 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
+import {ReleaseAncestry} from './util/release-ancestry';
 
 type ExtraGenericFile = {
   type: 'generic';
@@ -644,10 +645,18 @@ export class Manifest {
     this.logger.debug(releaseShas);
     const expectedShas = releaseShas.size;
 
+    // History arrives in committer-date order, so reaching every release
+    // commit does not mean every unreleased commit has been seen.
+    const ancestry = new ReleaseAncestry(releaseShas);
+
     // sha => release pull request
     const releasePullRequestsBySha: Record<string, PullRequest> = {};
     let releaseCommitsFound = 0;
     for await (const commit of commitGenerator) {
+      // Judge before the visit: this commit is still in the frontier, so an
+      // unreleased commit keeps the walk going until it is collected.
+      const unreleasedRemain = !ancestry.isComplete();
+      ancestry.visit(commit);
       if (releaseShas.has(commit.sha)) {
         if (commit.pullRequest) {
           releasePullRequestsBySha[commit.sha] = commit.pullRequest;
@@ -668,7 +677,11 @@ export class Manifest {
           `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
         );
         break;
-      } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
+      } else if (
+        !needsBootstrap &&
+        releaseCommitsFound >= expectedShas &&
+        !unreleasedRemain
+      ) {
         // found enough commits
         break;
       }
@@ -678,6 +691,7 @@ export class Manifest {
         files: commit.files,
         pullRequest: commit.pullRequest,
         author: commit.author,
+        parents: commit.parents,
       });
     }
 
@@ -695,13 +709,19 @@ export class Manifest {
     });
     const splitCommits = cs.split(commits);
 
-    // limit paths to ones since the last release
+    // limit paths to ones since the last release. Filter by ancestry only
+    // when the walk resolved it; a walk that stopped early (configured last
+    // release, bootstrap, search depth) keeps the date-order cutoff.
+    const ancestryResolved = ancestry.isComplete();
     let commitsPerPath: Record<string, Commit[]> = {};
     for (const path in this.repositoryConfig) {
-      commitsPerPath[path] = commitsAfterSha(
-        path === ROOT_PROJECT_PATH ? commits : splitCommits[path],
-        releaseShasByPath[path]
-      );
+      const pathCommits =
+        path === ROOT_PROJECT_PATH ? commits : splitCommits[path] ?? [];
+      const unreleased = ancestryResolved
+        ? ancestry.notReleasedBy(pathCommits, releaseShasByPath[path])
+        : undefined;
+      commitsPerPath[path] =
+        unreleased ?? commitsAfterSha(pathCommits, releaseShasByPath[path]);
     }
     const commitExclude = new CommitExclude(this.repositoryConfig);
     commitsPerPath = commitExclude.excludeCommits(commitsPerPath);
