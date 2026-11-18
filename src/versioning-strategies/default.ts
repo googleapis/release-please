@@ -81,9 +81,12 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
           Version.parse(releaseAs.text).toString()
         );
       }
+      // Conventional Commits types are case-insensitive, so `Feat:` counts
+      // as a feature, the same way the changelog lists it.
+      const type = commit.type.toLowerCase();
       if (commit.breaking) {
         breaking++;
-      } else if (commit.type === 'feat' || commit.type === 'feature') {
+      } else if (type === 'feat' || type === 'feature') {
         features++;
       }
     }

@@ -285,6 +285,26 @@ describe('PrereleaseVersioningStrategy', () => {
         });
       }
     });
+    for (const type of ['Feat', 'FEAT', 'Feature']) {
+      it(`can bump 1.0.1-beta01 to 1.1.0-beta01 for a ${type} commit`, async () => {
+        const strategy = new PrereleaseVersioningStrategy({prerelease: true});
+        const oldVersion = Version.parse('1.0.1-beta01');
+        const newVersion = await strategy.bump(oldVersion, [
+          {
+            sha: 'sha1',
+            message: `${type}: some feature`,
+            files: ['path1/file1.txt'],
+            type,
+            scope: null,
+            bareMessage: 'some feature',
+            notes: [],
+            references: [],
+            breaking: false,
+          },
+        ]);
+        expect(newVersion.toString()).to.equal('1.1.0-beta01');
+      });
+    }
   });
 
   describe('with a fix', () => {
