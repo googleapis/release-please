@@ -133,6 +133,26 @@ describe('DefaultVersioningStrategy', () => {
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('0.1.3');
     });
+    for (const type of ['Feat', 'FEAT', 'Feature']) {
+      it(`can bump a minor for a ${type} commit`, async () => {
+        const strategy = new DefaultVersioningStrategy();
+        const oldVersion = Version.parse('1.2.3');
+        const newVersion = await strategy.bump(oldVersion, [
+          {
+            sha: 'sha1',
+            message: `${type}: some feature`,
+            files: ['path1/file1.txt'],
+            type,
+            scope: null,
+            bareMessage: 'some feature',
+            notes: [],
+            references: [],
+            breaking: false,
+          },
+        ]);
+        expect(newVersion.toString()).to.equal('1.3.0');
+      });
+    }
   });
 
   describe('with a fix', () => {
