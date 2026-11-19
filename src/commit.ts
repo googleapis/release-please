@@ -170,7 +170,7 @@ function toConventionalChangelogFormat(
           if (!node.value.includes('BREAKING')) return;
           parent = ancestors.pop();
           visit(parent, ['text', 'newline'], (node: parser.Text) => {
-            breaking.text = node.value;
+            if (node.value) breaking.text = node.value;
           });
           break;
       }
