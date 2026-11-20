@@ -705,6 +705,7 @@ export class GitHubApi {
         body: release.notes,
         draft: !!options.draft,
         prerelease: !!options.prerelease,
+        make_latest: options.makeLatest === false ? 'false' : 'true',
         target_commitish: release.sha,
       });
       return {

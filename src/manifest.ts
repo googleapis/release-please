@@ -108,6 +108,7 @@ export interface ReleaserConfig {
   skipChangelog?: boolean;
   draft?: boolean;
   forceTag?: boolean;
+  makeLatest?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
   component?: string;
@@ -155,6 +156,7 @@ export interface CandidateRelease extends Release {
   path: string;
   draft?: boolean;
   forceTag?: boolean;
+  makeLatest?: boolean;
   prerelease?: boolean;
 }
 
@@ -170,6 +172,7 @@ interface ReleaserConfigJson {
   'skip-changelog'?: boolean;
   draft?: boolean;
   'force-tag-creation'?: boolean;
+  'make-latest'?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
@@ -1204,6 +1207,7 @@ export class Manifest {
             pullRequest,
             draft: config.draft ?? this.draft,
             forceTag: config.forceTag,
+            makeLatest: config.makeLatest,
             prerelease:
               config.prerelease &&
               (!!release.tag.version.preRelease ||
@@ -1332,6 +1336,7 @@ export class Manifest {
       draft: release.draft,
       prerelease: release.prerelease,
       forceTag: release.forceTag,
+      makeLatest: release.makeLatest,
     });
 
     return {
@@ -1406,6 +1411,7 @@ function extractReleaserConfig(
     skipChangelog: config['skip-changelog'],
     draft: config.draft,
     forceTag: config['force-tag-creation'],
+    makeLatest: config['make-latest'],
     prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
     component: config['component'],
@@ -1766,6 +1772,7 @@ function mergeReleaserConfig(
     skipChangelog: pathConfig.skipChangelog ?? defaultConfig.skipChangelog,
     draft: pathConfig.draft ?? defaultConfig.draft,
     forceTag: pathConfig.forceTag ?? defaultConfig.forceTag,
+    makeLatest: pathConfig.makeLatest ?? defaultConfig.makeLatest,
     draftPullRequest:
       pathConfig.draftPullRequest ?? defaultConfig.draftPullRequest,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,

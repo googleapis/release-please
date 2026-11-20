@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "make-latest": false,
+  "packages": {
+    ".": {
+      "component": "root",
+      "make-latest": true
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils"
+    }
+  }
+}
