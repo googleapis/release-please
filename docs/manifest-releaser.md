@@ -220,6 +220,10 @@ defaults (those are documented in comments)
   // Absence defaults to false.
   "force-tag-creation": true
 
+  // Whether GitHub marks the release as the repository's latest release
+  // Absence defaults to true.
+  "make-latest": false,
+
   // Skip creating GitHub Releases
   // Absence defaults to false and Releases will be created. Release-Please still
   // requires releases to be tagged, so this option should only be used if you

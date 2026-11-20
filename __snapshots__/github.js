@@ -480,6 +480,7 @@ exports['GitHub createRelease should create a draft release 1'] = {
   "body": "Some release notes",
   "draft": true,
   "prerelease": false,
+  "make_latest": "true",
   "target_commitish": "abc123"
 }
 
@@ -488,6 +489,7 @@ exports['GitHub createRelease should create a draft release with forced tag (alr
   "body": "Some release notes",
   "draft": true,
   "prerelease": false,
+  "make_latest": "true",
   "target_commitish": "abc123"
 }
 
@@ -496,6 +498,7 @@ exports['GitHub createRelease should create a draft release with forced tag 1'] 
   "body": "Some release notes",
   "draft": true,
   "prerelease": false,
+  "make_latest": "true",
   "target_commitish": "abc123"
 }
 
@@ -504,6 +507,7 @@ exports['GitHub createRelease should create a prerelease release 1'] = {
   "body": "Some release notes",
   "draft": false,
   "prerelease": true,
+  "make_latest": "true",
   "target_commitish": "abc123"
 }
 
@@ -512,6 +516,7 @@ exports['GitHub createRelease should create a release with a package prefix 1'] 
   "body": "Some release notes",
   "draft": false,
   "prerelease": false,
+  "make_latest": "true",
   "target_commitish": "abc123"
 }
 
@@ -520,6 +525,7 @@ exports['GitHub createRelease should raise a DuplicateReleaseError if already_ex
   "body": "Some release notes",
   "draft": false,
   "prerelease": false,
+  "make_latest": "true",
   "target_commitish": "abc123"
 }
 
@@ -528,6 +534,7 @@ exports['GitHub createRelease should raise a RequestError for other validation e
   "body": "Some release notes",
   "draft": false,
   "prerelease": false,
+  "make_latest": "true",
   "target_commitish": "abc123"
 }
 
