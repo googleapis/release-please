@@ -45,6 +45,9 @@ export interface CargoWorkspace {
 export interface CargoPackage {
   name?: string;
   version?: string;
+  // `publish = false` (or an allow-list of registries). When `false`, the
+  // crate is a workspace member that is never published to a registry.
+  publish?: boolean | string[];
 }
 
 export interface CargoDependencies {

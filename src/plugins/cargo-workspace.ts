@@ -72,6 +72,11 @@ interface CrateInfo {
    * Parsed cargo manifest
    */
   manifest: CargoManifest;
+
+  /**
+   * `false` when the manifest sets `publish = false`.
+   */
+  publishable: boolean;
 }
 
 /**
@@ -163,6 +168,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         manifest,
         manifestContent: manifestContent.parsedContent,
         manifestPath,
+        publishable: manifest.package?.publish !== false,
       });
     }
     return {
@@ -392,6 +398,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
   protected inScope(candidate: CandidateReleasePullRequest): boolean {
     return candidate.config.releaseType === 'rust';
+  }
+
+  protected shouldCreateReleasePullRequest(pkg: CrateInfo): boolean {
+    return pkg.publishable;
   }
 
   protected packageNameFromPackage(pkg: CrateInfo): string {
