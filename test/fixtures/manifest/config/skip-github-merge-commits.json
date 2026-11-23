@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "skip-github-merge-commits": false,
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils",
+      "skip-github-merge-commits": true
+    }
+  }
+}

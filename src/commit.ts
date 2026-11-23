@@ -437,6 +437,19 @@ function splitMessages(message: string): string[] {
   return [...conventionalCommits, ...messages.slice(1)];
 }
 
+// The subject GitHub gives a merge commit when a pull request is merged with
+// the default message, e.g. "Merge pull request #12 from owner/branch".
+const GITHUB_MERGE_COMMIT_SUBJECT = /^Merge pull request #\d+ from \S+/;
+
+export interface ParseConventionalCommitsOptions {
+  /**
+   * Skip commits whose subject is GitHub's default merge commit subject.
+   * Their body (the pull request title, or its title and body) would
+   * otherwise repeat the branch commits' entries in the changelog.
+   */
+  skipGitHubMergeCommits?: boolean;
+}
+
 /**
  * Given a list of raw commits, parse and expand into conventional commits.
  *
@@ -448,11 +461,19 @@ function splitMessages(message: string): string[] {
  */
 export function parseConventionalCommits(
   commits: Commit[],
-  logger: Logger = defaultLogger
+  logger: Logger = defaultLogger,
+  options: ParseConventionalCommitsOptions = {}
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 
   for (const commit of commits) {
+    if (
+      options.skipGitHubMergeCommits &&
+      GITHUB_MERGE_COMMIT_SUBJECT.test(commit.message)
+    ) {
+      logger.debug(`skipping GitHub merge commit: ${commit.sha}`);
+      continue;
+    }
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {

@@ -421,6 +421,62 @@ describe('Manifest', () => {
       ).to.be.true;
     });
 
+    it('should not skip GitHub merge commits when the manifest omits the key', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/simple.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].skipGitHubMergeCommits).to.be
+        .undefined;
+    });
+
+    it('should read skip GitHub merge commits from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/skip-github-merge-commits.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].skipGitHubMergeCommits).to.be.false;
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils']
+          .skipGitHubMergeCommits
+      ).to.be.true;
+    });
+
     it('should read custom include v in tag from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
@@ -1528,6 +1584,71 @@ describe('Manifest', () => {
   });
 
   describe('buildPullRequests', () => {
+    describe('with a pull request merged by a GitHub merge commit', () => {
+      beforeEach(() => {
+        mockReleases(sandbox, github, [
+          {
+            id: 123456,
+            sha: 'abc123',
+            tagName: 'v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+          },
+        ]);
+        mockCommits(sandbox, github, [
+          {
+            sha: 'aaa111',
+            message: 'Merge pull request #12 from owner/branch\n\nfix: x',
+            files: [],
+          },
+          {
+            sha: 'bbb222',
+            message: 'fix: x',
+            files: [],
+          },
+          {
+            sha: 'abc123',
+            message: 'chore: release 1.0.0',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release 1.0.0',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
+          },
+        ]);
+      });
+
+      for (const [skipGitHubMergeCommits, entries] of [
+        [true, 1],
+        [false, 2],
+      ] as const) {
+        it(`lists the change ${entries} time(s) when skipGitHubMergeCommits is ${skipGitHubMergeCommits}`, async () => {
+          const manifest = new Manifest(
+            github,
+            'main',
+            {
+              '.': {
+                releaseType: 'simple',
+                skipGitHubMergeCommits,
+              },
+            },
+            {
+              '.': Version.parse('1.0.0'),
+            }
+          );
+          const pullRequests = await manifest.buildPullRequests();
+          expect(pullRequests).lengthOf(1);
+          const notes = pullRequests[0].body.toString();
+          expect(notes.match(/^\* x /gm)).lengthOf(entries);
+        });
+      }
+    });
+
     describe('with basic config', () => {
       beforeEach(() => {
         mockReleases(sandbox, github, [
