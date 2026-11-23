@@ -50,7 +50,7 @@
     "@types/node": "22.19.21",
     "@types/npmlog": "7.0.0",
     "@types/semver": "7.3.13",
-    "@types/sinon": "17.0.3",
+    "@types/sinon": "17.0.4",
     "@types/xmldom": "0.1.31",
     "@types/yargs": "17.0.20",
     "ajv": "8.18.0",
