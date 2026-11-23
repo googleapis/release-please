@@ -206,7 +206,20 @@ export class Java extends BaseStrategy {
       .filter(pullRequest => (pullRequest?.component || '') === component)
       .map(pullRequest => pullRequest?.getVersion())
       .filter(version => version && !this.isPublishedVersion(version));
-    return snapshotCommits.length === 0;
+    const hasSnapshotBody = commits.some(commit => {
+      const pullRequest = commit.pullRequest;
+      if (!pullRequest) {
+        return false;
+      }
+      const body = PullRequestBody.parse(pullRequest.body, this.logger);
+      return body?.releaseData.some(
+        release =>
+          release.component === component &&
+          release.version &&
+          !this.isPublishedVersion(release.version)
+      );
+    });
+    return snapshotCommits.length === 0 && !hasSnapshotBody;
   }
 
   protected async buildUpdates(
