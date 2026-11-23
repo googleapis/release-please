@@ -196,6 +196,32 @@ describe('Strategy', () => {
       assertHasUpdate(updates!, '0', Generic);
       assertHasUpdate(updates!, '1.yml', Generic);
     });
+    it('passes the component to generic extra file updaters', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'my-app',
+        extraFiles: ['0', 'values.yaml', {type: 'generic', path: '/1.yml'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      const content = [
+        'a: 0.0.1 # x-release-please-my-app-version',
+        'b: 0.0.1 # x-release-please-other-version',
+      ].join('\n');
+      for (const path of ['0', 'values.yaml', '1.yml']) {
+        const update = pullRequest!.updates.find(u => u.path === path);
+        expect(update, path).to.exist;
+        expect(update!.updater.updateContent(content), path).to.eql(
+          [
+            'a: 1.0.0 # x-release-please-my-app-version',
+            'b: 0.0.1 # x-release-please-other-version',
+          ].join('\n')
+        );
+      }
+    });
     it('updates extra JSON files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',

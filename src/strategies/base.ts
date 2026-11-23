@@ -415,6 +415,7 @@ export abstract class BaseStrategy implements Strategy {
     dateFormat: string
   ): Promise<Update[]> {
     const extraFileUpdates: Update[] = [];
+    const component = await this.getComponent();
     for (const extraFile of this.extraFiles) {
       if (typeof extraFile === 'object') {
         const paths = await this.extraFilePaths(extraFile);
@@ -427,7 +428,8 @@ export abstract class BaseStrategy implements Strategy {
                 updater: new Generic({
                   version,
                   versionsMap,
-                  dateFormat: dateFormat,
+                  dateFormat,
+                  component,
                 }),
               });
               break;
@@ -480,7 +482,7 @@ export abstract class BaseStrategy implements Strategy {
           createIfMissing: false,
           updater: new CompositeUpdater(
             new GenericJson('$.version', version),
-            new Generic({version, versionsMap, dateFormat: dateFormat})
+            new Generic({version, versionsMap, dateFormat, component})
           ),
         });
       } else if (extraFile.endsWith('.yaml') || extraFile.endsWith('.yml')) {
@@ -489,7 +491,7 @@ export abstract class BaseStrategy implements Strategy {
           createIfMissing: false,
           updater: new CompositeUpdater(
             new GenericYaml('$.version', version),
-            new Generic({version, versionsMap, dateFormat: dateFormat})
+            new Generic({version, versionsMap, dateFormat, component})
           ),
         });
       } else if (extraFile.endsWith('.toml')) {
@@ -498,7 +500,7 @@ export abstract class BaseStrategy implements Strategy {
           createIfMissing: false,
           updater: new CompositeUpdater(
             new GenericToml('$.version', version),
-            new Generic({version, versionsMap, dateFormat: dateFormat})
+            new Generic({version, versionsMap, dateFormat, component})
           ),
         });
       } else if (extraFile.endsWith('.xml')) {
@@ -508,14 +510,14 @@ export abstract class BaseStrategy implements Strategy {
           updater: new CompositeUpdater(
             // Updates "version" element that is a child of the root element.
             new GenericXml('/*/version', version),
-            new Generic({version, versionsMap, dateFormat: dateFormat})
+            new Generic({version, versionsMap, dateFormat, component})
           ),
         });
       } else {
         extraFileUpdates.push({
           path: this.addPath(extraFile),
           createIfMissing: false,
-          updater: new Generic({version, versionsMap, dateFormat: dateFormat}),
+          updater: new Generic({version, versionsMap, dateFormat, component}),
         });
       }
     }
