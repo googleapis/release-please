@@ -25,6 +25,7 @@ import {
   PyProjectToml,
 } from '../updaters/python/pyproject-toml';
 import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
+import {UvLock} from '../updaters/python/uv-lock';
 import {FileNotFoundError} from '../errors';
 import {filterCommits} from '../util/filter-commits';
 
@@ -106,6 +107,12 @@ export class Python extends BaseStrategy {
     if (!projectName) {
       this.logger.warn('No project/component found.');
     } else {
+      updates.push({
+        path: this.addPath('uv.lock'),
+        createIfMissing: false,
+        updater: new UvLock({packageName: projectName, version}),
+      });
+
       [projectName, projectName.replace(/-/g, '_')]
         .flatMap(packageName => [
           `${packageName}/__init__.py`,
