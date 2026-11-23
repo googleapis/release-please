@@ -188,6 +188,25 @@ You can annotate a block by starting with a line containing:
 and close the block with a line containing `x-release-please-end`. Within
 the block, we will attempt to replace version values.
 
+When a single file contains versions for several components (e.g. in a
+monorepo), you can scope an annotation to a component by inserting the
+component name after `x-release-please-` (or `x-release-please-start-`):
+
+```yaml
+apps:
+  app1:
+    version: 1.2.3 # x-release-please-app1-version
+  app2:
+    version: 6.4.3 # x-release-please-app2-version
+# x-release-please-start-app1-version
+image: example.com/app1:1.2.3
+# x-release-please-end
+```
+
+Scoped annotations are only updated by the matching component, while
+unscoped annotations are updated by every component that lists the file in
+`extra-files`.
+
 Default updaters are applied depending on the file extension. If you want to
 force the [Generic](/src/updaters/generic.ts) updater, you must use type
 `"generic"`.

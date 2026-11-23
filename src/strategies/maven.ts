@@ -28,6 +28,7 @@ export class Maven extends Java {
   ): Promise<Update[]> {
     const version = options.newVersion;
     const versionsMap = options.versionsMap;
+    const component = await this.getComponent();
 
     // Use generic Java updates
     const updates: Update[] = await super.buildUpdates(options);
@@ -57,7 +58,7 @@ export class Maven extends Java {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,
-        updater: new Generic({version, versionsMap}),
+        updater: new Generic({version, versionsMap, component}),
       });
     });
 

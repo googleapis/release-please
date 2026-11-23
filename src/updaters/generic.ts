@@ -20,13 +20,23 @@ const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[\w.]+))?(\+(?<build>[-\w.]+))?/;
 const MAJOR_VERSION_REGEX = /\d+\b/;
 const SINGLE_VERSION_REGEX = /\b\d+\b/;
+const SCOPE_PATTERN =
+  '(?<scope>major|minor|patch|version-date|version|date)(?!\\w|-\\w)';
+
+// TODO: replace with the builtin `RegExp.escape` once Node >= 24 is required.
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function componentPattern(component?: string): string {
+  return component ? `(-${escapeRegExp(component)})?` : '';
+}
+
 const INLINE_UPDATE_REGEX = (component?: string) =>
-  new RegExp(
-    `x-release-please(-${component})?-(?<scope>major|minor|patch|version-date|version|date)`
-  );
+  new RegExp(`x-release-please${componentPattern(component)}-${SCOPE_PATTERN}`);
 const BLOCK_START_REGEX = (component?: string) =>
   new RegExp(
-    `x-release-please-start(-${component})?-(?<scope>major|minor|patch|version-date|version|date)`
+    `x-release-please-start${componentPattern(component)}-${SCOPE_PATTERN}`
   );
 const BLOCK_END_REGEX = /x-release-please-end/;
 const DATE_FORMAT_REGEX = /%[Ymd]/g;
@@ -79,8 +89,11 @@ export interface GenericUpdateOptions extends UpdateOptions {
  * with `x-release-please-start-<major|minor|patch|version-date>` to replace
  * single numbers
  *
- * In every case (except x-release-please-end), the component can be added
- * to the directive, for example `x-release-please-myapp-version`.
+ * Inline and block-start markers can be scoped to a component by inserting
+ * its name, for example `x-release-please-myapp-version` or
+ * `x-release-please-start-myapp-version`. Scoped markers are only updated
+ * by the matching component, while unscoped markers are updated by every
+ * component.
  */
 export class Generic extends DefaultUpdater {
   private readonly inlineUpdateRegex: RegExp;
