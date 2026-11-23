@@ -21,6 +21,7 @@ import {PullRequest} from './pull-request';
 import {Repository} from './repository';
 import {Release} from './release';
 import {
+  ScmChangeSet,
   ScmRelease,
   ScmReleaseIteratorOptions,
   ScmReleaseOptions,
@@ -662,6 +663,112 @@ export class GitHubApi {
           .map((label: any) => label.name)
           .filter((name: any) => !!name) as string[],
       };
+    }
+  );
+
+  /**
+   * Apply file changes as a single commit on top of an existing branch via
+   * the Git Database API. The branch ref is force-updated.
+   *
+   * Empty change sets are a no-op.
+   *
+   * @param branchName The branch to push to (must already exist).
+   * @param message Commit message.
+   * @param changes File-level changes to apply.
+   * @returns The new commit SHA, or undefined if there were no changes.
+   * @throws {ConfigurationError} if the branch does not exist.
+   * @throws {GitHubAPIError} on any other API error.
+   */
+  commitAndPushChanges = wrapAsync(
+    async (
+      branchName: string,
+      message: string,
+      changes: ScmChangeSet
+    ): Promise<string | undefined> => {
+      if (changes.size === 0) {
+        this.logger.debug(
+          `No file changes to push to branch ${branchName}; skipping commit`
+        );
+        return undefined;
+      }
+      const owner = this.repository.owner;
+      const repo = this.repository.repo;
+      const branchSha = await this.getBranchSha(branchName);
+      if (!branchSha) {
+        throw new ConfigurationError(
+          `Branch ${branchName} does not exist`,
+          'core',
+          `${owner}/${repo}`
+        );
+      }
+      const {
+        data: {
+          tree: {sha: baseTreeSha},
+        },
+      } = await this.octokit.git.getCommit({
+        owner,
+        repo,
+        commit_sha: branchSha,
+      });
+      const treeEntries: {
+        path: string;
+        mode: '100644' | '100755' | '040000' | '160000' | '120000';
+        type: 'blob';
+        sha: string | null;
+      }[] = [];
+      for (const [filePath, diff] of changes) {
+        if (diff.content === null) {
+          treeEntries.push({
+            path: filePath,
+            mode: diff.mode,
+            type: 'blob',
+            sha: null,
+          });
+        } else {
+          const {
+            data: {sha: blobSha},
+          } = await this.octokit.git.createBlob({
+            owner,
+            repo,
+            content: Buffer.from(diff.content).toString('base64'),
+            encoding: 'base64',
+          });
+          treeEntries.push({
+            path: filePath,
+            mode: diff.mode,
+            type: 'blob',
+            sha: blobSha,
+          });
+        }
+      }
+      const {
+        data: {sha: newTreeSha},
+      } = await this.octokit.git.createTree({
+        owner,
+        repo,
+        base_tree: baseTreeSha,
+        tree: treeEntries,
+      });
+      const {
+        data: {sha: newCommitSha},
+      } = await this.octokit.git.createCommit({
+        owner,
+        repo,
+        message,
+        tree: newTreeSha,
+        parents: [branchSha],
+      });
+      await this.octokit.git.updateRef({
+        owner,
+        repo,
+        ref: `heads/${branchName}`,
+        sha: newCommitSha,
+        force: true,
+      });
+      this.logger.debug(
+        `Pushed commit ${newCommitSha} (${treeEntries.length} file change(s)) to ${branchName}`
+      );
+      return newCommitSha;
     }
   );
 
