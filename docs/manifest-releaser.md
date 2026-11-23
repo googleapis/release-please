@@ -258,6 +258,14 @@ defaults (those are documented in comments)
   // absence defaults to "chore: release ${branch}"
   "group-pull-request-title-pattern": "chore: release ${branch}",
 
+  // puts the manifest pull request on its own branch,
+  // release-please--branches--<target>--suffix--<suffix>, so that several
+  // manifests in one repository can each have their own pull request.
+  // This option has no effect when `separate-pull-requests` is `true`.
+  // See "Multiple manifests in one repository" below.
+  // absence defaults to release-please--branches--<target>
+  "branch-suffix": "core",
+
   // When searching for the latest release SHAs, only consider the last N releases.
   // This option prevents paginating through all releases in history when we
   // expect to find the release within the last N releases. For repositories with
@@ -464,6 +472,54 @@ with a combined version of the library, i.e.,
 This functionality can be achieved by using the special `"."` path.
 `"."` indicates a release should be created when any changes are made to the
 codebase.
+
+### Multiple manifests in one repository
+
+By default, the combined release pull request for all packages uses the branch
+`release-please--branches--<target>`. If you run release-please with two config
+files against the same target branch, both runs write to that branch, and each
+one overwrites the other's pull request.
+
+To give each config its own pull request, give each one:
+
+* its own config file and manifest file (`--config-file` and `--manifest-file`);
+* its own `branch-suffix`, so its pull request goes on
+  `release-please--branches--<target>--suffix--<suffix>`;
+* its own label set in `label`, with at least one label that no other config
+  uses, for example `"label": "autorelease: pending,release-group: core"`;
+* ideally its own `group-pull-request-title-pattern`, or all the pull requests
+  get the same title.
+
+The label matters because release-please finds its release pull requests by
+label. A config that uses only the default `autorelease: pending` label also
+finds the other configs' release pull requests. While one of those is merged
+but not yet tagged, that config does not open or update its own pull request.
+It can also create releases from another config's pull request, for example
+when both configs release the root package (`"."`).
+
+```json
+{
+  "branch-suffix": "core",
+  "label": "autorelease: pending,release-group: core",
+  "group-pull-request-title-pattern": "chore: release core",
+  "packages": {
+    "packages/core-a": {},
+    "packages/core-b": {}
+  }
+}
+```
+
+If you add `branch-suffix` to a config that is already in use, release-please
+no longer updates an open release pull request on the old
+`release-please--branches--<target>` branch, so close it before you switch.
+
+A release pull request on the old branch that is merged but not yet tagged is
+still found by its labels, and the next run tags it as usual. If you also change
+the config's labels when you switch, release-please no longer finds a pull
+request that carries only the old labels. That pull request is then never
+tagged and keeps its pending label, and any config that still uses only the
+default label stays blocked by it. Let it be tagged before you change the
+labels.
 
 ## Plugins
 

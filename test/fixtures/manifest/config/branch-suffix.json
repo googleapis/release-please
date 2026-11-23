@@ -1,0 +1,12 @@
+{
+  "release-type": "simple",
+  "branch-suffix": "core",
+  "packages": {
+    "packages/a": {
+      "component": "pkg-a"
+    },
+    "packages/b": {
+      "component": "pkg-b"
+    }
+  }
+}

@@ -116,9 +116,41 @@ describe('BranchName', () => {
       expect(branchName?.toString()).to.eql(name);
     });
 
+    it('parses a target branch and group', () => {
+      const name = 'release-please--branches--main--groups--my-group';
+      const branchName = BranchName.parse(name);
+      expect(branchName).to.not.be.undefined;
+      expect(branchName?.getTargetBranch()).to.eql('main');
+      expect(branchName?.isComponent()).to.be.false;
+      expect(branchName?.toString()).to.eql(name);
+    });
+
     it('fails to parse', () => {
       const branchName = BranchName.parse('release-foo');
       expect(branchName).to.be.undefined;
+    });
+
+    describe('suffix branch name', () => {
+      it('parses a suffixed target branch', () => {
+        const name = 'release-please--branches--main--suffix--core';
+        const branchName = BranchName.parse(name);
+        expect(branchName).to.not.be.undefined;
+        expect(branchName?.getTargetBranch()).to.eql('main');
+        expect(branchName?.getComponent()).to.be.undefined;
+        expect(branchName?.getVersion()).to.be.undefined;
+        expect(branchName?.isComponent()).to.be.false;
+        expect(branchName?.toString()).to.eql(name);
+      });
+
+      it('parses a suffixed branch on a non-main target', () => {
+        const name = 'release-please--branches--1.x--suffix--plugins';
+        const branchName = BranchName.parse(name);
+        expect(branchName).to.not.be.undefined;
+        expect(branchName?.getTargetBranch()).to.eql('1.x');
+        expect(branchName?.getComponent()).to.be.undefined;
+        expect(branchName?.isComponent()).to.be.false;
+        expect(branchName?.toString()).to.eql(name);
+      });
     });
   });
   describe('ofVersion', () => {
@@ -147,6 +179,24 @@ describe('BranchName', () => {
       const branchName = BranchName.ofComponentTargetBranch('foo', 'main');
       expect(branchName.toString()).to.eql(
         'release-please--branches--main--components--foo'
+      );
+    });
+  });
+  describe('ofSuffixTargetBranch', () => {
+    it('builds a suffixed branch name', () => {
+      const branchName = BranchName.ofSuffixTargetBranch('core', 'main');
+      expect(branchName.toString()).to.eql(
+        'release-please--branches--main--suffix--core'
+      );
+    });
+
+    it('cleans unsafe characters', () => {
+      const branchName = BranchName.ofSuffixTargetBranch(
+        'my group/a--b',
+        'main'
+      );
+      expect(branchName.toString()).to.eql(
+        'release-please--branches--main--suffix--my-group-a-b'
       );
     });
   });

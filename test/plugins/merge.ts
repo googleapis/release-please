@@ -48,6 +48,26 @@ describe('Merge plugin', () => {
       expect(newCandidates).lengthOf(0);
     });
 
+    it('uses a custom head branch name', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('python', 'python', '1.0.0'),
+        buildMockCandidatePullRequest('node', 'node', '3.3.4', {
+          component: '@here/pkgA',
+        }),
+      ];
+      const plugin = new Merge(
+        github,
+        'main',
+        {},
+        {headBranchName: 'release-please--branches--main--suffix--core'}
+      );
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      expect(newCandidates[0].pullRequest.headRefName).to.eql(
+        'release-please--branches--main--suffix--core'
+      );
+    });
+
     it('merges a single pull request', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
