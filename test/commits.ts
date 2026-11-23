@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it} from 'mocha';
+import {afterEach, describe, it} from 'mocha';
 
 import {expect} from 'chai';
+import * as sinon from 'sinon';
+import * as parser from '@conventional-commits/parser';
 import {parseConventionalCommits, ConventionalCommit} from '../src/commit';
 import {buildCommitFromFixture, buildMockCommit} from './helpers';
 
@@ -324,6 +326,86 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].type).to.equal('feat');
     expect(conventionalCommits[1].type).to.equal('refactor');
     expect(conventionalCommits[2].type).to.equal('refactor');
+  });
+
+  it('handles nested parentheses after a non-ASCII space in the commit body', async () => {
+    // The parser treats only U+FEFF, tab, VT, FF, space and NBSP as
+    // whitespace, so an em space does not end the footer token.
+    const commits = [
+      buildMockCommit('fix: some fix\n\nfoo\u2003bar(baz(qux))'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('fix');
+  });
+
+  it('handles an unterminated scope ended by a bare CR in the commit body', async () => {
+    const commits = [buildMockCommit('fix: some fix\n\nfoo(bar\rbaz')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].bareMessage).to.equal('some fix');
+  });
+
+  describe('when parsing fails after sanitizing the body', () => {
+    const sandbox = sinon.createSandbox();
+    afterEach(() => sandbox.restore());
+
+    it('logs the original parser error', async () => {
+      sandbox
+        .stub(parser, 'parser')
+        .onFirstCall()
+        .throws(new Error('original failure'))
+        .onSecondCall()
+        .throws(new Error('retry failure'));
+      const debug = sandbox.stub();
+      const logger = {
+        error: sandbox.stub(),
+        warn: sandbox.stub(),
+        info: sandbox.stub(),
+        debug,
+        trace: sandbox.stub(),
+      };
+      const conventionalCommits = parseConventionalCommits(
+        [buildMockCommit('fix: some fix\n\nfoo(bar(baz)')],
+        logger
+      );
+      expect(conventionalCommits).lengthOf(0);
+      sinon.assert.calledWith(debug, 'error message: Error: original failure');
+      sinon.assert.neverCalledWith(
+        debug,
+        'error message: Error: retry failure'
+      );
+    });
+  });
+
+  it('handles nested parentheses on a line that starts after a bare CR', async () => {
+    const commits = [buildMockCommit('fix: some fix\n\nok\rFoo.Bar(baz(abc))')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].bareMessage).to.equal('some fix');
+  });
+
+  it('handles nested parentheses in a message with CR-only line endings', async () => {
+    const commits = [
+      buildMockCommit('fix: some fix\r\rFoo.Bar(baz(abc))\rMore details.'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].bareMessage).to.equal('some fix');
+  });
+
+  it('keeps a breaking footer commit when a sanitized line follows it', async () => {
+    const commits = [
+      buildMockCommit(
+        'chore: merge\n\nfix(core)!: breaking fix\nFoo.Bar(baz(abc))'
+      ),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    const fix = conventionalCommits.find(commit => commit.type === 'fix');
+    expect(fix, 'footer commit').to.not.be.undefined;
+    expect(fix!.scope).to.equal('core');
+    expect(fix!.breaking).to.be.true;
+    expect(fix!.bareMessage).to.equal('breaking fix');
   });
 
   it('handles a special commit separator', async () => {

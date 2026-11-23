@@ -296,7 +296,7 @@ function toConventionalChangelogFormat(
         }
         try {
           for (const commit of toConventionalChangelogFormat(
-            parser.parser(footerText)
+            parseMessage(footerText)
           )) {
             commits.push(commit);
           }
@@ -368,23 +368,43 @@ function hasExtendedContext(line: string) {
   return false;
 }
 
-function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
-  let ast: parser.Message;
+/**
+ * Parse a message, retrying once with `sanitizeBodyScopes` applied when the
+ * parser throws. Footer commits are re-parsed through this too, so they get
+ * the same recovery as the message they came from.
+ */
+function parseMessage(message: string): parser.Message {
   try {
-    ast = parser.parser(message);
+    return parser.parser(message);
   } catch (err) {
     const sanitizedMessage = sanitizeBodyScopes(message);
     if (sanitizedMessage === message) {
       throw err;
     }
-    ast = parser.parser(sanitizedMessage);
+    // Report the original failure: the retry's error describes the
+    // rewritten message, not the commit.
+    try {
+      return parser.parser(sanitizedMessage);
+    } catch {
+      throw err;
+    }
   }
-  return conventionalCommitsFilter(toConventionalChangelogFormat(ast)).map(
-    postProcessCommits
-  );
 }
 
-const UNTERMINATED_SCOPE_LINE_REGEX = /^[^\s:!()]+\([^()\r\n]*(?:\(|\r?$)/;
+function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
+  return conventionalCommitsFilter(
+    toConventionalChangelogFormat(parseMessage(message))
+  ).map(postProcessCommits);
+}
+
+// The excluded whitespace is the parser's own set (`isWhitespace` in
+// @conventional-commits/parser), not JavaScript's `\s`.
+const UNTERMINATED_SCOPE_LINE_REGEX =
+  /^[^\uFEFF\t\v\f \u00A0\r\n:!()]+\([^()\r\n]*(?:\(|$)/;
+
+// The parser ends a line at CRLF, LF, or a bare CR. The capture group keeps
+// each separator in the split result, so the message rejoins unchanged.
+const LINE_SEPARATOR_REGEX = /(\r\n|\r|\n)/;
 
 /**
  * `@conventional-commits/parser` attempts to parse the start of every body line
@@ -400,13 +420,14 @@ const UNTERMINATED_SCOPE_LINE_REGEX = /^[^\s:!()]+\([^()\r\n]*(?:\(|\r?$)/;
  * `Release-As`, issue references, and footer commits).
  */
 function sanitizeBodyScopes(message: string): string {
-  const lines = message.split('\n');
-  for (let i = 1; i < lines.length; i++) {
-    if (UNTERMINATED_SCOPE_LINE_REGEX.test(lines[i])) {
-      lines[i] = ` ${lines[i]}`;
+  // Lines sit at even indexes and separators at odd ones; skip the header.
+  const parts = message.split(LINE_SEPARATOR_REGEX);
+  for (let i = 2; i < parts.length; i += 2) {
+    if (UNTERMINATED_SCOPE_LINE_REGEX.test(parts[i])) {
+      parts[i] = ` ${parts[i]}`;
     }
   }
-  return lines.join('\n');
+  return parts.join('');
 }
 
 /**
