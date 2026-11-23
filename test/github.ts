@@ -1180,6 +1180,41 @@ describe('GitHub', () => {
       );
       expect(url).to.eql('https://github.com/fake/fake/blob/new-file.txt');
     });
+    it('preserves non-latin1 characters in the file contents', async () => {
+      const contents = '### ⚠ BREAKING CHANGES';
+      let sentContent = '';
+      req = req
+        .get('/repos/fake/fake/git/ref/heads%2Fbase-branch')
+        .reply(200, {
+          object: {
+            sha: 'abc123',
+          },
+        })
+        .get('/repos/fake/fake/git/ref/heads%2Fnew-branch')
+        .reply(404)
+        .post('/repos/fake/fake/git/refs')
+        .reply(201, {
+          object: {sha: 'abc123'},
+        })
+        .put('/repos/fake/fake/contents/release-notes.md', body => {
+          sentContent = body.content;
+          return true;
+        })
+        .reply(201, {
+          content: {
+            html_url: 'https://github.com/fake/fake/blob/release-notes.md',
+          },
+        });
+      await github.createFileOnNewBranch(
+        'release-notes.md',
+        contents,
+        'new-branch',
+        'base-branch'
+      );
+      expect(Buffer.from(sentContent, 'base64').toString('utf-8')).to.equal(
+        contents
+      );
+    });
   });
 
   describe('updatePullRequest', () => {

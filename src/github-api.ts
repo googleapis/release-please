@@ -852,7 +852,7 @@ export class GitHubApi {
       repo: this.repository.repo,
       path: filename,
       // contents need to be base64 encoded
-      content: Buffer.from(contents, 'binary').toString('base64'),
+      content: Buffer.from(contents, 'utf8').toString('base64'),
       message: 'Saving release notes',
       branch: newBranchName,
     });
