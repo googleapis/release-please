@@ -264,6 +264,11 @@ describe('PHPYoshi', () => {
       expect(newContent).to.eql('{"name":"google/client1","version":"1.2.4"}');
     });
     it('can override the version from BEGIN_VERSION_OVERRIDE body', async () => {
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+      });
+
       const commit = buildMockCommit('chore: some commit');
       const body =
         'BEGIN_VERSION_OVERRIDE\nClient1: 1.3.0\nClient2: 2.0.0-RC1\nEND_VERSION_OVERRIDE';
@@ -277,12 +282,12 @@ describe('PHPYoshi', () => {
         body,
       };
       // Add a commit with a version override
-      commits.push(...parseConventionalCommits([commit]));
-
-      const strategy = new PHPYoshi({
-        targetBranch: 'main',
-        github,
-      });
+      commits.push(
+        ...parseConventionalCommits(
+          [commit],
+          new Set(strategy.changelogSections.map(c => c.type))
+        )
+      );
 
       const release = await strategy.buildReleasePullRequest(commits);
       const updates = release!.updates;

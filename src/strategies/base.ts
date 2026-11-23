@@ -42,6 +42,7 @@ import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
 import {GenericToml} from '../updaters/generic-toml';
+import {DEFAULT_CHANGELOG_SECTIONS} from '../changelog-sections';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -126,7 +127,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly changelogNotes: ChangelogNotes;
 
   // CHANGELOG configuration
-  protected changelogSections?: ChangelogSection[];
+  readonly changelogSections: ChangelogSection[];
 
   constructor(options: BaseStrategyOptions) {
     this.logger = options.logger ?? defaultLogger;
@@ -142,7 +143,8 @@ export abstract class BaseStrategy implements Strategy {
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
     this.changelogHost = options.changelogHost;
-    this.changelogSections = options.changelogSections;
+    this.changelogSections =
+      options.changelogSections || DEFAULT_CHANGELOG_SECTIONS;
     this.tagSeparator = options.tagSeparator;
     this.skipGitHubRelease = options.skipGitHubRelease || false;
     this.skipChangelog = options.skipChangelog || false;

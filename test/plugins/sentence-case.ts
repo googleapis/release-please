@@ -50,7 +50,7 @@ describe('SentenceCase Plugin', () => {
       const plugin = new SentenceCase(github, 'main', {});
       const commits = await plugin.processCommits([
         ...buildMockConventionalCommit('feat: beep-boop-hello'),
-        ...buildMockConventionalCommit('fix:log4j.foo.bar'),
+        ...buildMockConventionalCommit('fix: log4j.foo.bar'),
       ]);
       expect(commits[0].message).to.equal('feat: Beep-boop-hello');
       expect(commits[1].message).to.equal('fix: Log4j.foo.bar');

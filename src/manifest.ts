@@ -745,6 +745,7 @@ export class Manifest {
     let newReleasePullRequests: CandidateReleasePullRequest[] = [];
     for (const path in this.repositoryConfig) {
       const config = this.repositoryConfig[path];
+      const strategy = strategies[path];
       this.logger.info(
         `Building candidate release pull request for path: ${path}`
       );
@@ -752,6 +753,7 @@ export class Manifest {
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
       let pathCommits = parseConventionalCommits(
         commitsPerPath[path],
+        new Set(strategy.changelogSections.map<string>(c => c.type)),
         this.logger
       );
       // The processCommits hook can be implemented by plugins to
@@ -767,7 +769,6 @@ export class Manifest {
         this.logger.warn('No latest release pull request found.');
       }
 
-      const strategy = strategies[path];
       const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
         pathCommits,

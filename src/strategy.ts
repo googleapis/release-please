@@ -17,7 +17,7 @@ import {Release} from './release';
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 import {VersioningStrategy} from './versioning-strategy';
-import {ChangelogNotes} from './changelog-notes';
+import {ChangelogNotes, ChangelogSection} from './changelog-notes';
 import {Version} from './version';
 
 export interface BuildReleaseOptions {
@@ -33,6 +33,7 @@ export interface BumpReleaseOptions {
  * necessary to update in a release pull request.
  */
 export interface Strategy {
+  readonly changelogSections: ChangelogSection[];
   readonly changelogNotes: ChangelogNotes;
   readonly path: string;
   readonly versioningStrategy: VersioningStrategy;

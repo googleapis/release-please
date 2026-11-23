@@ -17,7 +17,7 @@ import {describe, it} from 'mocha';
 import {ChangelogJson} from '../../src/updaters/changelog-json';
 import {Version} from '../../src/version';
 import {parseConventionalCommits} from '../../src/commit';
-import {buildMockCommit} from '../helpers';
+import {buildMockCommit, defaultConventionalTypes} from '../helpers';
 
 const UUID_REGEX =
   /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g;
@@ -32,7 +32,10 @@ describe('changelog.json', () => {
       buildMockCommit('fix!: some bugfix'),
       buildMockCommit('docs(perf)!: some documentation'),
     ];
-    const conventionalCommits = parseConventionalCommits(commits);
+    const conventionalCommits = parseConventionalCommits(
+      commits,
+      new Set(defaultConventionalTypes)
+    );
     const changelogJson = new ChangelogJson({
       version: Version.parse('14.0.0'),
       artifactName: 'foo-artifact',
@@ -54,7 +57,10 @@ describe('changelog.json', () => {
       buildMockCommit('fix: some bugfix'),
       buildMockCommit('docs: some documentation'),
     ];
-    const conventionalCommits = parseConventionalCommits(commits);
+    const conventionalCommits = parseConventionalCommits(
+      commits,
+      new Set(defaultConventionalTypes)
+    );
     const changelogJson = new ChangelogJson({
       version: Version.parse('14.0.0'),
       artifactName: 'foo-artifact',
@@ -79,7 +85,10 @@ describe('changelog.json', () => {
       buildMockCommit('fix: Support TOML up to v1.0.0-rc.1 spec. (#1837)'),
       buildMockCommit('docs: some documentation'),
     ];
-    const conventionalCommits = parseConventionalCommits(commits);
+    const conventionalCommits = parseConventionalCommits(
+      commits,
+      new Set(defaultConventionalTypes)
+    );
     const changelogJson = new ChangelogJson({
       version: Version.parse('14.0.0'),
       artifactName: 'foo-artifact',

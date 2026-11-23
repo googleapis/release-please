@@ -44,7 +44,9 @@ PR itself:
 
 Release Please assumes you are using [Conventional Commit messages](https://www.conventionalcommits.org/).
 
-The most important prefixes you should have in mind are:
+Please refer to [conventional commits](docs/conventional-commits.md) for detailed explanations about how to write your commits.
+
+The most important conventional commit types you should have in mind are:
 
 * `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
   patch.
@@ -74,8 +76,11 @@ A linear git history makes it much easier to:
 
 ### What if my PR contains multiple fixes or features?
 
-Release Please allows you to represent multiple changes in a single commit,
-using footers:
+Release Please allows you to represent multiple changes in a single git commit, by declaring multiple conventional commits.
+
+Please refer to [conventional commits](docs/conventional-commits.md#multiple-conventional-commits) for detailed explanations about how to write multiple conventional commits within a single git commit message.
+
+The example below is a git commit message containing 3 conventional commits:
 
 ```txt
 feat: adds v4 UUID to crypto
@@ -83,13 +88,13 @@ feat: adds v4 UUID to crypto
 This adds support for v4 UUIDs to the library.
 
 fix(utils): unicode no longer throws exception
-  PiperOrigin-RevId: 345559154
-  BREAKING-CHANGE: encode method no longer throws.
-  Source-Link: googleapis/googleapis@5e0dcb2
+PiperOrigin-RevId: 345559154
+BREAKING-CHANGE: encode method no longer throws.
+Source-Link: googleapis/googleapis@5e0dcb2
 
 feat(utils): update encode to support unicode
-  PiperOrigin-RevId: 345559182
-  Source-Link: googleapis/googleapis@e5eef86
+PiperOrigin-RevId: 345559182
+Source-Link: googleapis/googleapis@e5eef86
 ```
 
 The above commit message will contain:
@@ -98,8 +103,6 @@ The above commit message will contain:
 2. an entry for the fix **"unicode no longer throws exception"**, along with a note
   that it's a breaking change.
 3. an entry for the feature **"update encode to support unicode"**.
-
-:warning: **Important:** The additional messages must be added to the bottom of the commit.
 
 ## How do I change the version number?
 

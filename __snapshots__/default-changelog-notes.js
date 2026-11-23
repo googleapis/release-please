@@ -181,13 +181,13 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle meta
 
 ### Features
 
-* **recaptchaenterprise:** migrate microgenerator ([3cf10aa](https://github.com/googleapis/java-asset/commit/3cf10aa5f94cd40a1d0d08e573eb737f))
+* **recaptchaenterprise:** migrate microgenerator ([b65fbcd](https://github.com/googleapis/java-asset/commit/b65fbcdacf7ed1f9911c139eb7aaca93))
 
 
 ### Bug Fixes
 
-* fixes bug [#733](https://github.com/googleapis/java-asset/issues/733) ([3cf10aa](https://github.com/googleapis/java-asset/commit/3cf10aa5f94cd40a1d0d08e573eb737f))
-* **securitycenter:** fixes security center. ([3cf10aa](https://github.com/googleapis/java-asset/commit/3cf10aa5f94cd40a1d0d08e573eb737f))
+* fixes bug [#733](https://github.com/googleapis/java-asset/issues/733) ([b65fbcd](https://github.com/googleapis/java-asset/commit/b65fbcdacf7ed1f9911c139eb7aaca93))
+* **securitycenter:** fixes security center. ([b65fbcd](https://github.com/googleapis/java-asset/commit/b65fbcdacf7ed1f9911c139eb7aaca93))
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle multi-line breaking change, if prefixed with list 1'] = `
