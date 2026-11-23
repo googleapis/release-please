@@ -32,7 +32,11 @@ import {ReleasePullRequest} from './release-pull-request';
 import {Update} from './update';
 import {Release} from './release';
 import {ROOT_PROJECT_PATH} from './manifest';
-import {GitHubApi, GitHubCreateOptions} from './github-api';
+import {
+  GitHubApi,
+  GitHubCreateOptions,
+  isTransientGraphqlError,
+} from './github-api';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {
   RepositoryFileCache,
@@ -470,7 +474,7 @@ export class GitHub implements Scm {
           }
           this.logger.trace('no GraphQL response, retrying');
         } catch (err) {
-          if ((err as GitHubAPIError).status !== 502) {
+          if (!isTransientGraphqlError(err)) {
             throw err;
           }
           if (maxRetries === 0) {
@@ -478,7 +482,7 @@ export class GitHub implements Scm {
             throw err;
           }
           this.logger.info(
-            `received 502 error, ${maxRetries} attempts remaining`
+            `received transient GraphQL error, ${maxRetries} attempts remaining`
           );
           if (typeof opts.num === 'number') {
             if (maxRetries === 1) {
