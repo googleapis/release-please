@@ -18,6 +18,7 @@ import {Changelog} from '../updaters/changelog';
 import {ReadMe} from '../updaters/terraform/readme';
 import {ModuleVersion} from '../updaters/terraform/module-version';
 import {MetadataVersion} from '../updaters/terraform/metadata-version';
+import {ExampleVersion} from '../updaters/terraform/example-version';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {Version} from '../version';
@@ -107,6 +108,39 @@ export class TerraformModule extends BaseStrategy {
         }),
       });
     });
+
+    // Update module examples to current candidate version.
+    let repoMatch = this.repository.repo.match(/^terraform-([a-z0-9]+)-(.+)$/i);
+    if (repoMatch && repoMatch[1].toLowerCase() === 'module') {
+      repoMatch = null;
+    }
+    if (!repoMatch && this.component) {
+      repoMatch = (this.component || '').match(/^terraform-([a-z0-9]+)-(.+)$/i);
+      if (repoMatch && repoMatch[1].toLowerCase() === 'module') {
+        repoMatch = null;
+      }
+    }
+    const provider = repoMatch ? repoMatch[1] : undefined;
+    const moduleName = repoMatch ? repoMatch[2] : undefined;
+
+    const exampleFiles = await this.github.findFilesByExtensionAndRef(
+      'tf',
+      this.targetBranch,
+      this.addPath('examples')
+    );
+
+    exampleFiles.forEach(filePath => {
+      updates.push({
+        path: this.addPath(`examples/${filePath}`),
+        createIfMissing: false,
+        updater: new ExampleVersion({
+          version,
+          moduleName,
+          provider,
+        }),
+      });
+    });
+
     return updates;
   }
 
