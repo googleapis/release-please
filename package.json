@@ -42,7 +42,7 @@
     "@types/async-retry": "1.4.9",
     "@types/chai": "4.3.4",
     "@types/diff": "5.0.2",
-    "@types/iarna__toml": "2.0.2",
+    "@types/iarna__toml": "2.0.5",
     "@types/inquirer": "9.0.3",
     "@types/js-yaml": "4.0.5",
     "@types/jsonpath": "0.2.0",
