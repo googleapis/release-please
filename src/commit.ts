@@ -37,6 +37,8 @@ export interface Commit {
   files?: string[];
   pullRequest?: PullRequest;
   author?: CommitAuthor;
+  /** Parent SHAs, when the history source provides them. */
+  parents?: string[];
 }
 
 export interface ConventionalCommit extends Commit {

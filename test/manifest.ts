@@ -1528,6 +1528,160 @@ describe('Manifest', () => {
   });
 
   describe('buildPullRequests', () => {
+    describe('with a branch cut before the last release and merged after it', () => {
+      // History arrives newest committer date first, so the branch's
+      // commits sort behind the release commit (googleapis/release-please#2883).
+      beforeEach(() => {
+        mockReleases(sandbox, github, [
+          {
+            id: 123456,
+            sha: 'abc123',
+            tagName: 'v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+          },
+        ]);
+        mockCommits(sandbox, github, [
+          {
+            sha: 'mmm222',
+            message: 'Merge pull request #14 from owner/late-branch',
+            files: [],
+            parents: ['abc123', 'bbb222'],
+          },
+          {
+            sha: 'abc123',
+            message: 'chore: release 1.0.0',
+            files: [],
+            parents: ['mmm000'],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release 1.0.0',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
+          },
+          {
+            sha: 'bbb222',
+            message: 'fix: late fix',
+            files: [],
+            parents: ['bbb111'],
+          },
+          {
+            // A skewed date sorts this released commit ahead of the
+            // branch's first, so the walk collects it and must filter it.
+            sha: 'mmm000',
+            message: 'fix: already released',
+            files: [],
+            parents: ['zzz000'],
+          },
+          {
+            sha: 'bbb111',
+            message: 'feat: late feature',
+            files: [],
+            parents: ['mmm000'],
+          },
+          {
+            sha: 'zzz000',
+            message: 'feat: long released',
+            files: [],
+            parents: [],
+          },
+        ]);
+      });
+
+      it('includes the branch commits and none the release holds', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        expect(pullRequests[0].version?.toString()).to.eql('1.1.0');
+        const notes = pullRequests[0].body.toString();
+        expect(notes).to.include('late feature');
+        expect(notes).to.include('late fix');
+        expect(notes).not.to.include('already released');
+        expect(notes).not.to.include('long released');
+      });
+    });
+
+    describe('with history that ends before ancestry resolves', () => {
+      beforeEach(() => {
+        mockReleases(sandbox, github, [
+          {
+            id: 123456,
+            sha: 'abc123',
+            tagName: 'v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+          },
+        ]);
+        // The search depth ends the walk before `bbb111` is walked, and
+        // `zzz000` is collected without being linked to the head.
+        mockCommits(sandbox, github, [
+          {
+            sha: 'mmm222',
+            message: 'fix: on main',
+            files: [],
+            parents: ['abc123', 'bbb111'],
+          },
+          {
+            sha: 'abc123',
+            message: 'chore: release 1.0.0',
+            files: [],
+            parents: ['mmm000'],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release 1.0.0',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
+          },
+          {
+            sha: 'zzz000',
+            message: 'feat: long released',
+            files: [],
+            parents: [],
+          },
+        ]);
+      });
+
+      it('keeps the date-order cutoff', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        expect(pullRequests[0].version?.toString()).to.eql('1.0.1');
+        const notes = pullRequests[0].body.toString();
+        expect(notes).to.include('on main');
+        expect(notes).not.to.include('long released');
+      });
+    });
+
     describe('with basic config', () => {
       beforeEach(() => {
         mockReleases(sandbox, github, [
