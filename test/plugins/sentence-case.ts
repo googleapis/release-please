@@ -37,6 +37,69 @@ describe('SentenceCase Plugin', () => {
       expect(commits[0].message).to.equal('fix: Hello world');
       expect(commits[1].message).to.equal('fix: Goodnight moon');
     });
+    it('converts breaking changes from the subject to sentence case', () => {
+      const plugin = new SentenceCase(github, 'main', {});
+      const commits = plugin.processCommits([
+        ...buildMockConventionalCommit('feat!: add support for proxies'),
+      ]);
+      expect(commits[0].message).to.equal('feat!: Add support for proxies');
+      expect(commits[0].bareMessage).to.equal('Add support for proxies');
+      expect(commits[0].notes).to.deep.equal([
+        {title: 'BREAKING CHANGE', text: 'Add support for proxies'},
+      ]);
+    });
+    it('converts explicit breaking change notes to sentence case', () => {
+      const plugin = new SentenceCase(github, 'main', {});
+      const commits = plugin.processCommits([
+        ...buildMockConventionalCommit(
+          'feat: update support\n\nBREAKING CHANGE: remove legacy support'
+        ),
+      ]);
+      expect(commits[0].notes).to.deep.equal([
+        {title: 'BREAKING CHANGE', text: 'Remove legacy support'},
+      ]);
+    });
+    it('preserves reserved first words in breaking change notes', () => {
+      const plugin = new SentenceCase(github, 'main', {});
+      const commits = plugin.processCommits([
+        ...buildMockConventionalCommit('feat!: npm requires an update'),
+        ...buildMockConventionalCommit('feat!: gRPC requires an update'),
+      ]);
+      expect(commits[0].notes[0].text).to.equal('npm requires an update');
+      expect(commits[1].notes[0].text).to.equal('gRPC requires an update');
+    });
+    it('respects custom specialWords in breaking change notes', () => {
+      const plugin = new SentenceCase(github, 'main', {}, ['hello']);
+      const commits = plugin.processCommits([
+        ...buildMockConventionalCommit('feat!: hello world'),
+        ...buildMockConventionalCommit('feat!: npm requires an update'),
+      ]);
+      expect(commits[0].notes[0].text).to.equal('hello world');
+      expect(commits[1].notes[0].text).to.equal('Npm requires an update');
+    });
+    it('preserves note formatting and unrelated notes', () => {
+      const plugin = new SentenceCase(github, 'main', {});
+      const commits = buildMockConventionalCommit('feat: update support');
+      commits[0].notes = [
+        {
+          title: 'BREAKING CHANGE',
+          text: 'remove legacy support\n\n#### Migration\n- use the new API\n',
+        },
+        {title: 'BREAKING CHANGE', text: ''},
+        {title: 'BREAKING CHANGE', text: 'Already capitalized'},
+        {title: 'RELEASE AS', text: 'next'},
+      ];
+      plugin.processCommits(commits);
+      expect(commits[0].notes).to.deep.equal([
+        {
+          title: 'BREAKING CHANGE',
+          text: 'Remove legacy support\n\n#### Migration\n- use the new API\n',
+        },
+        {title: 'BREAKING CHANGE', text: ''},
+        {title: 'BREAKING CHANGE', text: 'Already capitalized'},
+        {title: 'RELEASE AS', text: 'next'},
+      ]);
+    });
     it('leaves reserved words lowercase', async () => {
       const plugin = new SentenceCase(github, 'main', {});
       const commits = await plugin.processCommits([
