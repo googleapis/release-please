@@ -26,6 +26,7 @@ import {
   CargoDependencies,
   CargoDependency,
   TargetDependencies,
+  isWorkspaceInheritedValue,
 } from '../updaters/rust/common';
 import {VersionsMap, Version} from '../version';
 import {CargoToml} from '../updaters/rust/cargo-toml';
@@ -74,6 +75,8 @@ interface CrateInfo {
   manifest: CargoManifest;
 }
 
+const WORKSPACE_PACKAGE_NAME = '[workspace.package]';
+
 /**
  * The plugin analyzed a cargo workspace and will bump dependencies
  * of managed packages if those dependencies are being updated.
@@ -84,6 +87,7 @@ interface CrateInfo {
 export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
   private strategiesByPath: Record<string, Strategy> = {};
   private releasesByPath: Record<string, Release> = {};
+  private workspaceVersionPackages = new Set<string>();
 
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
@@ -107,6 +111,8 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
     const allCrates: CrateInfo[] = [];
     const candidatesByPackage: Record<string, CandidateReleasePullRequest> = {};
+    this.workspaceVersionPackages.clear();
+    const workspaceVersion = cargoManifest.workspace.package?.version;
 
     const members = (
       await Promise.all(
@@ -133,6 +139,24 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       const manifest = parseCargoManifest(manifestContent.parsedContent);
       const packageName = manifest.package?.name;
       if (!packageName) {
+        if (
+          path === ROOT_PROJECT_PATH &&
+          typeof workspaceVersion === 'string'
+        ) {
+          if (candidate) {
+            candidatesByPackage[WORKSPACE_PACKAGE_NAME] = candidate;
+          }
+          this.workspaceVersionPackages.add(WORKSPACE_PACKAGE_NAME);
+          allCrates.push({
+            path,
+            name: WORKSPACE_PACKAGE_NAME,
+            version: workspaceVersion,
+            manifest,
+            manifestContent: manifestContent.parsedContent,
+            manifestPath,
+          });
+          continue;
+        }
         this.logger.warn(
           `package manifest at ${manifestPath} is missing [package.name]`
         );
@@ -142,19 +166,29 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         candidatesByPackage[packageName] = candidate;
       }
 
-      const version = manifest.package?.version;
+      const packageVersion = manifest.package?.version;
+      const version = isWorkspaceInheritedValue(packageVersion)
+        ? workspaceVersion
+        : packageVersion;
       if (!version) {
         throw new ConfigurationError(
-          `package manifest at ${manifestPath} is missing [package.version]`,
+          isWorkspaceInheritedValue(packageVersion)
+            ? 'workspace manifest at Cargo.toml is missing [workspace.package.version]'
+            : `package manifest at ${manifestPath} is missing [package.version]`,
           'cargo-workspace',
           `${this.github.repository.owner}/${this.github.repository.repo}`
         );
       } else if (typeof version !== 'string') {
         throw new ConfigurationError(
-          `package manifest at ${manifestPath} has an invalid [package.version]`,
+          isWorkspaceInheritedValue(packageVersion)
+            ? 'workspace manifest at Cargo.toml has an invalid [workspace.package.version]'
+            : `package manifest at ${manifestPath} has an invalid [package.version]`,
           'cargo-workspace',
           `${this.github.repository.owner}/${this.github.repository.repo}`
         );
+      }
+      if (isWorkspaceInheritedValue(packageVersion)) {
+        this.workspaceVersionPackages.add(packageName);
       }
       allCrates.push({
         path,
@@ -340,6 +374,35 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     if (!rootCandidate) {
       this.logger.warn('Unable to find a rust candidate pull request');
       return candidates;
+    }
+
+    const workspaceVersions = new Set(
+      Array.from(this.workspaceVersionPackages)
+        .map(packageName => updatedVersions.get(packageName)?.toString())
+        .filter((version): version is string => version !== undefined)
+    );
+    if (workspaceVersions.size > 1) {
+      throw new ConfigurationError(
+        'packages inheriting [workspace.package.version] must use the same release version',
+        'cargo-workspace',
+        `${this.github.repository.owner}/${this.github.repository.repo}`
+      );
+    }
+    const workspaceVersion = Array.from(workspaceVersions)[0];
+    if (
+      workspaceVersion &&
+      !rootCandidate.pullRequest.updates.some(
+        update => update.path === 'Cargo.toml'
+      )
+    ) {
+      rootCandidate.pullRequest.updates.push({
+        path: 'Cargo.toml',
+        createIfMissing: false,
+        updater: new CargoToml({
+          version: Version.parse(workspaceVersion),
+          versionsMap: updatedVersions,
+        }),
+      });
     }
 
     // Update the root Cargo.lock if it exists
