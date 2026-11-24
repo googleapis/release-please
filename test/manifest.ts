@@ -346,6 +346,35 @@ describe('Manifest', () => {
       ).to.eql('/');
     });
 
+    it('should read make latest from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/make-latest.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].makeLatest).to.be.true;
+      expect(manifest.repositoryConfig['packages/bot-config-utils'].makeLatest)
+        .to.be.false;
+    });
+
     it('should read extra files from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
@@ -6490,6 +6519,7 @@ describe('Manifest', () => {
         draft: true,
         prerelease: undefined,
         forceTag: undefined,
+        makeLatest: undefined,
       } as ReleaseOptions);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
@@ -6569,6 +6599,7 @@ describe('Manifest', () => {
         draft: true,
         prerelease: undefined,
         forceTag: true,
+        makeLatest: undefined,
       } as ReleaseOptions);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
@@ -6581,6 +6612,63 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+    });
+
+    it('should create a release that is not marked latest', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const githubReleaseStub = mockCreateRelease(github, [
+        {id: 123456, sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      sandbox.stub(github, 'commentOnIssue').resolves();
+      sandbox.stub(github, 'addIssueLabels').resolves();
+      sandbox.stub(github, 'removeIssueLabels').resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            makeLatest: false,
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      sinon.assert.calledOnceWithExactly(githubReleaseStub, sinon.match.any, {
+        draft: undefined,
+        prerelease: undefined,
+        forceTag: undefined,
+        makeLatest: false,
+      } as ReleaseOptions);
     });
 
     it('should create a prerelease release from beta', async () => {
@@ -6649,6 +6737,7 @@ describe('Manifest', () => {
         draft: undefined,
         prerelease: true,
         forceTag: undefined,
+        makeLatest: undefined,
       } as ReleaseOptions);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
@@ -6727,6 +6816,7 @@ describe('Manifest', () => {
         draft: undefined,
         prerelease: false,
         forceTag: undefined,
+        makeLatest: undefined,
       } as ReleaseOptions);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(

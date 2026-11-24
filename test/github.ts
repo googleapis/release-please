@@ -831,6 +831,42 @@ describe('GitHub', () => {
       expect(release.draft).to.be.true;
     });
 
+    for (const {makeLatest, expected} of [
+      {makeLatest: undefined, expected: undefined},
+      {makeLatest: true, expected: 'true'},
+      {makeLatest: false, expected: 'false'},
+    ]) {
+      it(`should send make_latest ${expected} when makeLatest is ${makeLatest}`, async () => {
+        req
+          .post('/repos/fake/fake/releases', body => {
+            if (expected === undefined) {
+              expect(body).to.not.have.property('make_latest');
+            } else {
+              expect(body.make_latest).to.eql(expected);
+            }
+            return true;
+          })
+          .reply(200, {
+            tag_name: 'v1.2.3',
+            draft: false,
+            html_url: 'https://github.com/fake/fake/releases/v1.2.3',
+            upload_url:
+              'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
+            target_commitish: 'abc123',
+          });
+        const release = await github.createRelease(
+          {
+            tag: new TagName(Version.parse('1.2.3')),
+            sha: 'abc123',
+            notes: 'Some release notes',
+          },
+          {makeLatest}
+        );
+        req.done();
+        expect(release.tagName).to.eql('v1.2.3');
+      });
+    }
+
     it('should create a draft release with forced tag', async () => {
       req
         .post('/repos/fake/fake/git/refs', body => {
