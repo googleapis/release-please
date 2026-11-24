@@ -82,6 +82,67 @@ class TaggedTOMLParser extends TOMLParser {
 }
 
 /**
+ * `@iarna/toml` implements TOML 1.0.0-rc.1, but Cargo accepts TOML 1.1 inline
+ * tables: newlines, comments and a trailing comma between `{` and `}`. Blank
+ * those out with spaces so the text parses as TOML 1.0.0-rc.1. The length is
+ * unchanged, so value offsets still point into the original input.
+ * @param input TOML text
+ */
+export function toToml10(input: string): string {
+  const out = input.split('');
+  const stack: string[] = [];
+  let lastComma = -1; // index of a comma with only blanks since
+  let i = 0;
+  while (i < input.length) {
+    const c = input[i];
+    const inInline = stack[stack.length - 1] === '{';
+    if (c === '#') {
+      const end = input.indexOf('\n', i);
+      const stop = end === -1 ? input.length : end;
+      if (inInline) {
+        out.fill(' ', i, stop);
+      }
+      i = stop;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      const q = input.startsWith(c.repeat(3), i) ? c.repeat(3) : c;
+      let j = i + q.length;
+      while (j < input.length && !input.startsWith(q, j)) {
+        j += c === '"' && input[j] === '\\' ? 2 : 1;
+      }
+      i = j + q.length;
+      // a multi-line string may end with up to two extra quotes
+      for (let k = 0; q.length === 3 && k < 2 && input[i] === c; k++) {
+        i++;
+      }
+      lastComma = -1;
+      continue;
+    }
+    if (c === '{' || c === '[') {
+      stack.push(c);
+      lastComma = -1;
+    } else if (c === '}' || c === ']') {
+      if (c === '}' && lastComma !== -1) {
+        out[lastComma] = ' ';
+      }
+      stack.pop();
+      lastComma = -1;
+    } else if (c === ',') {
+      lastComma = inInline ? i : -1;
+    } else if (c === '\n' || c === '\r') {
+      if (inInline) {
+        out[i] = ' ';
+      }
+    } else if (c !== ' ' && c !== '\t') {
+      lastComma = -1;
+    }
+    i++;
+  }
+  return out.join('');
+}
+
+/**
  * Parses input as TOML with the given parser
  * @param input A string
  * @param parserType The TOML parser to use (might be custom)
@@ -91,7 +152,7 @@ export function parseWith(
   parserType: typeof TOMLParser = TaggedTOMLParser
 ): JsonMap {
   const parser = new parserType();
-  parser.parse(input);
+  parser.parse(toToml10(input));
   return parser.finish();
 }
 

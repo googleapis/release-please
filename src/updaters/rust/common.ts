@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as TOML from '@iarna/toml';
+import {toToml10} from '../../util/toml-edit';
 
 /**
  * The contents of a `Cargo.toml` manifest
@@ -73,7 +74,7 @@ export const DEP_KINDS: DepKind[] = [
 ];
 
 export function parseCargoManifest(content: string): CargoManifest {
-  return TOML.parse(content) as CargoManifest;
+  return TOML.parse(toToml10(content)) as CargoManifest;
 }
 
 /**
