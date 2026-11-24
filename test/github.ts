@@ -832,14 +832,18 @@ describe('GitHub', () => {
     });
 
     for (const {makeLatest, expected} of [
-      {makeLatest: undefined, expected: 'true'},
+      {makeLatest: undefined, expected: undefined},
       {makeLatest: true, expected: 'true'},
       {makeLatest: false, expected: 'false'},
     ]) {
       it(`should send make_latest ${expected} when makeLatest is ${makeLatest}`, async () => {
         req
           .post('/repos/fake/fake/releases', body => {
-            expect(body.make_latest).to.eql(expected);
+            if (expected === undefined) {
+              expect(body).to.not.have.property('make_latest');
+            } else {
+              expect(body.make_latest).to.eql(expected);
+            }
             return true;
           })
           .reply(200, {

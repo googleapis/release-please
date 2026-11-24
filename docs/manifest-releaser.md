@@ -221,7 +221,7 @@ defaults (those are documented in comments)
   "force-tag-creation": true
 
   // Whether GitHub marks the release as the repository's latest release
-  // Absence defaults to true.
+  // Absence leaves it to GitHub, which marks new releases as latest.
   "make-latest": false,
 
   // Skip creating GitHub Releases

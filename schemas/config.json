@@ -71,7 +71,7 @@
           "type": "boolean"
         },
         "make-latest": {
-          "description": "Whether GitHub marks the release as the repository's latest release. Defaults to `true`.",
+          "description": "Whether GitHub marks the release as the repository's latest release. If unset, GitHub decides, and marks new releases as latest.",
           "type": "boolean"
         },
         "prerelease": {
