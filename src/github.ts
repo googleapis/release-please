@@ -94,6 +94,11 @@ interface GraphQLPullRequest {
   number: number;
   title: string;
   body: string;
+  mergedAt?: string | null;
+  lastEditedAt?: string | null;
+  editor?: {
+    login: string;
+  } | null;
   baseRefName: string;
   headRefName: string;
   labels: {
@@ -111,6 +116,24 @@ interface GraphQLPullRequest {
     pageInfo: {
       hasNextPage: boolean;
     };
+  };
+}
+
+interface GraphQLPullRequestEdits {
+  repository?: {
+    pullRequest?: {
+      userContentEdits: {
+        nodes: {
+          editedAt: string;
+          editor?: {
+            login: string;
+          } | null;
+        }[];
+        pageInfo: {
+          hasNextPage: boolean;
+        };
+      };
+    } | null;
   };
 }
 
@@ -238,6 +261,96 @@ export class GitHub implements Scm {
     }
   }
 
+  /**
+   * The body of a merged pull request stays editable by its author, so a
+   * BEGIN_COMMIT_OVERRIDE section is only used when the pull request is merged
+   * and every edit of its body made after the merge was made by a user with
+   * write access to the repository.
+   */
+  private async isCommitOverrideTrusted(
+    pullRequest: GraphQLPullRequest
+  ): Promise<boolean> {
+    const {number, mergedAt, lastEditedAt, editor} = pullRequest;
+    if (!mergedAt) {
+      return false;
+    }
+    // Timestamps have a resolution of one second, so an edit made in the
+    // same second as the merge counts as made after it.
+    const merged = Date.parse(mergedAt);
+    if (!lastEditedAt || Date.parse(lastEditedAt) < merged) {
+      return true;
+    }
+    let edits: GraphQLPullRequestEdits | undefined;
+    try {
+      edits = (await this.graphqlRequest({
+        query: `query pullRequestBodyEdits($owner: String!, $repo: String!, $number: Int!) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $number) {
+              userContentEdits(first: 100) {
+                nodes {
+                  editedAt
+                  editor {
+                    login
+                  }
+                }
+                pageInfo {
+                  hasNextPage
+                }
+              }
+            }
+          }
+        }`,
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        number,
+      })) as GraphQLPullRequestEdits | undefined;
+    } catch (err) {
+      this.logger.warn(`Could not fetch edits of PR #${number}: ${err}`);
+      return false;
+    }
+    const history = edits?.repository?.pullRequest?.userContentEdits;
+    if (!history || history.pageInfo.hasNextPage) {
+      return false;
+    }
+    const editors = new Set([editor?.login]);
+    for (const edit of history.nodes) {
+      if (Date.parse(edit.editedAt) >= merged) {
+        editors.add(edit.editor?.login);
+      }
+    }
+    for (const login of editors) {
+      if (!login || !(await this.hasWriteAccess(login))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private writeAccessCache = new Map<string, Promise<boolean>>();
+  private hasWriteAccess(username: string): Promise<boolean> {
+    let hasAccess = this.writeAccessCache.get(username);
+    if (!hasAccess) {
+      hasAccess = this.octokit.repos
+        .getCollaboratorPermissionLevel({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          username,
+        })
+        .then(
+          ({data}) =>
+            data.permission === 'admin' || data.permission === 'write',
+          err => {
+            this.logger.warn(
+              `Could not check repository permission for ${username}: ${err}`
+            );
+            return false;
+          }
+        );
+      this.writeAccessCache.set(username, hasAccess);
+    }
+    return hasAccess;
+  }
+
   private async mergeCommitsGraphQL(
     targetBranch: string,
     cursor?: string,
@@ -265,6 +378,11 @@ export class GitHub implements Scm {
                         }
                       }
                       body
+                      mergedAt
+                      lastEditedAt
+                      editor {
+                        login
+                      }
                       mergeCommit {
                         oid
                       }
@@ -382,6 +500,11 @@ export class GitHub implements Scm {
           body: pullRequest.body,
           labels: pullRequest.labels.nodes.map(node => node.name),
           files: (pullRequest.files?.nodes || []).map(node => node.path),
+          commitOverrideTrusted: pullRequest.body.includes(
+            'BEGIN_COMMIT_OVERRIDE'
+          )
+            ? await this.isCommitOverrideTrusted(pullRequest)
+            : undefined,
         };
       }
       if (mergePullRequest) {
