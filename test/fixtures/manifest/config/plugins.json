@@ -2,7 +2,8 @@
   "release-type": "simple",
   "plugins": [
     "node-workspace",
-    "cargo-workspace"
+    "cargo-workspace",
+    "go-workspace"
   ],
   "packages": {
     ".": {
