@@ -1291,7 +1291,13 @@ export class Manifest {
         .map(({tagName, url}) => `- [${tagName}](${url})`)
         .join('\n');
       const comment = `🤖 Created releases:\n\n${releaseList}\n\n:sunflower:`;
-      await this.github.commentOnIssue(comment, pullRequest.number);
+      try {
+        await this.github.commentOnIssue(comment, pullRequest.number);
+      } catch (err) {
+        this.logger.warn(
+          `Failed to comment on pull request #${pullRequest.number}: ${err}`
+        );
+      }
     }
 
     if (error) {
