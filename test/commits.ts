@@ -47,6 +47,28 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].notes[0].text).to.equal('some breaking fix');
   });
 
+  for (const footer of [
+    'BREAKING CHANGE:',
+    'BREAKING CHANGE: ',
+    'BREAKING CHANGE:\n',
+    'BREAKING-CHANGE:',
+  ]) {
+    it(`keeps the breaking change marker when the footer is ${JSON.stringify(
+      footer
+    )}`, async () => {
+      const commits = [
+        buildMockCommit(`feat!: some breaking feature\n\n${footer}`),
+      ];
+      const conventionalCommits = parseConventionalCommits(commits);
+      expect(conventionalCommits).lengthOf(1);
+      expect(conventionalCommits[0].breaking).to.be.true;
+      expect(conventionalCommits[0].notes).lengthOf(1);
+      expect(conventionalCommits[0].notes[0].text).to.equal(
+        'some breaking feature'
+      );
+    });
+  }
+
   it('can parse multiple commit messages from a single commit', async () => {
     const commits = [buildCommitFromFixture('multiple-messages')];
     const conventionalCommits = parseConventionalCommits(commits);
