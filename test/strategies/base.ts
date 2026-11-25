@@ -32,6 +32,7 @@ import {GenericJson} from '../../src/updaters/generic-json';
 import {Generic} from '../../src/updaters/generic';
 import {GenericXml} from '../../src/updaters/generic-xml';
 import {PomXml} from '../../src/updaters/java/pom-xml';
+import {PubspecYaml} from '../../src/updaters/dart/pubspec-yaml';
 import {GenericYaml} from '../../src/updaters/generic-yaml';
 import {GenericToml} from '../../src/updaters/generic-toml';
 
@@ -280,6 +281,23 @@ describe('Strategy', () => {
       expect(updates).to.be.an('array');
       assertHasUpdate(updates!, '0', Generic);
       assertHasUpdate(updates!, '3.xml', PomXml);
+    });
+    it('updates extra dart pubspec.yaml files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['0', {type: 'dart', path: '/pubspec.yaml'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, 'pubspec.yaml', PubspecYaml);
     });
     it('updates extra glob files', async () => {
       const findFilesStub = sandbox

@@ -291,3 +291,21 @@ configuration.
   ]
 }
 ```
+
+## Updating arbitrary Dart pubspec.yaml files
+
+For Dart/Flutter `pubspec.yaml` files, the `version` field is updated using the
+[PubspecYaml](/src/updaters/dart/pubspec-yaml.ts) updater. Unlike the generic
+`yaml` updater, this preserves and increments the Flutter build number 
+(the `+<build-number>` suffix, e.g. `1.2.3+4` becomes `1.2.4+5`).
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "dart",
+      "path": "path/to/pubspec.yaml"
+    }
+  ]
+}
+```
