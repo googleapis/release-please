@@ -34,7 +34,12 @@ class AddSnapshotVersionUpdate implements VersionUpdater {
     this.strategy = strategy;
   }
   bump(version: Version): Version {
-    const nextPatch = this.strategy.bump(version, [fakeCommit]);
+    // If the released version is a release candidate, we omit the fake commit approach and simply
+    // bump -rc(n) to -rc(n+1).
+    const [didBumpRc, bumpedRcVersion] = this.bumpReleaseCandidate(version);
+    const nextPatch = didBumpRc
+      ? bumpedRcVersion
+      : this.strategy.bump(version, [fakeCommit]);
     return new Version(
       nextPatch.major,
       nextPatch.minor,
@@ -42,6 +47,26 @@ class AddSnapshotVersionUpdate implements VersionUpdater {
       nextPatch.preRelease ? `${nextPatch.preRelease}-SNAPSHOT` : 'SNAPSHOT',
       nextPatch.build
     );
+  }
+  bumpReleaseCandidate(version: Version): [boolean, Version] {
+    const rcRegex = /rc(?<rcNumber>\d+)/;
+    if (!version.preRelease?.match(rcRegex)) {
+      return [false, version];
+    }
+    let preRelease = version.preRelease;
+    const match = preRelease.match(rcRegex)!;
+    const newRcNumber = parseInt(match.groups!.rcNumber) + 1;
+    preRelease = preRelease.replace(rcRegex, `rc${newRcNumber}`);
+    return [
+      true,
+      new Version(
+        version.major,
+        version.minor,
+        version.patch,
+        preRelease,
+        version.build
+      ),
+    ];
   }
 }
 

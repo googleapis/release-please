@@ -34,16 +34,17 @@ class RemoveSnapshotVersionUpdate implements VersionUpdater {
     this.parent = parent;
   }
   bump(version: Version): Version {
+    let preRelease = version.preRelease;
     if (this.parent) {
       version = this.parent.bump(version);
+      // reset the release candidate number after a bump
+      preRelease = version.preRelease?.replace(/rc\d+/, 'rc1');
     }
     return new Version(
       version.major,
       version.minor,
       version.patch,
-      version.preRelease
-        ? version.preRelease.replace(/-?SNAPSHOT/, '')
-        : undefined,
+      preRelease?.replace(/-?SNAPSHOT/, ''),
       version.build
     );
   }
@@ -63,17 +64,32 @@ export class JavaSnapshot implements VersioningStrategy {
     version: Version,
     commits: ConventionalCommit[]
   ): VersionUpdater {
+    // Determine the release type from the parent strategy based on the commits.
     const parentBump = this.strategy.determineReleaseType(version, commits);
+
+    // If the current version is a snapshot, we need to handle it specially.
     if (version.preRelease?.match(/-?SNAPSHOT/)) {
+      // To check if the only change is the snapshot removal, we simulate a patch bump.
+      // We create a fake commit that would cause a patch bump and see what version the parent strategy would return.
       const patchBumpVersion = this.strategy
         .determineReleaseType(version, [fakeCommit])
         .bump(version);
+
+      // We then get the version that the parent strategy would return with the actual commits.
       const parentBumpVersion = parentBump.bump(version);
+
+      // If the parent bump version is the same as the patch bump version,
+      // it means that the commits only triggered a patch bump.
+      // In this case, we only need to remove the "-SNAPSHOT" from the version.
       if (patchBumpVersion.toString() === parentBumpVersion.toString()) {
         return new RemoveSnapshotVersionUpdate();
       }
+      // If the parent bump version is different from the patch bump version,
+      // it means that the commits triggered a minor or major bump.
+      // In this case, we need to both apply the parent bump and remove the "-SNAPSHOT".
       return new RemoveSnapshotVersionUpdate(parentBump);
     }
+    // If the current version is not a snapshot, we just return the parent bump.
     return parentBump;
   }
 
