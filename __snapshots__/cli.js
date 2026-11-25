@@ -13,6 +13,14 @@ Options:
   --plugin                      load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
   --token                       GitHub token with repo write permissions
+  --scm                         The source code host. For forgejo, pass the full
+                                repository URL as --repo-url or set --api-url to
+                                https://<host>/api/v1
+                     [string] [choices: "github", "forgejo"] [default: "github"]
+  --wip-prefix                  Forgejo only: title prefix marking draft pull
+                                requests. Must be one of the instance's
+                                WORK_IN_PROGRESS_PREFIXES. Defaults to "WIP:"
+                                                                        [string]
   --api-url                     URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
   --graphql-url                 URL to use when making GraphQL requests
@@ -94,6 +102,13 @@ Options:
   --plugin              load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
   --token               GitHub token with repo write permissions
+  --scm                 The source code host. For forgejo, pass the full
+                        repository URL as --repo-url or set --api-url to
+                        https://<host>/api/v1
+                     [string] [choices: "github", "forgejo"] [default: "github"]
+  --wip-prefix          Forgejo only: title prefix marking draft pull requests.
+                        Must be one of the instance's WORK_IN_PROGRESS_PREFIXES.
+                        Defaults to "WIP:"                              [string]
   --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
   --graphql-url         URL to use when making GraphQL requests
@@ -140,6 +155,13 @@ Options:
   --plugin              load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
   --token               GitHub token with repo write permissions
+  --scm                 The source code host. For forgejo, pass the full
+                        repository URL as --repo-url or set --api-url to
+                        https://<host>/api/v1
+                     [string] [choices: "github", "forgejo"] [default: "github"]
+  --wip-prefix          Forgejo only: title prefix marking draft pull requests.
+                        Must be one of the instance's WORK_IN_PROGRESS_PREFIXES.
+                        Defaults to "WIP:"                              [string]
   --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
   --graphql-url         URL to use when making GraphQL requests
@@ -192,6 +214,14 @@ Options:
                                     release-please-<plugin-name>
                                                            [array] [default: []]
   --token                           GitHub token with repo write permissions
+  --scm                             The source code host. For forgejo, pass the
+                                    full repository URL as --repo-url or set
+                                    --api-url to https://<host>/api/v1
+                     [string] [choices: "github", "forgejo"] [default: "github"]
+  --wip-prefix                      Forgejo only: title prefix marking draft
+                                    pull requests. Must be one of the instance's
+                                    WORK_IN_PROGRESS_PREFIXES. Defaults to
+                                    "WIP:"                              [string]
   --api-url                         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
   --graphql-url                     URL to use when making GraphQL requests

@@ -1,0 +1,169 @@
+name: 'release-please-forgejo'
+description: 'Automated releases based on conventional commits for Forgejo (v16+)'
+inputs:
+  token:
+    description: 'Forgejo token used to open release PRs and create releases. Defaults to the automatic token; use a personal access token if release PRs/tags should trigger other workflows.'
+    required: false
+    default: ${{ github.token }}
+  release-type:
+    description: 'What type of release is this, e.g. node, python, simple. If unset, release-please-config.json is used.'
+    required: false
+    default: ''
+  path:
+    description: "Create a release from a path other than the repository's root"
+    required: false
+    default: ''
+  target-branch:
+    description: 'Branch to open the release PR against (detected by default)'
+    required: false
+    default: ''
+  config-file:
+    description: 'Path to the release-please config file'
+    required: false
+    default: ''
+  manifest-file:
+    description: 'Path to the release-please manifest file'
+    required: false
+    default: ''
+  repo-url:
+    description: 'Repository as <owner>/<repo>'
+    required: false
+    default: ${{ github.repository }}
+  api-url:
+    description: 'Forgejo API URL, e.g. https://git.example.com/api/v1'
+    required: false
+    default: ${{ github.api_url }}
+  include-component-in-tag:
+    description: 'If true, add prefix to tags and branches, allowing multiple libraries to be released from the same repository'
+    required: false
+    default: ''
+  skip-github-release:
+    description: 'If true, do not create releases'
+    required: false
+    default: 'false'
+  skip-github-pull-request:
+    description: 'If true, do not open release pull requests'
+    required: false
+    default: 'false'
+  skip-labeling:
+    description: 'If true, do not label the release PR'
+    required: false
+    default: 'false'
+  changelog-host:
+    description: 'The proto://host where commits live. Defaults to the Forgejo instance URL.'
+    required: false
+    default: ''
+  versioning-strategy:
+    description: 'The versioning strategy to use'
+    required: false
+    default: ''
+  release-as:
+    description: 'The version to release as'
+    required: false
+    default: ''
+  wip-prefix:
+    description: 'Title prefix marking draft release PRs (draft-pull-request: true). Must be one of the instance''s WORK_IN_PROGRESS_PREFIXES. Defaults to "WIP:".'
+    required: false
+    default: ''
+  node-version:
+    description: 'Node.js version to install with actions/setup-node. Set to an empty string to use the Node.js available on the runner (>= 22 required).'
+    required: false
+    default: '22'
+outputs:
+  releases_created:
+    description: 'true if any release was created'
+    value: ${{ steps.release-please.outputs.releases_created }}
+  paths_released:
+    description: 'JSON array of the paths that were released'
+    value: ${{ steps.release-please.outputs.paths_released }}
+  releases:
+    description: 'JSON array with all created releases (use this for monorepos)'
+    value: ${{ steps.release-please.outputs.releases }}
+  release_created:
+    description: 'true if a release was created for the root path'
+    value: ${{ steps.release-please.outputs.release_created }}
+  id:
+    description: 'Release id (root path)'
+    value: ${{ steps.release-please.outputs.id }}
+  name:
+    description: 'Release name (root path)'
+    value: ${{ steps.release-please.outputs.name }}
+  tag_name:
+    description: 'Release tag (root path)'
+    value: ${{ steps.release-please.outputs.tag_name }}
+  sha:
+    description: 'Released commit SHA (root path)'
+    value: ${{ steps.release-please.outputs.sha }}
+  body:
+    description: 'Release notes (root path)'
+    value: ${{ steps.release-please.outputs.body }}
+  html_url:
+    description: 'Release URL (root path)'
+    value: ${{ steps.release-please.outputs.html_url }}
+  upload_url:
+    description: 'Release asset upload URL (root path)'
+    value: ${{ steps.release-please.outputs.upload_url }}
+  draft:
+    description: 'true if the release is a draft (root path)'
+    value: ${{ steps.release-please.outputs.draft }}
+  version:
+    description: 'Released version (root path)'
+    value: ${{ steps.release-please.outputs.version }}
+  major:
+    description: 'Released major version (root path)'
+    value: ${{ steps.release-please.outputs.major }}
+  minor:
+    description: 'Released minor version (root path)'
+    value: ${{ steps.release-please.outputs.minor }}
+  patch:
+    description: 'Released patch version (root path)'
+    value: ${{ steps.release-please.outputs.patch }}
+  pr_number:
+    description: 'Number of the merged release PR (root path)'
+    value: ${{ steps.release-please.outputs.pr_number }}
+  prs_created:
+    description: 'true if any release PR was created or updated'
+    value: ${{ steps.release-please.outputs.prs_created }}
+  pr:
+    description: 'JSON of the first release PR created or updated'
+    value: ${{ steps.release-please.outputs.pr }}
+  prs:
+    description: 'JSON array of all release PRs created or updated'
+    value: ${{ steps.release-please.outputs.prs }}
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      if: inputs.node-version != ''
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+    - name: Build release-please
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        if [ ! -f build/src/bin/forgejo-action.js ]; then
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run compile
+        fi
+    - name: Run release-please
+      id: release-please
+      shell: bash
+      run: node "${{ github.action_path }}/build/src/bin/forgejo-action.js"
+      env:
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_RELEASE_TYPE: ${{ inputs.release-type }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_TARGET_BRANCH: ${{ inputs.target-branch }}
+        INPUT_CONFIG_FILE: ${{ inputs.config-file }}
+        INPUT_MANIFEST_FILE: ${{ inputs.manifest-file }}
+        INPUT_REPO_URL: ${{ inputs.repo-url }}
+        INPUT_API_URL: ${{ inputs.api-url }}
+        INPUT_INCLUDE_COMPONENT_IN_TAG: ${{ inputs.include-component-in-tag }}
+        INPUT_SKIP_GITHUB_RELEASE: ${{ inputs.skip-github-release }}
+        INPUT_SKIP_GITHUB_PULL_REQUEST: ${{ inputs.skip-github-pull-request }}
+        INPUT_SKIP_LABELING: ${{ inputs.skip-labeling }}
+        INPUT_CHANGELOG_HOST: ${{ inputs.changelog-host }}
+        INPUT_VERSIONING_STRATEGY: ${{ inputs.versioning-strategy }}
+        INPUT_RELEASE_AS: ${{ inputs.release-as }}
+        INPUT_WIP_PREFIX: ${{ inputs.wip-prefix }}
