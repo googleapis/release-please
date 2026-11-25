@@ -779,4 +779,78 @@ describe('NodeWorkspace plugin', () => {
       snapshotUpdate(updates, 'plugin1/package.json');
     });
   });
+
+  describe('with alwaysLinkLocal: false', () => {
+    const options = {alwaysLinkLocal: false, updatePeerDependencies: true};
+
+    async function runWithNode1Release(
+      version: string,
+      paths: string[]
+    ): Promise<Update[]> {
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: paths.map(path => `${path}/package.json`),
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        Object.fromEntries(paths.map(path => [path, {releaseType: 'node'}])),
+        options
+      );
+      const newCandidates = await plugin.run([
+        buildMockCandidatePullRequest('node1', 'node', version, {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+      ]);
+      expect(newCandidates).lengthOf(1);
+      return newCandidates[0].pullRequest.updates;
+    }
+
+    it('leaves out a dependent whose range admits the new version', async () => {
+      const updates = await runWithNode1Release('3.3.4', ['node1', 'plugin1']);
+      assertHasVersionUpdate(updates, 'node1/package.json', '3.3.4');
+      assertNoHasUpdate(updates, 'plugin1/package.json');
+    });
+
+    it('releases a dependent whose range does not admit the new version', async () => {
+      const updates = await runWithNode1Release('4.0.0', ['node1', 'plugin1']);
+      assertHasVersionUpdate(updates, 'plugin1/package.json', '4.4.5');
+      const update = assertHasUpdate(updates, 'plugin1/package.json');
+      const content = JSON.parse(
+        update.updater.updateContent(
+          readFixture(fixturesPath, 'plugin1/package.json')
+        )
+      );
+      expect(content.peerDependencies['@here/pkgA']).to.eql('^4.0.0');
+    });
+
+    it('ignores a workspace devDependency', async () => {
+      const patch = await runWithNode1Release('3.3.4', ['node1', 'plugin2']);
+      assertNoHasUpdate(patch, 'plugin2/package.json');
+      sandbox.restore();
+      const major = await runWithNode1Release('4.0.0', ['node1', 'plugin2']);
+      assertHasVersionUpdate(major, 'plugin2/package.json', '1.2.4');
+    });
+
+    it('resolves the workspace protocol and walks exact pins', async () => {
+      // node2 pins node1 exactly and node3 pins node2 exactly, so both follow.
+      // node5 declares `workspace:^`, published as `^3.3.3`, which admits 3.3.4.
+      const updates = await runWithNode1Release('3.3.4', [
+        'node1',
+        'node2',
+        'node3',
+        'node5',
+      ]);
+      assertHasVersionUpdate(updates, 'node2/package.json', '2.2.3');
+      assertHasVersionUpdate(updates, 'node3/package.json', '1.1.2');
+      assertNoHasUpdate(updates, 'node5/package.json');
+    });
+  });
 });
