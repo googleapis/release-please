@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // `module: node16` keeps the dynamic `import()` calls of the ESM loaders
+    // intact; the default CommonJS emit downlevels them to `require()`, which
+    // cannot load an ESM-only package. Only the loader module is compiled
+    // here and it has no imports of its own, so the stricter module
+    // resolution cannot affect the rest of the package.
+    "module": "node16",
+    "moduleResolution": "node16",
+    "skipLibCheck": true
+  },
+  "include": ["typings/**/*.d.ts", "src/util/import-esm.ts"]
+}

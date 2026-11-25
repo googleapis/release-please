@@ -11,13 +11,12 @@
     "clean": "gts clean",
     "prepare": "npm run compile",
     "lint": "gts check",
-    "compile": "tsc -p .",
+    "compile": "tsc -p . && tsc -p tsconfig.esm.json",
     "fix": "gts fix",
     "pretest": "npm run compile"
   },
   "files": [
     "build/src",
-    "templates",
     "!build/src/**/*.map",
     "schemas"
   ],
@@ -78,8 +77,8 @@
     "@xmldom/xmldom": "^0.8.4",
     "async-retry": "^1.3.3",
     "chalk": "^4.0.0",
-    "conventional-changelog-conventionalcommits": "^6.0.0",
-    "conventional-changelog-writer": "^6.0.0",
+    "conventional-changelog-conventionalcommits": "^10.4.1",
+    "conventional-changelog-writer": "^9.3.0",
     "conventional-commits-filter": "^3.0.0",
     "detect-indent": "^6.1.0",
     "diff": "^8.0.3",

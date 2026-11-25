@@ -14,6 +14,11 @@
 
 import {Scm} from '../scm';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
+import {
+  CommitPartial,
+  HeaderPartial,
+  MainTemplate,
+} from '../changelog-notes/templates';
 import {GitHubChangelogNotes} from '../changelog-notes/github';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
 import {ConfigurationError} from '../errors';
@@ -24,9 +29,9 @@ export interface ChangelogNotesFactoryOptions {
   type: ChangelogNotesType;
   github: Scm;
   changelogSections?: ChangelogSection[];
-  commitPartial?: string;
-  headerPartial?: string;
-  mainTemplate?: string;
+  commitPartial?: CommitPartial;
+  headerPartial?: HeaderPartial;
+  mainTemplate?: MainTemplate;
 }
 
 export type ChangelogNotesBuilder = (
