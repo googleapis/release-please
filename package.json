@@ -108,6 +108,12 @@
     "js-yaml": "^4.3.2",
     "brace-expansion": "^5.0.8",
     "debug": "^4.3.4",
-    "minimatch": "^11.0.1"
+    "minimatch": "^11.0.1",
+    "mocha": {
+      "minimatch": {
+        ".": "^5.1.9",
+        "brace-expansion": "^2.1.7"
+      }
+    }
   }
 }
