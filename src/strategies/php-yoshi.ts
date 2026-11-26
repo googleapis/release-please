@@ -18,7 +18,7 @@ import {Changelog} from '../updaters/changelog';
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
 import {PHPClientVersion} from '../updaters/php/php-client-version';
 import {VersionsMap, Version} from '../version';
-import {Commit, parseConventionalCommits} from '../commit';
+import {Commit, ConventionalCommit, parseConventionalCommits} from '../commit';
 import {CommitSplit} from '../util/commit-split';
 import {DefaultUpdater} from '../updaters/default';
 import {Release} from '../release';
@@ -95,8 +95,7 @@ export class PHPYoshi extends BaseStrategy {
           conventionalCommits
         )
       : this.initialReleaseVersion();
-    const cs = new CommitSplit();
-    const splitCommits = cs.split(conventionalCommits);
+    const splitCommits = this.splitCommits(conventionalCommits);
     const topLevelDirectories = Object.keys(splitCommits).sort();
     const versionsMap: VersionsMap = new Map();
     const directoryVersionContents: Record<string, ComponentInfo> = {};
@@ -225,6 +224,13 @@ export class PHPYoshi extends BaseStrategy {
       version: newVersion,
       draft: draft ?? false,
     };
+  }
+
+  protected splitCommits(
+    commits: ConventionalCommit[]
+  ): Record<string, ConventionalCommit[]> {
+    const cs = new CommitSplit();
+    return cs.split(commits);
   }
 
   protected async parsePullRequestBody(
