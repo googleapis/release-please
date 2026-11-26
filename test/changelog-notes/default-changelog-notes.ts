@@ -374,6 +374,84 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.not.include('Test User');
         safeSnapshot(notes);
       });
+      describe('with a known pull request', () => {
+        function commitWithPullRequest(message: string, number?: number) {
+          const commit = buildMockCommit(message);
+          if (number !== undefined) {
+            commit.pullRequest = {
+              headBranchName: 'fix-branch',
+              baseBranchName: 'main',
+              number,
+              title: message.split('\n')[0],
+              body: '',
+              labels: [],
+              files: [],
+            };
+          }
+          return parseConventionalCommits([commit]);
+        }
+        const repoUrl = 'https://github.com/googleapis/java-asset';
+
+        it('links the pull request in the subject as a pull request', async () => {
+          const notes = await new DefaultChangelogNotes().buildNotes(
+            commitWithPullRequest('fix: some bugfix (#153)', 153),
+            notesOptions
+          );
+          expect(notes).to.include(`some bugfix ([#153](${repoUrl}/pull/153))`);
+          expect(notes).to.not.include('/issues/153');
+        });
+        it('keeps referenced issues as issues', async () => {
+          const notes = await new DefaultChangelogNotes().buildNotes(
+            commitWithPullRequest(
+              'fix: some bugfix (#153)\n\nCloses #152\nRefs #151',
+              153
+            ),
+            notesOptions
+          );
+          expect(notes).to.include(`([#153](${repoUrl}/pull/153))`);
+          expect(notes).to.include(`[#152](${repoUrl}/issues/152)`);
+          expect(notes).to.include(`[#151](${repoUrl}/issues/151)`);
+        });
+        it('links other numbers in the subject as issues', async () => {
+          const notes = await new DefaultChangelogNotes().buildNotes(
+            commitWithPullRequest('fix: handle #12 properly (#34)', 34),
+            notesOptions
+          );
+          expect(notes).to.include(
+            `handle [#12](${repoUrl}/issues/12) properly ([#34](${repoUrl}/pull/34))`
+          );
+        });
+        it('links issues when the pull request is unknown', async () => {
+          const notes = await new DefaultChangelogNotes().buildNotes(
+            commitWithPullRequest('fix: some bugfix (#153)'),
+            notesOptions
+          );
+          expect(notes).to.include(
+            `some bugfix ([#153](${repoUrl}/issues/153))`
+          );
+        });
+        it('uses a custom host', async () => {
+          const notes = await new DefaultChangelogNotes().buildNotes(
+            commitWithPullRequest('fix: some bugfix (#153)', 153),
+            {...notesOptions, host: 'https://github.example.com'}
+          );
+          expect(notes).to.include(
+            '([#153](https://github.example.com/googleapis/java-asset/pull/153))'
+          );
+          expect(notes).to.not.include('/issues/153');
+        });
+        it('links the pull request in a BREAKING CHANGE note', async () => {
+          const notes = await new DefaultChangelogNotes().buildNotes(
+            commitWithPullRequest('fix!: drop the old option (#153)', 153),
+            notesOptions
+          );
+          expect(notes).to.include('### ⚠ BREAKING CHANGES');
+          expect(notes).to.include(
+            `* drop the old option ([#153](${repoUrl}/pull/153))`
+          );
+          expect(notes).to.not.include('/issues/153');
+        });
+      });
       // it('ignores reverted commits', async () => {
       //   const commits = [buildCommitFromFixture('multiple-messages')];
       //   const changelogNotes = new DefaultChangelogNotes();
