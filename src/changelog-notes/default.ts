@@ -76,6 +76,25 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       this.headerPartial || preset.writerOpts.headerPartial;
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
+    // The preset links every `#N` in a subject as an issue. When the commit's
+    // pull request is known, link that number as a pull request instead.
+    const transform = preset.writerOpts.transform;
+    preset.writerOpts.transform = (
+      commit: {subject?: string; pullRequestNumber?: number},
+      writerContext: object
+    ) => {
+      const transformed = transform(commit, writerContext);
+      if (transformed?.subject && commit.pullRequestNumber !== undefined) {
+        transformed.subject = linkPullRequest(
+          transformed.subject,
+          commit.pullRequestNumber,
+          context.host,
+          context.owner,
+          context.repository
+        );
+      }
+      return transformed;
+    };
     const changelogCommits = commits.map(commit => {
       const notes = commit.notes
         .filter(note => note.title === 'BREAKING CHANGE')
@@ -84,7 +103,8 @@ export class DefaultChangelogNotes implements ChangelogNotes {
             note,
             context.host,
             context.owner,
-            context.repository
+            context.repository,
+            commit.pullRequest?.number
           )
         );
       let subject = htmlEscape(commit.bareMessage);
@@ -111,6 +131,7 @@ export class DefaultChangelogNotes implements ChangelogNotes {
           .map(note => `Release-As: ${note.text}`)
           .join('\n'),
         hash: commit.sha,
+        pullRequestNumber: commit.pullRequest?.number,
       };
     });
 
@@ -124,13 +145,26 @@ function replaceIssueLink(
   note: Note,
   host: string,
   owner: string,
-  repo: string
+  repo: string,
+  pullRequestNumber?: number
 ): Note {
-  note.text = note.text.replace(
-    /\(#(\d+)\)/,
-    `([#$1](${host}/${owner}/${repo}/issues/$1))`
-  );
+  note.text = note.text.replace(/\(#(\d+)\)/, (_match, number) => {
+    const path = Number(number) === pullRequestNumber ? 'pull' : 'issues';
+    return `([#${number}](${host}/${owner}/${repo}/${path}/${number}))`;
+  });
   return note;
+}
+
+function linkPullRequest(
+  subject: string,
+  pullRequestNumber: number,
+  host: string,
+  owner: string,
+  repo: string
+): string {
+  const issueLink = `[#${pullRequestNumber}](${host}/${owner}/${repo}/issues/${pullRequestNumber})`;
+  const pullLink = `[#${pullRequestNumber}](${host}/${owner}/${repo}/pull/${pullRequestNumber})`;
+  return subject.split(issueLink).join(pullLink);
 }
 
 function htmlEscape(message: string): string {
