@@ -964,7 +964,7 @@ export class LocalGitHub implements Scm {
   }
 }
 
-function globToRegex(glob: string): RegExp {
+export function globToRegex(glob: string): RegExp {
   let reg = '';
   let i = 0;
   while (i < glob.length) {

@@ -33,6 +33,7 @@ import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
 import {Scm} from '../scm';
 import {LocalGitHub} from '../local-github';
+import {Gitea} from '../gitea';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -55,6 +56,7 @@ interface GitHubArgs {
   local?: boolean;
   localPath?: string;
   localCloneDepth?: number;
+  giteaUrl?: string;
 
   // deprecated in favor of targetBranch
   defaultBranch?: string;
@@ -206,6 +208,11 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
     .option('local-clone-depth', {
       describe: 'Depth of local clone. Defaults to the entire repo.',
       type: 'number',
+    })
+    .option('gitea-url', {
+      describe:
+        'Use the Gitea/Forgejo server at this URL (e.g. https://gitea.example.com) instead of GitHub',
+      type: 'string',
     })
     .middleware(_argv => {
       const argv = _argv as GitHubArgs;
@@ -839,6 +846,16 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
 
 async function buildGitHub(argv: GitHubArgs): Promise<Scm> {
   const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
+  if (argv.giteaUrl) {
+    return await Gitea.create({
+      owner,
+      repo,
+      token: argv.token,
+      apiUrl: argv.giteaUrl,
+      localRepoPath: argv.localPath,
+      cloneDepth: argv.localCloneDepth,
+    });
+  }
   if (argv.local) {
     const localGitHub = await LocalGitHub.create({
       owner,

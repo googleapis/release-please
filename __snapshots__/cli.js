@@ -31,6 +31,9 @@ Options:
                                 a temporary directory.                  [string]
   --local-clone-depth           Depth of local clone. Defaults to the entire
                                 repo.                                   [number]
+  --gitea-url                   Use the Gitea/Forgejo server at this URL (e.g.
+                                https://gitea.example.com) instead of GitHub
+                                                                        [string]
   --include-v-in-tags           include "v" in tag versions
                                                        [boolean] [default: true]
   --monorepo-tags               include library name in tags and release
@@ -109,6 +112,8 @@ Options:
                         temporary directory.                            [string]
   --local-clone-depth   Depth of local clone. Defaults to the entire repo.
                                                                         [number]
+  --gitea-url           Use the Gitea/Forgejo server at this URL (e.g.
+                        https://gitea.example.com) instead of GitHub    [string]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
   --skip-labeling       skip application of labels to pull requests
@@ -155,6 +160,8 @@ Options:
                         temporary directory.                            [string]
   --local-clone-depth   Depth of local clone. Defaults to the entire repo.
                                                                         [number]
+  --gitea-url           Use the Gitea/Forgejo server at this URL (e.g.
+                        https://gitea.example.com) instead of GitHub    [string]
   --draft               mark release as a draft. no tag is created but tag_name
                         and target_commitish are associated with the release for
                         future tag creation upon "un-drafting" the release.
@@ -210,6 +217,9 @@ Options:
                                     uses a temporary directory.         [string]
   --local-clone-depth               Depth of local clone. Defaults to the entire
                                     repo.                               [number]
+  --gitea-url                       Use the Gitea/Forgejo server at this URL
+                                    (e.g. https://gitea.example.com) instead of
+                                    GitHub                              [string]
   --release-as                      override the semantically determined release
                                     version                             [string]
   --bump-minor-pre-major            should we bump the semver minor prior to the
