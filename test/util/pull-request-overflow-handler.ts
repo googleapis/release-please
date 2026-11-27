@@ -26,6 +26,7 @@ import {
 } from '../../src/util/pull-request-overflow-handler';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import {PullRequestTitle} from '../../src/util/pull-request-title';
+import {FileNotFoundError} from '../../src/errors';
 import {buildGitHubFileRaw} from '../helpers';
 
 nock.disableNetConnect();
@@ -128,6 +129,57 @@ describe('FilePullRequestOverflowHandler', () => {
       });
       expect(pullRequestBody).to.not.be.undefined;
       snapshot(pullRequestBody!.toString());
+    });
+    it('returns an empty body when the overflow file is missing', async () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './overflow.txt'),
+        'utf8'
+      );
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('release-notes.md', 'my-head-branch--release-notes')
+        .rejects(new FileNotFoundError('release-notes.md'));
+      const pullRequestBody = await overflowHandler.parseOverflow({
+        title: 'chore: release main',
+        body,
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 123,
+        labels: [],
+        files: [],
+      });
+      expect(pullRequestBody).to.not.be.undefined;
+      // An empty body is what lets the caller match this pull request by its
+      // head branch and rewrite the missing file.
+      expect(pullRequestBody!.releaseData).to.eql([]);
+      expect(pullRequestBody!.toString()).to.not.eql(body);
+    });
+    it('rethrows other fetch errors', async () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './overflow.txt'),
+        'utf8'
+      );
+      const failure = new Error('API rate limit exceeded');
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('release-notes.md', 'my-head-branch--release-notes')
+        .rejects(failure);
+      const pullRequest = {
+        title: 'chore: release main',
+        body,
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 123,
+        labels: [],
+        files: [],
+      };
+      let error: Error | undefined;
+      try {
+        await overflowHandler.parseOverflow(pullRequest);
+      } catch (e) {
+        error = e as Error;
+      }
+      expect(error?.message).to.eql(failure.message);
     });
   });
 });

@@ -18,6 +18,7 @@ import {PullRequest} from '../pull-request';
 import {Logger, logger as defaultLogger} from './logger';
 import {URL} from 'url';
 import {ReleasePullRequest} from '../release-pull-request';
+import {FileNotFoundError} from '../errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 const OVERFLOW_MESSAGE =
@@ -114,11 +115,25 @@ export class FilePullRequestOverflowHandler
       const url = new URL(match.groups.url);
       const pathMatch = url.pathname.match(FILE_PATH_REGEX);
       if (pathMatch?.groups?.branchName) {
-        const fileContents = await this.github.getFileContentsOnBranch(
-          RELEASE_NOTES_FILENAME,
-          pathMatch.groups.branchName
-        );
-        return PullRequestBody.parse(fileContents.parsedContent);
+        try {
+          const fileContents = await this.github.getFileContentsOnBranch(
+            RELEASE_NOTES_FILENAME,
+            pathMatch.groups.branchName
+          );
+          return PullRequestBody.parse(fileContents.parsedContent);
+        } catch (e) {
+          if (!(e instanceof FileNotFoundError)) throw e;
+          // The notes branch exists but the file is gone, e.g. the branch was
+          // reset after a failed write. The overflow body cannot be parsed
+          // back into releases, so return an empty body instead: the caller
+          // keeps matching this pull request by its head branch and rewrites
+          // the missing file on the same run.
+          this.logger.warn(
+            `Could not find ${RELEASE_NOTES_FILENAME} on branch ` +
+              `${pathMatch.groups.branchName}, assuming empty release notes`
+          );
+          return new PullRequestBody([]);
+        }
       }
       this.logger.warn(`Could not parse branch from ${match.groups.url}`);
       return PullRequestBody.parse(pullRequest.body, this.logger);
